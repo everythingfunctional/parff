@@ -20,6 +20,9 @@ module parff
         procedure, public :: numResults
     end type ParseResults_t
 
+    type, public, extends(ParsedValue_t) :: NothingParsedValue_t
+    end type NothingParsedValue_t
+
     type, public, extends(ParsedValue_t) :: CharacterParsedValue_t
         character(len=1) :: value_
     end type CharacterParsedValue_t
@@ -55,9 +58,12 @@ module parff
         module procedure parseStringS
     end interface parseString
 
+    type(NothingParsedValue_t), parameter, public :: NOTHING = NothingParsedValue_t()
+
     public :: &
             operator(.or.), &
             parseCharacter, &
+            parseNothing, &
             ParseResult, &
             ParseResults, &
             parseString, &
@@ -117,6 +123,15 @@ contains
             end if
         end if
     end function parseCharacter
+
+    function parseNothing(string) result(results)
+        use iso_varying_string, only: VARYING_STRING
+
+        type(VARYING_STRING), intent(in) :: string
+        type(ParseResults_t) :: results
+
+        results = ParseResults(ParseResult(NOTHING, string))
+    end function parseNothing
 
     function ParseResult(parsed_value, remaining)
         use iso_varying_string, only: VARYING_STRING
