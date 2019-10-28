@@ -24,6 +24,10 @@ module parff
         character(len=1) :: value_
     end type CharacterParsedValue_t
 
+    type, public, extends(ParsedValue_t) :: StringParsedValue_t
+        type(VARYING_STRING) :: value_
+    end type StringParsedValue_t
+
     abstract interface
         function parser(string) result(results)
             use iso_varying_string, only: VARYING_STRING
@@ -37,7 +41,12 @@ module parff
         module procedure ParseResultsSingle
     end interface ParseResults
 
-    public :: parseCharacter, ParseResult, ParseResults
+    interface parseString
+        module procedure parseStringC
+        module procedure parseStringS
+    end interface parseString
+
+    public :: parseCharacter, ParseResult, ParseResults, parseString
 contains
     function numResults(self)
         class(ParseResults_t), intent(in) :: self
@@ -86,4 +95,33 @@ contains
         ParseResultsSingle%results(1) = parse_result
         ParseResultsSingle%num_results = 1
     end function ParseResultsSingle
+
+    function parseStringC(expected, string) result(results)
+        use iso_varying_string, only: VARYING_STRING, var_str
+
+        character(len=*), intent(in) :: expected
+        type(VARYING_STRING), intent(in) :: string
+        type(ParseResults_t) :: results
+
+        results = parseString(var_str(expected), string)
+    end function parseStringC
+
+    function parseStringS(expected, string) result(results)
+        use iso_varying_string, only: &
+                VARYING_STRING, operator(==), extract, len
+
+        type(VARYING_STRING), intent(in) :: expected
+        type(VARYING_STRING), intent(in) :: string
+        type(ParseResults_t) :: results
+
+        type(StringParsedValue_t) :: parsed_value
+        type(ParseResult_t) :: the_result
+
+        if (expected == extract(string, 1, len(expected))) then
+            parsed_value%value_ = expected
+            the_result = ParseResult( &
+                    parsed_value, extract(string, len(expected) + 1))
+            results = ParseResults(the_result)
+        end if
+    end function parseStringS
 end module parff

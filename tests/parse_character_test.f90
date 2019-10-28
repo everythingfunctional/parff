@@ -26,7 +26,7 @@ contains
     function checkParseFirstCharacter() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: CharacterParsedValue_t, ParseResults_t, parseCharacter
-        use Vegetables_m, only: Result_t, assertEquals
+        use Vegetables_m, only: Result_t, assertEquals, fail
 
         type(Result_t) :: result_
 
@@ -40,6 +40,8 @@ contains
             select type (the_character => parse_results%results(1)%parsed_value)
             type is (CharacterParsedValue_t)
                 result_ = result_.and.assertEquals("F", the_character%value_)
+            class default
+                result_ = result_.and.fail("Didn't the character back")
             end select
         end if
     end function checkParseFirstCharacter
