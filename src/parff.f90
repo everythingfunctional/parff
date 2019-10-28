@@ -37,6 +37,10 @@ module parff
         end function parser
     end interface
 
+    interface operator(.or.)
+        module procedure orParse
+    end interface operator(.or.)
+
     interface ParseResults
         module procedure ParseResultsSingle
     end interface ParseResults
@@ -46,7 +50,12 @@ module parff
         module procedure parseStringS
     end interface parseString
 
-    public :: parseCharacter, ParseResult, ParseResults, parseString
+    public :: &
+            operator(.or.), &
+            parseCharacter, &
+            ParseResult, &
+            ParseResults, &
+            parseString
 contains
     function numResults(self)
         class(ParseResults_t), intent(in) :: self
@@ -54,6 +63,33 @@ contains
 
         numResults = self%num_results
     end function numResults
+
+    function orParse(lhs, rhs) result(combined)
+        type(ParseResults_t), intent(in) :: lhs
+        type(ParseResults_t), intent(in) :: rhs
+        type(ParseResults_t) :: combined
+
+        integer :: i
+
+        if (lhs%num_results > 0) then
+            if (rhs%num_results > 0) then
+                combined%num_results = lhs%num_results + rhs%num_results
+                allocate(combined%results(combined%num_results))
+                do i = 1, lhs%num_results
+                    combined%results(i) = lhs%results(i)
+                end do
+                do i = 1, rhs%num_results
+                    combined%results(i + lhs%num_results) = rhs%results(i)
+                end do
+            else
+                combined = lhs
+            end if
+        else
+            if (rhs%num_results > 0) then
+                combined = rhs
+            end if
+        end if
+    end function orParse
 
     function parseCharacter(char_, string) result(results)
         use iso_varying_string, only: VARYING_STRING, len
