@@ -28,6 +28,11 @@ module parff
         type(VARYING_STRING) :: value_
     end type StringParsedValue_t
 
+    type, public, extends(ParsedValue_t) :: CombinedParsedValue_t
+        class(ParsedValue_t), allocatable :: first
+        class(ParsedValue_t), allocatable :: second
+    end type CombinedParsedValue_t
+
     abstract interface
         function parser(string) result(results)
             use iso_varying_string, only: VARYING_STRING
@@ -55,7 +60,8 @@ module parff
             parseCharacter, &
             ParseResult, &
             ParseResults, &
-            parseString
+            parseString, &
+            thenParse
 contains
     function numResults(self)
         class(ParseResults_t), intent(in) :: self
@@ -160,4 +166,59 @@ contains
             results = ParseResults(the_result)
         end if
     end function parseStringS
+
+    function thenParse(previous_results, parse) result(results)
+        type(ParseResults_t), intent(in) :: previous_results
+        procedure(parser) :: parse
+        type(ParseResults_t) :: results
+
+        integer :: i
+        type(ParseResults_t) :: intermediate_results
+        type(ParseResults_t) :: temp
+
+        do i = 1, previous_results%num_results
+            intermediate_results = parse(previous_results%results(i)%remaining)
+            if (intermediate_results%num_results > 0) then
+                temp = results
+                results = addIntermediateResults( &
+                        previous_results%results(i)%parsed_value, &
+                        temp, &
+                        intermediate_results)
+            end if
+        end do
+    contains
+        function addIntermediateResults( &
+                prior_result, past_parses, new_parses) result(all_parses)
+            class(ParsedValue_t), intent(in) :: prior_result
+            type(ParseResults_t), intent(in) :: past_parses
+            type(ParseResults_t), intent(in) :: new_parses
+            type(ParseResults_t) :: all_parses
+
+            type(CombinedParsedValue_t) :: combined_values
+            integer :: j
+
+            if (past_parses%num_results == 0) then
+                all_parses%num_results = new_parses%num_results
+                allocate(all_parses%results(all_parses%num_results))
+                do j = 1, new_parses%num_results
+                    allocate(combined_values%first, source = prior_result)
+                    allocate(combined_values%second, source = new_parses%results(j)%parsed_value)
+                    all_parses%results(j) = ParseResult( &
+                            combined_values, new_parses%results(j)%remaining)
+                end do
+            else
+                all_parses%num_results = past_parses%num_results + new_parses%num_results
+                allocate(all_parses%results(all_parses%num_results))
+                do j = 1, past_parses%num_results
+                    all_parses%results(j) = past_parses%results(j)
+                end do
+                do j = 1, new_parses%num_results
+                    allocate(combined_values%first, source = prior_result)
+                    allocate(combined_values%second, source = new_parses%results(j)%parsed_value)
+                    all_parses%results(j + past_parses%num_results) = &
+                            ParseResult(combined_values, new_parses%results(j)%remaining)
+                end do
+            end if
+        end function addIntermediateResults
+    end function thenParse
 end module parff
