@@ -31,7 +31,8 @@ module parff
         logical :: empty
         logical :: ok
         class(ParsedValue_t), allocatable :: parsed
-        type(State_t) :: state
+        type(VARYING_STRING) :: remaining
+        type(Position_t) :: position
         type(Message_t) :: message
     end type ParseResult_t
     !
@@ -77,8 +78,9 @@ contains
         type(State_t), intent(in) :: the_state
         type(ParseResult_t) :: result_
 
-        type(ParsedCharacter_t) :: the_character
+        type(Position_t) :: new_position
         type(VARYING_STRING) :: remaining
+        type(ParsedCharacter_t) :: the_character
 
         associate(a => the_state)
         end associate
@@ -88,8 +90,9 @@ contains
         the_character%value_ = the_char
         allocate(result_%parsed, source = the_character)
         remaining = withoutFirstCharacter(the_state%input)
-        result_%state = State( &
-                remaining, nextPosition(the_char, the_state%position))
+        new_position = nextPosition(the_char, the_state%position)
+        result_%remaining = remaining
+        result_%position = new_position
     end function charP
 
     function newPosition()

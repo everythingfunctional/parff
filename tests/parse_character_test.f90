@@ -37,7 +37,7 @@ contains
             type is (ParsedCharacter_t)
                 result_ = &
                         assertEquals("F", the_char%value_) &
-                        .and.assertEquals("irst", parse_result%state%input)
+                        .and.assertEquals("irst", parse_result%remaining)
             class default
                 result_ = fail("Didn't get a character back")
             end select
