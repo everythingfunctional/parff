@@ -38,30 +38,18 @@ module parff
         type(VARYING_STRING) :: remaining
         type(Position_t) :: position
     end type ParseResult_t
-    !
-    ! type, public :: Reply_t
-    !     logical :: ok
-    !     class(ParsedValue_t), allocatable :: parsed
-    !     type(State_t) :: state
-    !     type(Message_t) :: message
-    ! end type Reply_t
-    !
-    ! type, public :: Consumed_t
-    !     logical :: empty
-    !     type(Reply_t) :: reply
-    ! end type Consumed_t
-    !
-    ! abstract interface
+
+    abstract interface
     !     function match(char_) result(matches)
     !         character(len=1), intent(in) :: char_
     !         logical :: matches
     !     end function match
     !
-    !     function parser(state) result(consumed)
-    !         import Consumed_t, State_t
-    !         type(State_t), intent(in) :: state
-    !         type(Consumed_t) :: consumed
-    !     end function parser
+        function parser(state_) result(result_)
+            import ParseResult_t, State_t
+            type(State_t), intent(in) :: state_
+            type(ParseResult_t) :: result_
+        end function parser
 
         ! function thenParser(previous, state) result(consumed)
         !     import Consumed_t, ParsedValue_t, State_t
@@ -69,52 +57,56 @@ module parff
         !     type(State_t), intent(in) :: state
         !     type(Consumed_t) :: consumed
         ! end function thenParser
-!     end interface
-!
+    end interface
+
     public :: charP, newState
 contains
-    function charP(the_char, the_state) result(result_)
+    function charP(the_char, the_state) result(the_result)
         use iso_varying_string, only: VARYING_STRING, len, var_str
         use strff, only: firstCharacter, withoutFirstCharacter
 
         character(len=1), intent(in) :: the_char
         type(State_t), intent(in) :: the_state
-        type(ParseResult_t) :: result_
+        type(ParseResult_t) :: the_result
 
-        type(VARYING_STRING) :: expected
-        character(len=1) :: first_character
-        type(Position_t) :: new_position
-        type(VARYING_STRING) :: remaining
-        type(ParsedCharacter_t) :: the_character
+        the_result = withLabel(var_str(the_char), theParser, the_state)
+    contains
+        function theParser(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParseResult_t) :: result_
 
-        if (len(the_state%input) > 0) then
-            first_character = firstCharacter(the_state%input)
-            if (first_character == the_char) then
-                the_character%value_ = the_char
-                remaining = withoutFirstCharacter(the_state%input)
-                new_position = nextPosition(the_char, the_state%position)
-                result_ = ConsumedOk( &
-                        the_character, &
-                        remaining, &
-                        new_position, &
-                        Message( &
-                                the_state%position, &
-                                var_str(""), &
-                                [VARYING_STRING::]))
+            character(len=1) :: first_character
+            type(Position_t) :: new_position
+            type(VARYING_STRING) :: remaining
+            type(ParsedCharacter_t) :: the_character
+
+            if (len(state_%input) > 0) then
+                first_character = firstCharacter(state_%input)
+                if (first_character == the_char) then
+                    the_character%value_ = the_char
+                    remaining = withoutFirstCharacter(state_%input)
+                    new_position = nextPosition(the_char, state_%position)
+                    result_ = ConsumedOk( &
+                            the_character, &
+                            remaining, &
+                            new_position, &
+                            Message( &
+                                    state_%position, &
+                                    var_str(""), &
+                                    [VARYING_STRING::]))
+                else
+                    result_ = EmptyError(Message( &
+                            state_%position, &
+                            var_str(first_character), &
+                            [VARYING_STRING::]))
+                end if
             else
-                expected = var_str(the_char)
                 result_ = EmptyError(Message( &
-                        the_state%position, &
-                        var_str(first_character), &
-                        [expected]))
+                        state_%position, &
+                        var_str("end of input"), &
+                        [VARYING_STRING::]))
             end if
-        else
-            expected = var_str(the_char)
-            result_ = EmptyError(Message( &
-                    the_state%position, &
-                    var_str("end of input"), &
-                    [expected]))
-        end if
+        end function theParser
     end function charP
 
     function ConsumedOk(parsed, remaining, position, message_)
@@ -140,6 +132,31 @@ contains
         EmptyError%ok = .false.
         EmptyError%message = message_
     end function EmptyError
+
+    function EmptyOk(parsed, remaining, position, message_)
+        class(ParsedValue_t), intent(in) :: parsed
+        type(VARYING_STRING), intent(in) :: remaining
+        type(Position_t), intent(in) :: position
+        type(Message_t), intent(in) :: message_
+        type(ParseResult_t) :: EmptyOk
+
+        EmptyOk%empty = .true.
+        EmptyOk%ok = .true.
+        allocate(EmptyOk%parsed, source = parsed)
+        EmptyOk%remaining = remaining
+        EmptyOk%position = position
+        EmptyOk%message = message_
+    end function EmptyOk
+
+    function expect(message_, label) result(new_message)
+        use iso_varying_string, only: VARYING_STRING
+
+        type(Message_t), intent(in) :: message_
+        type(VARYING_STRING), intent(in) :: label
+        type(Message_t) :: new_message
+
+        new_message = Message(message_%position, message_%found, [label])
+    end function expect
 
     function Message(position, found, expected)
         use iso_varying_string, only: VARYING_STRING
@@ -296,16 +313,6 @@ contains
     !     Error%message = message_
     ! end function Error
     !
-    ! function expect(message_, label) result(new_message)
-    !     use iso_varying_string, only: VARYING_STRING
-    !
-    !     type(Message_t), intent(in) :: message_
-    !     type(VARYING_STRING), intent(in) :: label
-    !     type(Message_t) :: new_message
-    !
-    !     new_message = Message(message_%position, message_%found, [label])
-    ! end function expect
-    !
     ! function Ok(parsed, state_, message_)
     !     class(ParsedValue_t), intent(in) :: parsed
     !     type(State_t), intent(in) :: state_
@@ -412,34 +419,32 @@ contains
     ! end function sequence
     !
     !
-    ! function withLabel(label, parse, state_) result(consumed_)
-    !     use iso_varying_string, only: VARYING_STRING
-    !
-    !     type(VARYING_STRING), intent(in) :: label
-    !     procedure(parser) :: parse
-    !     type(State_t), intent(in) :: state_
-    !     type(Consumed_t) :: consumed_
-    !
-    !     type(Consumed_t) :: the_result
-    !     type(Message_t) :: the_message
-    !     type(Reply_t) :: the_reply
-    !
-    !     the_result = parse(state_)
-    !     if (the_result%empty) then
-    !         if (the_result%reply%ok) then
-    !             the_message = expect(the_result%reply%message, label)
-    !             the_reply = Ok( &
-    !                     the_result%reply%parsed, &
-    !                     the_result%reply%state, &
-    !                     the_message)
-    !             consumed_ = Empty(the_reply)
-    !         else
-    !             the_message = expect(the_result%reply%message, label)
-    !             the_reply = Error(the_message)
-    !             consumed_ = Empty(the_reply)
-    !         end if
-    !     else
-    !         consumed_ = the_result
-    !     end if
-    ! end function withLabel
+    function withLabel(label, parse, state_) result(result_)
+        use iso_varying_string, only: VARYING_STRING, char
+
+        type(VARYING_STRING), intent(in) :: label
+        procedure(parser) :: parse
+        type(State_t), intent(in) :: state_
+        type(ParseResult_t) :: result_
+
+        type(ParseResult_t) :: the_result
+        type(Message_t) :: the_message
+
+        the_result = parse(state_)
+        if (the_result%empty) then
+            if (the_result%ok) then
+                the_message = expect(the_result%message, label)
+                result_ = EmptyOk( &
+                        the_result%parsed, &
+                        the_result%remaining, &
+                        the_result%position, &
+                        the_message)
+            else
+                the_message = expect(the_result%message, label)
+                result_ = EmptyError(the_message)
+            end if
+        else
+            result_ = the_result
+        end if
+    end function withLabel
 end module parff
