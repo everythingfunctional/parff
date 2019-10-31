@@ -59,7 +59,7 @@ module parff
         ! end function thenParser
     end interface
 
-    public :: charP, newState
+    public :: charP, either, newState
 contains
     function charP(the_char, the_state) result(the_result)
         use iso_varying_string, only: VARYING_STRING, len, var_str
@@ -201,135 +201,83 @@ contains
         State%position = position
     end function State
 
-!     function charP(the_char, the_state) result(consumed_)
-!         use iso_varying_string, only: var_str
-!
-!         character(len=1), intent(in) :: the_char
-!         type(State_t), intent(in) :: the_state
-!         type(Consumed_t) :: consumed_
-!
-!         consumed_ = withLabel(var_str(the_char), theParser, the_state)
-!     contains
-!         function theParser(state_) result(the_result)
-!             type(State_t), intent(in) :: state_
-!             type(Consumed_t) :: the_result
-!
-!             the_result = satisfy(theMatcher, state)
-!         end function theParser
-!
-!         function theMatcher(char_) result(matches)
-!             character(len=1), intent(in) :: char_
-!             logical :: matches
-!
-!             matches = char_ == the_char
-!         end function theMatcher
-!     end function charP
-    !
-    ! function Consumed(reply)
-    !     type(Reply_t), intent(in) :: reply
-    !     type(Consumed_t) :: Consumed
-    !
-    !     Consumed%empty = .false.
-    !     Consumed%reply = reply
-    ! end function Consumed
-    !
-    ! function either(parse1, parse2, state_) result(consumed_)
-    !     procedure(parser) :: parse1
-    !     procedure(parser) :: parse2
-    !     type(State_t), intent(in) :: state_
-    !     type(Consumed_t) :: consumed_
-    !
-    !     type(Consumed_t) :: first_result
-    !     type(Consumed_t) :: second_result
-    !
-    !     first_result = parse1(state_)
-    !
-    !     if (first_result%empty) then
-    !         second_result = parse2(state_)
-    !         if (second_result%empty) then
-    !             if (first_result%reply%ok) then
-    !                 consumed_ = mergeOk( &
-    !                         first_result%reply%parsed, &
-    !                         first_result%reply%state, &
-    !                         first_result%reply%message, &
-    !                         second_result%reply%message)
-    !             else
-    !                 if (second_result%reply%ok) then
-    !                     consumed_ = mergeOk( &
-    !                             second_result%reply%parsed, &
-    !                             second_result%reply%state, &
-    !                             first_result%reply%message, &
-    !                             second_result%reply%message)
-    !                 else
-    !                     consumed_ = mergeError( &
-    !                             first_result%reply%message, &
-    !                             second_result%reply%message)
-    !                 end if
-    !             end if
-    !         else
-    !             consumed_ = second_result
-    !         end if
-    !     else
-    !         consumed_ = first_result
-    !     end if
-    ! end function either
+    function either(parse1, parse2, state_) result(result_)
+        procedure(parser) :: parse1
+        procedure(parser) :: parse2
+        type(State_t), intent(in) :: state_
+        type(ParseResult_t) :: result_
 
-    ! function Empty(reply)
-    !     type(Reply_t), intent(in) :: reply
-    !     type(Consumed_t) :: Empty
-    !
-    !     Empty%empty = .true.
-    !     Empty%reply = reply
-    ! end function Empty
-    !
-    ! function Error(message_)
-    !     type(Message_t), intent(in) :: message_
-    !     type(Reply_t) :: Error
-    !
-    !     Error%ok = .false.
-    !     Error%message = message_
-    ! end function Error
-    !
-    ! function Ok(parsed, state_, message_)
-    !     class(ParsedValue_t), intent(in) :: parsed
-    !     type(State_t), intent(in) :: state_
-    !     type(Message_t), intent(in) :: message_
-    !     type(Reply_t) :: Ok
-    !
-    !     allocate(Ok%parsed, source = parsed)
-    !     Ok%state = state_
-    !     Ok%ok = .true.
-    !     Ok%message = message_
-    ! end function Ok
+        type(ParseResult_t) :: first_result
+        type(ParseResult_t) :: second_result
 
-    ! function merge_(message1, message2) result(merged)
-    !     type(Message_t), intent(in) :: message1
-    !     type(Message_t), intent(in) :: message2
-    !     type(Message_t) :: merged
-    !
-    !     merged = Message( &
-    !             message1%position, &
-    !             message1%found, &
-    !             [message1%expected, message2%expected])
-    ! end function merge_
-    !
-    ! function mergeError(message1, message2) result(consumed_)
-    !     type(Message_t), intent(in) :: message1
-    !     type(Message_t), intent(in) :: message2
-    !     type(Consumed_t) :: consumed_
-    !
-    !     consumed_ = Empty(Error(merge_(message1, message2)))
-    ! end function mergeError
-    !
-    ! function mergeOk(parsed, state_, message1, message2) result(consumed_)
-    !     class(ParsedValue_t), intent(in) :: parsed
-    !     type(State_t), intent(in) :: state_
-    !     type(Message_t), intent(in) :: message1
-    !     type(Message_t), intent(in) :: message2
-    !     type(Consumed_t) :: consumed_
-    !
-    !     consumed_ = Empty(Ok(parsed, state, merge_(message1, message2)))
-    ! end function mergeOk
+        first_result = parse1(state_)
+
+        if (first_result%empty) then
+            second_result = parse2(state_)
+            if (second_result%empty) then
+                if (first_result%ok) then
+                    result_ = mergeOk( &
+                            first_result%parsed, &
+                            first_result%remaining, &
+                            first_result%position, &
+                            first_result%message, &
+                            second_result%message)
+                else
+                    if (second_result%ok) then
+                        result_ = mergeOk( &
+                                second_result%parsed, &
+                                second_result%remaining, &
+                                second_result%position, &
+                                first_result%message, &
+                                second_result%message)
+                    else
+                        result_ = mergeError( &
+                                first_result%message, &
+                                second_result%message)
+                    end if
+                end if
+            else
+                result_ = second_result
+            end if
+        else
+            result_ = first_result
+        end if
+    end function either
+
+    function merge_(message1, message2) result(merged)
+        type(Message_t), intent(in) :: message1
+        type(Message_t), intent(in) :: message2
+        type(Message_t) :: merged
+
+        merged = Message( &
+                message1%position, &
+                message1%found, &
+                [message1%expected, message2%expected])
+    end function merge_
+
+    function mergeError(message1, message2) result(result_)
+        type(Message_t), intent(in) :: message1
+        type(Message_t), intent(in) :: message2
+        type(ParseResult_t) :: result_
+
+        result_ = EmptyError(merge_(message1, message2))
+    end function mergeError
+
+    function mergeOk( &
+            parsed, remaining, position, message1, message2) result(result_)
+        class(ParsedValue_t), intent(in) :: parsed
+        type(VARYING_STRING), intent(in) :: remaining
+        type(Position_t), intent(in) :: position
+        type(Message_t), intent(in) :: message1
+        type(Message_t), intent(in) :: message2
+        type(ParseResult_t) :: result_
+
+        result_ = EmptyOk( &
+                parsed, &
+                remaining, &
+                position, &
+                merge_(message1, message2))
+    end function mergeOk
     !
     function satisfy(matches, state_) result(result_)
         use iso_varying_string, only: VARYING_STRING, len, var_str
