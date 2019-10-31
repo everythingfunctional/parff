@@ -50,7 +50,7 @@ contains
     function checkParseDifferentCharacter() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: ParseResult_t, charP, newState
-        use Vegetables_m, only: Result_t, assertNot
+        use Vegetables_m, only: Result_t, assertEquals, assertNot
 
         type(Result_t) :: result_
 
@@ -58,6 +58,9 @@ contains
 
         parse_result = charP("A", newState(var_str("First")))
 
-        result_ = assertNot(parse_result%ok)
+        result_ = &
+                assertNot(parse_result%ok) &
+                .and.assertEquals("F", parse_result%message%found) &
+                .and.assertEquals("A", parse_result%message%expected(1))
     end function checkParseDifferentCharacter
 end module parse_character_test

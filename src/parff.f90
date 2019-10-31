@@ -24,7 +24,9 @@ module parff
     type, public :: Message_t
         type(Position_t) :: position
         type(VARYING_STRING) :: found
-        type(VARYING_STRING), allocatable :: expected
+        type(VARYING_STRING), allocatable :: expected(:)
+    contains
+        final :: messageDestructor
     end type Message_t
 
     type, public :: ParseResult_t
@@ -72,13 +74,14 @@ module parff
     public :: charP, newState
 contains
     function charP(the_char, the_state) result(result_)
-        use iso_varying_string, only: VARYING_STRING
+        use iso_varying_string, only: VARYING_STRING, var_str
         use strff, only: firstCharacter, withoutFirstCharacter
 
         character(len=1), intent(in) :: the_char
         type(State_t), intent(in) :: the_state
         type(ParseResult_t) :: result_
 
+        type(VARYING_STRING) :: expected
         character(len=1) :: first_character
         type(Position_t) :: new_position
         type(VARYING_STRING) :: remaining
@@ -94,11 +97,37 @@ contains
             new_position = nextPosition(the_char, the_state%position)
             result_%remaining = remaining
             result_%position = new_position
+            result_%message = Message( &
+                    the_state%position, var_str(""), [VARYING_STRING::])
         else
             result_%empty = .true.
             result_%ok = .false.
+            expected = var_str(the_char)
+            result_%message = Message( &
+                    the_state%position, &
+                    var_str(first_character), &
+                    [expected])
         end if
     end function charP
+
+    function Message(position, found, expected)
+        use iso_varying_string, only: VARYING_STRING
+
+        type(Position_t), intent(in) :: position
+        type(VARYING_STRING), intent(in) :: found
+        type(VARYING_STRING), intent(in) :: expected(:)
+        type(Message_t) :: Message
+
+        Message%position = position
+        Message%found = found
+        allocate(Message%expected, source = expected)
+    end function Message
+
+    subroutine messageDestructor(self)
+        type(Message_t), intent(inout) :: self
+
+        if(allocated(self%expected)) deallocate(self%expected)
+    end subroutine messageDestructor
 
     function newPosition()
         type(Position_t) :: newPosition
@@ -286,19 +315,6 @@ contains
     !
     !     consumed_ = Empty(Ok(parsed, state, merge_(message1, message2)))
     ! end function mergeOk
-    !
-    ! function Message(position, found, expected)
-    !     use iso_varying_string, only: VARYING_STRING
-    !
-    !     type(Position_t), intent(in) :: position
-    !     type(VARYING_STRING), intent(in) :: found
-    !     type(VARYING_STRING), intent(in) :: expected(:)
-    !     type(Message_t) :: Message
-    !
-    !     Message%position = position
-    !     Message%found = found
-    !     allocate(Message%expected, source = expected)
-    ! end function Message
     !
     ! function satisfy(matches, state_) result(consumed_)
     !     use iso_varying_string, only: VARYING_STRING, len, var_str
