@@ -30,10 +30,11 @@ module parff
     type, public :: ParseResult_t
         logical :: empty
         logical :: ok
+        type(Message_t) :: message
+        ! The following are only defined if ok
         class(ParsedValue_t), allocatable :: parsed
         type(VARYING_STRING) :: remaining
         type(Position_t) :: position
-        type(Message_t) :: message
     end type ParseResult_t
     !
     ! type, public :: Reply_t
@@ -72,27 +73,31 @@ module parff
 contains
     function charP(the_char, the_state) result(result_)
         use iso_varying_string, only: VARYING_STRING
-        use strff, only: withoutFirstCharacter
+        use strff, only: firstCharacter, withoutFirstCharacter
 
         character(len=1), intent(in) :: the_char
         type(State_t), intent(in) :: the_state
         type(ParseResult_t) :: result_
 
+        character(len=1) :: first_character
         type(Position_t) :: new_position
         type(VARYING_STRING) :: remaining
         type(ParsedCharacter_t) :: the_character
 
-        associate(a => the_state)
-        end associate
-
-        result_%empty = .false.
-        result_%ok = .true.
-        the_character%value_ = the_char
-        allocate(result_%parsed, source = the_character)
-        remaining = withoutFirstCharacter(the_state%input)
-        new_position = nextPosition(the_char, the_state%position)
-        result_%remaining = remaining
-        result_%position = new_position
+        first_character = firstCharacter(the_state%input)
+        if (first_character == the_char) then
+            result_%empty = .false.
+            result_%ok = .true.
+            the_character%value_ = the_char
+            allocate(result_%parsed, source = the_character)
+            remaining = withoutFirstCharacter(the_state%input)
+            new_position = nextPosition(the_char, the_state%position)
+            result_%remaining = remaining
+            result_%position = new_position
+        else
+            result_%empty = .true.
+            result_%ok = .false.
+        end if
     end function charP
 
     function newPosition()

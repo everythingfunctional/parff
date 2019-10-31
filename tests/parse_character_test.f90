@@ -9,11 +9,14 @@ contains
 
         type(TestItem_t) :: tests
 
-        type(TestItem_t) :: individual_tests(1)
+        type(TestItem_t) :: individual_tests(2)
 
         individual_tests(1) = It( &
                 "Parsing the first character in a string consumes that character", &
                 checkParseFirstCharacter)
+        individual_tests(2) = It( &
+                "Parsing a different character produces an error", &
+                checkParseDifferentCharacter)
         tests = Describe("charP", individual_tests)
     end function test_parse_character
 
@@ -43,4 +46,18 @@ contains
             end select
         end if
     end function checkParseFirstCharacter
+
+    function checkParseDifferentCharacter() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: ParseResult_t, charP, newState
+        use Vegetables_m, only: Result_t, assertNot
+
+        type(Result_t) :: result_
+
+        type(ParseResult_t) :: parse_result
+
+        parse_result = charP("A", newState(var_str("First")))
+
+        result_ = assertNot(parse_result%ok)
+    end function checkParseDifferentCharacter
 end module parse_character_test
