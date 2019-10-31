@@ -9,7 +9,7 @@ contains
 
         type(TestItem_t) :: tests
 
-        type(TestItem_t) :: individual_tests(2)
+        type(TestItem_t) :: individual_tests(3)
 
         individual_tests(1) = It( &
                 "Parsing the first character in a string consumes that character", &
@@ -17,6 +17,9 @@ contains
         individual_tests(2) = It( &
                 "Parsing a different character produces an error", &
                 checkParseDifferentCharacter)
+        individual_tests(3) = It( &
+                "Parsing an empty string produces an error", &
+                checkParseEmptyString)
         tests = Describe("charP", individual_tests)
     end function test_parse_character
 
@@ -63,4 +66,21 @@ contains
                 .and.assertEquals("F", parse_result%message%found) &
                 .and.assertEquals("A", parse_result%message%expected(1))
     end function checkParseDifferentCharacter
+
+    function checkParseEmptyString() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: ParseResult_t, charP, newState
+        use Vegetables_m, only: Result_t, assertEquals, assertNot
+
+        type(Result_t) :: result_
+
+        type(ParseResult_t) :: parse_result
+
+        parse_result = charP("A", newState(var_str("")))
+
+        result_ = &
+                assertNot(parse_result%ok) &
+                .and.assertEquals("end of input", parse_result%message%found) &
+                .and.assertEquals("A", parse_result%message%expected(1))
+    end function checkParseEmptyString
 end module parse_character_test

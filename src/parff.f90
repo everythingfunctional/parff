@@ -74,7 +74,7 @@ module parff
     public :: charP, newState
 contains
     function charP(the_char, the_state) result(result_)
-        use iso_varying_string, only: VARYING_STRING, var_str
+        use iso_varying_string, only: VARYING_STRING, len, var_str
         use strff, only: firstCharacter, withoutFirstCharacter
 
         character(len=1), intent(in) :: the_char
@@ -87,25 +87,35 @@ contains
         type(VARYING_STRING) :: remaining
         type(ParsedCharacter_t) :: the_character
 
-        first_character = firstCharacter(the_state%input)
-        if (first_character == the_char) then
-            result_%empty = .false.
-            result_%ok = .true.
-            the_character%value_ = the_char
-            allocate(result_%parsed, source = the_character)
-            remaining = withoutFirstCharacter(the_state%input)
-            new_position = nextPosition(the_char, the_state%position)
-            result_%remaining = remaining
-            result_%position = new_position
-            result_%message = Message( &
-                    the_state%position, var_str(""), [VARYING_STRING::])
+        if (len(the_state%input) > 0) then
+            first_character = firstCharacter(the_state%input)
+            if (first_character == the_char) then
+                result_%empty = .false.
+                result_%ok = .true.
+                the_character%value_ = the_char
+                allocate(result_%parsed, source = the_character)
+                remaining = withoutFirstCharacter(the_state%input)
+                new_position = nextPosition(the_char, the_state%position)
+                result_%remaining = remaining
+                result_%position = new_position
+                result_%message = Message( &
+                        the_state%position, var_str(""), [VARYING_STRING::])
+            else
+                result_%empty = .true.
+                result_%ok = .false.
+                expected = var_str(the_char)
+                result_%message = Message( &
+                        the_state%position, &
+                        var_str(first_character), &
+                        [expected])
+            end if
         else
             result_%empty = .true.
             result_%ok = .false.
             expected = var_str(the_char)
             result_%message = Message( &
                     the_state%position, &
-                    var_str(first_character), &
+                    var_str("end of input"), &
                     [expected])
         end if
     end function charP
