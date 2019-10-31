@@ -11,6 +11,10 @@ module parff
         character(len=1) :: value_
     end type ParsedCharacter_t
 
+    type, public, extends(ParsedValue_t) :: ParsedString_t
+        type(VARYING_STRING) :: value_
+    end type ParsedString_t
+
     type, public :: Position_t
         integer :: line
         integer :: column
@@ -51,15 +55,15 @@ module parff
             type(ParseResult_t) :: result_
         end function parser
 
-        ! function thenParser(previous, state) result(consumed)
-        !     import Consumed_t, ParsedValue_t, State_t
-        !     class(ParsedValue_t), intent(in) :: previous
-        !     type(State_t), intent(in) :: state
-        !     type(Consumed_t) :: consumed
-        ! end function thenParser
+        function thenParser(previous, state_) result(result_)
+            import ParseResult_t, ParsedValue_t, State_t
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParseResult_t) :: result_
+        end function thenParser
     end interface
 
-    public :: charP, either, newState
+    public :: charP, either, newState, sequence
 contains
     function charP(the_char, the_state) result(the_result)
         use iso_varying_string, only: VARYING_STRING, len, var_str
@@ -317,32 +321,28 @@ contains
                     [VARYING_STRING::]))
         end if
     end function satisfy
-    !
-    ! function sequence(parser1, parser2, state_) result(consumed_)
-    !     procedure(parser) :: parser1
-    !     procedure(thenParser) :: parser2
-    !     type(State_t), intent(in) :: state_
-    !     type(Consumed_t) :: consumed_
-    !
-    !     type(Consumed_t) :: first_result
-    !     type(Consumed_t) :: second_result
-    !
-    !     first_result = parser1(state_)
-    !     if (first_result%reply%ok) then
-    !         if (first_result%empty) then
-    !             consumed_ = parser2( &
-    !                     first_result%reply%parsed, first_result%reply%state)
-    !         else
-    !             second_result = parser2( &
-    !                     first_result%reply%parsed, first_result%reply%state)
-    !             consumed_ = Consumed(second_result%reply)
-    !         end if
-    !     else
-    !         consumed_ = first_result
-    !     end if
-    ! end function sequence
-    !
-    !
+
+    function sequence(parser1, parser2, state_) result(result_)
+        procedure(parser) :: parser1
+        procedure(thenParser) :: parser2
+        type(State_t), intent(in) :: state_
+        type(ParseResult_t) :: result_
+
+        type(ParseResult_t) :: first_result
+
+        first_result = parser1(state_)
+        if (first_result%ok) then
+            result_ = parser2( &
+                    first_result%parsed, &
+                    State(first_result%remaining, first_result%position))
+            if (.not.first_result%empty) then
+                result_%empty = .false.
+            end if
+        else
+            result_ = first_result
+        end if
+    end function sequence
+
     function withLabel(label, parse, state_) result(result_)
         use iso_varying_string, only: VARYING_STRING, char
 
