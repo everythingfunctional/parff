@@ -90,35 +90,56 @@ contains
         if (len(the_state%input) > 0) then
             first_character = firstCharacter(the_state%input)
             if (first_character == the_char) then
-                result_%empty = .false.
-                result_%ok = .true.
                 the_character%value_ = the_char
-                allocate(result_%parsed, source = the_character)
                 remaining = withoutFirstCharacter(the_state%input)
                 new_position = nextPosition(the_char, the_state%position)
-                result_%remaining = remaining
-                result_%position = new_position
-                result_%message = Message( &
-                        the_state%position, var_str(""), [VARYING_STRING::])
+                result_ = ConsumedOk( &
+                        the_character, &
+                        remaining, &
+                        new_position, &
+                        Message( &
+                                the_state%position, &
+                                var_str(""), &
+                                [VARYING_STRING::]))
             else
-                result_%empty = .true.
-                result_%ok = .false.
                 expected = var_str(the_char)
-                result_%message = Message( &
+                result_ = EmptyError(Message( &
                         the_state%position, &
                         var_str(first_character), &
-                        [expected])
+                        [expected]))
             end if
         else
-            result_%empty = .true.
-            result_%ok = .false.
             expected = var_str(the_char)
-            result_%message = Message( &
+            result_ = EmptyError(Message( &
                     the_state%position, &
                     var_str("end of input"), &
-                    [expected])
+                    [expected]))
         end if
     end function charP
+
+    function ConsumedOk(parsed, remaining, position, message_)
+        class(ParsedValue_t), intent(in) :: parsed
+        type(VARYING_STRING), intent(in) :: remaining
+        type(Position_t), intent(in) :: position
+        type(Message_t), intent(in) :: message_
+        type(ParseResult_t) :: ConsumedOk
+
+        ConsumedOk%empty = .false.
+        ConsumedOk%ok = .true.
+        allocate(ConsumedOk%parsed, source = parsed)
+        ConsumedOk%remaining = remaining
+        ConsumedOk%position = position
+        ConsumedOk%message = message_
+    end function ConsumedOk
+
+    function EmptyError(message_)
+        type(Message_t), intent(in) :: message_
+        type(ParseResult_t) :: EmptyError
+
+        EmptyError%empty = .true.
+        EmptyError%ok = .false.
+        EmptyError%message = message_
+    end function EmptyError
 
     function Message(position, found, expected)
         use iso_varying_string, only: VARYING_STRING
