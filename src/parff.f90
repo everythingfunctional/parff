@@ -40,11 +40,11 @@ module parff
     end type ParseResult_t
 
     abstract interface
-    !     function match(char_) result(matches)
-    !         character(len=1), intent(in) :: char_
-    !         logical :: matches
-    !     end function match
-    !
+        function match(char_) result(matches)
+            character(len=1), intent(in) :: char_
+            logical :: matches
+        end function match
+
         function parser(state_) result(result_)
             import ParseResult_t, State_t
             type(State_t), intent(in) :: state_
@@ -75,38 +75,15 @@ contains
             type(State_t), intent(in) :: state_
             type(ParseResult_t) :: result_
 
-            character(len=1) :: first_character
-            type(Position_t) :: new_position
-            type(VARYING_STRING) :: remaining
-            type(ParsedCharacter_t) :: the_character
-
-            if (len(state_%input) > 0) then
-                first_character = firstCharacter(state_%input)
-                if (first_character == the_char) then
-                    the_character%value_ = the_char
-                    remaining = withoutFirstCharacter(state_%input)
-                    new_position = nextPosition(the_char, state_%position)
-                    result_ = ConsumedOk( &
-                            the_character, &
-                            remaining, &
-                            new_position, &
-                            Message( &
-                                    state_%position, &
-                                    var_str(""), &
-                                    [VARYING_STRING::]))
-                else
-                    result_ = EmptyError(Message( &
-                            state_%position, &
-                            var_str(first_character), &
-                            [VARYING_STRING::]))
-                end if
-            else
-                result_ = EmptyError(Message( &
-                        state_%position, &
-                        var_str("end of input"), &
-                        [VARYING_STRING::]))
-            end if
+            result_ = satisfy(theMatcher, state_)
         end function theParser
+
+        function theMatcher(char_) result(matches)
+            character(len=1), intent(in) :: char_
+            logical :: matches
+
+            matches = char_ == the_char
+        end function theMatcher
     end function charP
 
     function ConsumedOk(parsed, remaining, position, message_)
@@ -354,45 +331,44 @@ contains
     !     consumed_ = Empty(Ok(parsed, state, merge_(message1, message2)))
     ! end function mergeOk
     !
-    ! function satisfy(matches, state_) result(consumed_)
-    !     use iso_varying_string, only: VARYING_STRING, len, var_str
-    !     use strff, only: firstCharacter, withoutFirstCharacter
-    !
-    !     procedure(match) :: matches
-    !     type(State_t), intent(in) :: state_
-    !     type(Consumed_t) :: consumed_
-    !
-    !     character(len=1) :: first_character
-    !     type(Position_t) :: new_position
-    !     type(State_t) :: new_state
-    !     type(ParsedCharacter_t) :: parsed_character
-    !
-    !     if (len(state_%input) > 0) then
-    !         first_character = firstCharacter(state_%input)
-    !         if (matches(first_character)) then
-    !             new_position = nextPosition(first_character, state_%position)
-    !             new_state = State(withoutFirstCharacter(state_%input), new_position)
-    !             parsed_character%value_ = first_character
-    !             consumed_ = Consumed(Ok( &
-    !                     parsed_character, &
-    !                     new_state, &
-    !                     Message( &
-    !                             new_position, &
-    !                             var_str(""), &
-    !                             [VARYING_STRING::])))
-    !         else
-    !             consumed_ = Empty(Error(Message( &
-    !                     state_%position, &
-    !                     var_str(first_character), &
-    !                     [VARYING_STRING::])))
-    !         end if
-    !     else
-    !         consumed_ = Empty(Error(Message( &
-    !                 state_%position, &
-    !                 var_str("end of input"), &
-    !                 [VARYING_STRING::])))
-    !     end if
-    ! end function satisfy
+    function satisfy(matches, state_) result(result_)
+        use iso_varying_string, only: VARYING_STRING, len, var_str
+        use strff, only: firstCharacter, withoutFirstCharacter
+
+        procedure(match) :: matches
+        type(State_t), intent(in) :: state_
+        type(ParseResult_t) :: result_
+
+        character(len=1) :: first_character
+        type(Position_t) :: new_position
+        type(ParsedCharacter_t) :: parsed_character
+
+        if (len(state_%input) > 0) then
+            first_character = firstCharacter(state_%input)
+            if (matches(first_character)) then
+                new_position = nextPosition(first_character, state_%position)
+                parsed_character%value_ = first_character
+                result_ = ConsumedOk( &
+                        parsed_character, &
+                        withoutFirstCharacter(state_%input), &
+                        new_position, &
+                        Message( &
+                                new_position, &
+                                var_str(""), &
+                                [VARYING_STRING::]))
+            else
+                result_ = EmptyError(Message( &
+                        state_%position, &
+                        var_str(first_character), &
+                        [VARYING_STRING::]))
+            end if
+        else
+            result_ = EmptyError(Message( &
+                    state_%position, &
+                    var_str("end of input"), &
+                    [VARYING_STRING::]))
+        end if
+    end function satisfy
     !
     ! function sequence(parser1, parser2, state_) result(consumed_)
     !     procedure(parser) :: parser1
