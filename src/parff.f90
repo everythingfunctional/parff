@@ -63,33 +63,8 @@ module parff
         end function thenParser
     end interface
 
-    public :: charP, either, newState, sequence
+    public :: either, newState, parseChar, sequence
 contains
-    function charP(the_char, the_state) result(the_result)
-        use iso_varying_string, only: VARYING_STRING, len, var_str
-        use strff, only: firstCharacter, withoutFirstCharacter
-
-        character(len=1), intent(in) :: the_char
-        type(State_t), intent(in) :: the_state
-        type(ParseResult_t) :: the_result
-
-        the_result = withLabel(var_str(the_char), theParser, the_state)
-    contains
-        function theParser(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParseResult_t) :: result_
-
-            result_ = satisfy(theMatcher, state_)
-        end function theParser
-
-        function theMatcher(char_) result(matches)
-            character(len=1), intent(in) :: char_
-            logical :: matches
-
-            matches = char_ == the_char
-        end function theMatcher
-    end function charP
-
     function ConsumedOk(parsed, remaining, position, message_)
         class(ParsedValue_t), intent(in) :: parsed
         type(VARYING_STRING), intent(in) :: remaining
@@ -193,6 +168,31 @@ contains
             nextPosition%column = position%column + 1
         end if
     end function nextPosition
+
+    function parseChar(the_char, the_state) result(the_result)
+        use iso_varying_string, only: VARYING_STRING, len, var_str
+        use strff, only: firstCharacter, withoutFirstCharacter
+
+        character(len=1), intent(in) :: the_char
+        type(State_t), intent(in) :: the_state
+        type(ParseResult_t) :: the_result
+
+        the_result = withLabel(var_str(the_char), theParser, the_state)
+    contains
+        function theParser(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParseResult_t) :: result_
+
+            result_ = satisfy(theMatcher, state_)
+        end function theParser
+
+        function theMatcher(char_) result(matches)
+            character(len=1), intent(in) :: char_
+            logical :: matches
+
+            matches = char_ == the_char
+        end function theMatcher
+    end function parseChar
 
     function State(input, position)
         use iso_varying_string, only: VARYING_STRING

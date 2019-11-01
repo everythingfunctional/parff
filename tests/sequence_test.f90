@@ -84,12 +84,12 @@ contains
     end function checkSecondFail
 
     function parseA(state_) result(result_)
-        use parff, only: ParseResult_t, State_t, charP
+        use parff, only: ParseResult_t, State_t, parseChar
 
         type(State_t), intent(in) :: state_
         type(ParseResult_t) :: result_
 
-        result_ = charP("A", state_)
+        result_ = parseChar("A", state_)
     end function parseA
 
     function thenParseB(previous, state_) result(result_)
@@ -100,7 +100,7 @@ contains
                 ParsedString_t, &
                 ParsedValue_t, &
                 State_t, &
-                charP
+                parseChar
 
         class(ParsedValue_t), intent(in) :: previous
         type(State_t), intent(in) :: state_
@@ -108,7 +108,7 @@ contains
 
         type(ParsedString_t) :: parsed
 
-        result_ = charP("B", state_)
+        result_ = parseChar("B", state_)
 
         if (result_%ok) then
             select type (previous)

@@ -30,7 +30,7 @@ contains
 
         type(ParseResult_t) :: parse_result
 
-        parse_result = either(charPF, charPA, newState(var_str("First")))
+        parse_result = either(parseF, parseA, newState(var_str("First")))
 
         result_ = &
                 assertThat(parse_result%ok, "Got result", "Didn't get result") &
@@ -57,7 +57,7 @@ contains
 
         type(ParseResult_t) :: parse_result
 
-        parse_result = either(charPA, charPF, newState(var_str("First")))
+        parse_result = either(parseA, parseF, newState(var_str("First")))
 
         result_ = &
                 assertThat(parse_result%ok, "Got result", "Didn't get result") &
@@ -84,7 +84,7 @@ contains
 
         type(ParseResult_t) :: parse_result
 
-        parse_result = either(charPA, charPA, newState(var_str("First")))
+        parse_result = either(parseA, parseA, newState(var_str("First")))
 
         result_ = &
                 assertNot(parse_result%ok) &
@@ -92,21 +92,21 @@ contains
                 .and.assertEquals(2, size(parse_result%message%expected))
     end function checkBothFail
 
-    function charPA(state_) result(result_)
-        use parff, only: ParseResult_t, State_t, charP
+    function parseA(state_) result(result_)
+        use parff, only: ParseResult_t, State_t, parseChar
 
         type(State_t), intent(in) :: state_
         type(ParseResult_t) :: result_
 
-        result_ = charP("A", state_)
-    end function charPA
+        result_ = parseChar("A", state_)
+    end function parseA
 
-    function charPF(state_) result(result_)
-        use parff, only: ParseResult_t, State_t, charP
+    function parseF(state_) result(result_)
+        use parff, only: ParseResult_t, State_t, parseChar
 
         type(State_t), intent(in) :: state_
         type(ParseResult_t) :: result_
 
-        result_ = charP("F", state_)
-    end function charPF
+        result_ = parseChar("F", state_)
+    end function parseF
 end module either_parse_test
