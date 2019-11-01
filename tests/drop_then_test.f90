@@ -1,10 +1,10 @@
-module sequence_test
+module drop_then_test
     implicit none
     private
 
-    public :: test_sequence
+    public :: test_drop_then
 contains
-    function test_sequence() result(tests)
+    function test_drop_then() result(tests)
         use Vegetables_m, only: TestItem_t, Describe, It
 
         type(TestItem_t) :: tests
@@ -12,7 +12,7 @@ contains
         type(TestItem_t) :: individual_tests(3)
 
         individual_tests(1) = It( &
-                "When both parses pass, the results are combined", &
+                "When both parses pass, we get the results of the second one", &
                 checkBothPass)
         individual_tests(2) = It( &
                 "When the first parse fails, that error comes back", &
@@ -20,41 +20,41 @@ contains
         individual_tests(3) = It( &
                 "When the second parse fails, that error comes back", &
                 checkSecondFail)
-        tests = Describe("sequence", individual_tests)
-    end function test_sequence
+        tests = Describe("dropThen", individual_tests)
+    end function test_drop_then
 
     function checkBothPass() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, ParsedString_t, newState, sequence
+        use parff, only: ParseResult_t, ParsedCharacter_t, dropThen, newState
         use Vegetables_m, only: Result_t, assertEquals, assertThat, fail
 
         type(Result_t) :: result_
 
         type(ParseResult_t) :: parse_result
 
-        parse_result = sequence(parseA, thenParseB, newState(var_str("AB")))
+        parse_result = dropThen(parseA, parseB, newState(var_str("AB")))
 
         result_ = assertThat(parse_result%ok)
         if (result_%passed()) then
             select type (string => parse_result%parsed)
-            type is (ParsedString_t)
-                result_ = assertEquals("AB", string%value_)
+            type is (ParsedCharacter_t)
+                result_ = assertEquals("B", string%value_)
             class default
-                result_ = fail("Didn't get string back")
+                result_ = fail("Didn't get character back")
             end select
         end if
     end function checkBothPass
 
     function checkFirstFail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, newState, sequence
+        use parff, only: ParseResult_t, dropThen, newState
         use Vegetables_m, only: Result_t, assertEquals, assertNot, fail
 
         type(Result_t) :: result_
 
         type(ParseResult_t) :: parse_result
 
-        parse_result = sequence(parseA, thenParseB, newState(var_str("BB")))
+        parse_result = dropThen(parseA, parseB, newState(var_str("BB")))
 
         result_ = assertNot(parse_result%ok)
         if (result_%passed()) then
@@ -66,14 +66,14 @@ contains
 
     function checkSecondFail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, newState, sequence
+        use parff, only: ParseResult_t, dropThen, newState
         use Vegetables_m, only: Result_t, assertEquals, assertNot, fail
 
         type(Result_t) :: result_
 
         type(ParseResult_t) :: parse_result
 
-        parse_result = sequence(parseA, thenParseB, newState(var_str("AA")))
+        parse_result = dropThen(parseA, parseB, newState(var_str("AA")))
 
         result_ = assertNot(parse_result%ok)
         if (result_%passed()) then
@@ -92,34 +92,12 @@ contains
         result_ = parseChar("A", state_)
     end function parseA
 
-    function thenParseB(previous, state_) result(result_)
-        use iso_varying_string, only: assignment(=)
-        use parff, only: &
-                ParseResult_t, &
-                ParsedCharacter_t, &
-                ParsedString_t, &
-                ParsedValue_t, &
-                State_t, &
-                parseChar
+    function parseB(state_) result(result_)
+        use parff, only: ParseResult_t, State_t, parseChar
 
-        class(ParsedValue_t), intent(in) :: previous
         type(State_t), intent(in) :: state_
         type(ParseResult_t) :: result_
 
-        type(ParsedString_t) :: parsed
-
         result_ = parseChar("B", state_)
-
-        if (result_%ok) then
-            select type (previous)
-            type is (ParsedCharacter_t)
-                select type (next => result_%parsed)
-                type is (ParsedCharacter_t)
-                    parsed%value_ = previous%value_ // next%value_
-                end select
-            end select
-            deallocate(result_%parsed)
-            allocate(result_%parsed, source = parsed)
-        end if
-    end function thenParseB
-end module sequence_test
+    end function parseB
+end module drop_then_test

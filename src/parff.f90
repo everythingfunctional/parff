@@ -63,7 +63,7 @@ module parff
         end function thenParser
     end interface
 
-    public :: either, newState, parseChar, sequence
+    public :: dropThen, either, newState, parseChar, sequence
 contains
     function ConsumedOk(parsed, remaining, position, message_)
         class(ParsedValue_t), intent(in) :: parsed
@@ -79,6 +79,69 @@ contains
         ConsumedOk%position = position
         ConsumedOk%message = message_
     end function ConsumedOk
+
+    function dropThen(parser1, parser2, state_) result(result_)
+        procedure(parser) :: parser1
+        procedure(parser) :: parser2
+        type(State_t), intent(in) :: state_
+        type(ParseResult_t) :: result_
+
+        type(ParseResult_t) :: first_result
+
+        first_result = parser1(state_)
+        if (first_result%ok) then
+            result_ = parser2( &
+                    State(first_result%remaining, first_result%position))
+            if (.not.first_result%empty) then
+                result_%empty = .false.
+            end if
+        else
+            result_ = first_result
+        end if
+    end function dropThen
+
+    function either(parse1, parse2, state_) result(result_)
+        procedure(parser) :: parse1
+        procedure(parser) :: parse2
+        type(State_t), intent(in) :: state_
+        type(ParseResult_t) :: result_
+
+        type(ParseResult_t) :: first_result
+        type(ParseResult_t) :: second_result
+
+        first_result = parse1(state_)
+
+        if (first_result%empty) then
+            second_result = parse2(state_)
+            if (second_result%empty) then
+                if (first_result%ok) then
+                    result_ = mergeOk( &
+                            first_result%parsed, &
+                            first_result%remaining, &
+                            first_result%position, &
+                            first_result%message, &
+                            second_result%message)
+                else
+                    if (second_result%ok) then
+                        result_ = mergeOk( &
+                                second_result%parsed, &
+                                second_result%remaining, &
+                                second_result%position, &
+                                first_result%message, &
+                                second_result%message)
+                    else
+                        result_ = mergeError( &
+                                first_result%message, &
+                                second_result%message)
+                    end if
+                end if
+            else
+                result_ = second_result
+            end if
+        else
+            result_ = first_result
+        end if
+    end function either
 
     function EmptyError(message_)
         type(Message_t), intent(in) :: message_
@@ -113,6 +176,41 @@ contains
 
         new_message = Message(message_%position, message_%found, [label])
     end function expect
+
+    function merge_(message1, message2) result(merged)
+        type(Message_t), intent(in) :: message1
+        type(Message_t), intent(in) :: message2
+        type(Message_t) :: merged
+
+        merged = Message( &
+                message1%position, &
+                message1%found, &
+                [message1%expected, message2%expected])
+    end function merge_
+
+    function mergeError(message1, message2) result(result_)
+        type(Message_t), intent(in) :: message1
+        type(Message_t), intent(in) :: message2
+        type(ParseResult_t) :: result_
+
+        result_ = EmptyError(merge_(message1, message2))
+    end function mergeError
+
+    function mergeOk( &
+            parsed, remaining, position, message1, message2) result(result_)
+        class(ParsedValue_t), intent(in) :: parsed
+        type(VARYING_STRING), intent(in) :: remaining
+        type(Position_t), intent(in) :: position
+        type(Message_t), intent(in) :: message1
+        type(Message_t), intent(in) :: message2
+        type(ParseResult_t) :: result_
+
+        result_ = EmptyOk( &
+                parsed, &
+                remaining, &
+                position, &
+                merge_(message1, message2))
+    end function mergeOk
 
     function Message(position, found, expected)
         use iso_varying_string, only: VARYING_STRING
@@ -194,95 +292,6 @@ contains
         end function theMatcher
     end function parseChar
 
-    function State(input, position)
-        use iso_varying_string, only: VARYING_STRING
-
-        type(VARYING_STRING), intent(in) :: input
-        type(Position_t), intent(in) :: position
-        type(State_t) :: State
-
-        State%input = input
-        State%position = position
-    end function State
-
-    function either(parse1, parse2, state_) result(result_)
-        procedure(parser) :: parse1
-        procedure(parser) :: parse2
-        type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
-
-        type(ParseResult_t) :: first_result
-        type(ParseResult_t) :: second_result
-
-        first_result = parse1(state_)
-
-        if (first_result%empty) then
-            second_result = parse2(state_)
-            if (second_result%empty) then
-                if (first_result%ok) then
-                    result_ = mergeOk( &
-                            first_result%parsed, &
-                            first_result%remaining, &
-                            first_result%position, &
-                            first_result%message, &
-                            second_result%message)
-                else
-                    if (second_result%ok) then
-                        result_ = mergeOk( &
-                                second_result%parsed, &
-                                second_result%remaining, &
-                                second_result%position, &
-                                first_result%message, &
-                                second_result%message)
-                    else
-                        result_ = mergeError( &
-                                first_result%message, &
-                                second_result%message)
-                    end if
-                end if
-            else
-                result_ = second_result
-            end if
-        else
-            result_ = first_result
-        end if
-    end function either
-
-    function merge_(message1, message2) result(merged)
-        type(Message_t), intent(in) :: message1
-        type(Message_t), intent(in) :: message2
-        type(Message_t) :: merged
-
-        merged = Message( &
-                message1%position, &
-                message1%found, &
-                [message1%expected, message2%expected])
-    end function merge_
-
-    function mergeError(message1, message2) result(result_)
-        type(Message_t), intent(in) :: message1
-        type(Message_t), intent(in) :: message2
-        type(ParseResult_t) :: result_
-
-        result_ = EmptyError(merge_(message1, message2))
-    end function mergeError
-
-    function mergeOk( &
-            parsed, remaining, position, message1, message2) result(result_)
-        class(ParsedValue_t), intent(in) :: parsed
-        type(VARYING_STRING), intent(in) :: remaining
-        type(Position_t), intent(in) :: position
-        type(Message_t), intent(in) :: message1
-        type(Message_t), intent(in) :: message2
-        type(ParseResult_t) :: result_
-
-        result_ = EmptyOk( &
-                parsed, &
-                remaining, &
-                position, &
-                merge_(message1, message2))
-    end function mergeOk
-    !
     function satisfy(matches, state_) result(result_)
         use iso_varying_string, only: VARYING_STRING, len, var_str
         use strff, only: firstCharacter, withoutFirstCharacter
@@ -342,6 +351,17 @@ contains
             result_ = first_result
         end if
     end function sequence
+
+    function State(input, position)
+        use iso_varying_string, only: VARYING_STRING
+
+        type(VARYING_STRING), intent(in) :: input
+        type(Position_t), intent(in) :: position
+        type(State_t) :: State
+
+        State%input = input
+        State%position = position
+    end function State
 
     function withLabel(label, parse, state_) result(result_)
         use iso_varying_string, only: VARYING_STRING, char
