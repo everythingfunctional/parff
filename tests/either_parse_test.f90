@@ -22,13 +22,13 @@ contains
 
     function checkFirstPass() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParseResult_t, either, newState
+        use parff, only: ParsedCharacter_t, ParserOutput_t, either, newState
         use Vegetables_m, only: &
                 Result_t, assertEquals, assertNot, assertThat, fail
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = either(parseF, parseA, newState(var_str("First")))
 
@@ -49,13 +49,13 @@ contains
 
     function checkSecondPass() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParseResult_t, either, newState
+        use parff, only: ParsedCharacter_t, ParserOutput_t, either, newState
         use Vegetables_m, only: &
                 Result_t, assertEquals, assertNot, assertThat, fail
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = either(parseA, parseF, newState(var_str("First")))
 
@@ -76,13 +76,13 @@ contains
 
     function checkBothFail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParseResult_t, either, newState
+        use parff, only: ParsedCharacter_t, ParserOutput_t, either, newState
         use Vegetables_m, only: &
                 Result_t, assertEquals, assertNot, assertThat, fail
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = either(parseA, parseA, newState(var_str("First")))
 
@@ -93,19 +93,19 @@ contains
     end function checkBothFail
 
     function parseA(state_) result(result_)
-        use parff, only: ParseResult_t, State_t, parseChar
+        use parff, only: ParserOutput_t, State_t, parseChar
 
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
         result_ = parseChar("A", state_)
     end function parseA
 
     function parseF(state_) result(result_)
-        use parff, only: ParseResult_t, State_t, parseChar
+        use parff, only: ParserOutput_t, State_t, parseChar
 
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
         result_ = parseChar("F", state_)
     end function parseF

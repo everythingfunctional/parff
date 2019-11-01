@@ -25,12 +25,12 @@ contains
 
     function checkBothPass() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, ParsedString_t, newState, sequence
+        use parff, only: ParserOutput_t, ParsedString_t, newState, sequence
         use Vegetables_m, only: Result_t, assertEquals, assertThat, fail
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = sequence(parseA, thenParseB, newState(var_str("AB")))
 
@@ -47,12 +47,12 @@ contains
 
     function checkFirstFail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, newState, sequence
+        use parff, only: ParserOutput_t, newState, sequence
         use Vegetables_m, only: Result_t, assertEquals, assertNot, fail
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = sequence(parseA, thenParseB, newState(var_str("BB")))
 
@@ -66,12 +66,12 @@ contains
 
     function checkSecondFail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, newState, sequence
+        use parff, only: ParserOutput_t, newState, sequence
         use Vegetables_m, only: Result_t, assertEquals, assertNot, fail
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = sequence(parseA, thenParseB, newState(var_str("AA")))
 
@@ -84,10 +84,10 @@ contains
     end function checkSecondFail
 
     function parseA(state_) result(result_)
-        use parff, only: ParseResult_t, State_t, parseChar
+        use parff, only: ParserOutput_t, State_t, parseChar
 
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
         result_ = parseChar("A", state_)
     end function parseA
@@ -95,7 +95,7 @@ contains
     function thenParseB(previous, state_) result(result_)
         use iso_varying_string, only: assignment(=)
         use parff, only: &
-                ParseResult_t, &
+                ParserOutput_t, &
                 ParsedCharacter_t, &
                 ParsedString_t, &
                 ParsedValue_t, &
@@ -104,7 +104,7 @@ contains
 
         class(ParsedValue_t), intent(in) :: previous
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
         type(ParsedString_t) :: parsed
 

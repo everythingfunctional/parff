@@ -25,13 +25,13 @@ contains
 
     function checkParseFirstCharacter() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParseResult_t, newState, parseChar
+        use parff, only: ParsedCharacter_t, ParserOutput_t, newState, parseChar
         use Vegetables_m, only: &
                 Result_t, assertEquals, assertNot, assertThat, fail
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = parseChar("F", newState(var_str("First")))
 
@@ -52,12 +52,12 @@ contains
 
     function checkParseDifferentCharacter() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, newState, parseChar
+        use parff, only: ParserOutput_t, newState, parseChar
         use Vegetables_m, only: Result_t, assertEquals, assertNot
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = parseChar("A", newState(var_str("First")))
 
@@ -69,12 +69,12 @@ contains
 
     function checkParseEmptyString() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: ParseResult_t, newState, parseChar
+        use parff, only: ParserOutput_t, newState, parseChar
         use Vegetables_m, only: Result_t, assertEquals, assertNot
 
         type(Result_t) :: result_
 
-        type(ParseResult_t) :: parse_result
+        type(ParserOutput_t) :: parse_result
 
         parse_result = parseChar("A", newState(var_str("")))
 

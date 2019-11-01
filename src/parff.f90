@@ -33,7 +33,7 @@ module parff
         final :: messageDestructor
     end type Message_t
 
-    type, public :: ParseResult_t
+    type, public :: ParserOutput_t
         logical :: empty
         logical :: ok
         type(Message_t) :: message
@@ -41,7 +41,7 @@ module parff
         class(ParsedValue_t), allocatable :: parsed
         type(VARYING_STRING) :: remaining
         type(Position_t) :: position
-    end type ParseResult_t
+    end type ParserOutput_t
 
     abstract interface
         function match(char_) result(matches)
@@ -50,16 +50,16 @@ module parff
         end function match
 
         function parser(state_) result(result_)
-            import ParseResult_t, State_t
+            import ParserOutput_t, State_t
             type(State_t), intent(in) :: state_
-            type(ParseResult_t) :: result_
+            type(ParserOutput_t) :: result_
         end function parser
 
         function thenParser(previous, state_) result(result_)
-            import ParseResult_t, ParsedValue_t, State_t
+            import ParserOutput_t, ParsedValue_t, State_t
             class(ParsedValue_t), intent(in) :: previous
             type(State_t), intent(in) :: state_
-            type(ParseResult_t) :: result_
+            type(ParserOutput_t) :: result_
         end function thenParser
     end interface
 
@@ -70,7 +70,7 @@ contains
         type(VARYING_STRING), intent(in) :: remaining
         type(Position_t), intent(in) :: position
         type(Message_t), intent(in) :: message_
-        type(ParseResult_t) :: ConsumedOk
+        type(ParserOutput_t) :: ConsumedOk
 
         ConsumedOk%empty = .false.
         ConsumedOk%ok = .true.
@@ -84,9 +84,9 @@ contains
         procedure(parser) :: parser1
         procedure(parser) :: parser2
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
-        type(ParseResult_t) :: first_result
+        type(ParserOutput_t) :: first_result
 
         first_result = parser1(state_)
         if (first_result%ok) then
@@ -104,10 +104,10 @@ contains
         procedure(parser) :: parse1
         procedure(parser) :: parse2
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
-        type(ParseResult_t) :: first_result
-        type(ParseResult_t) :: second_result
+        type(ParserOutput_t) :: first_result
+        type(ParserOutput_t) :: second_result
 
         first_result = parse1(state_)
 
@@ -145,7 +145,7 @@ contains
 
     function EmptyError(message_)
         type(Message_t), intent(in) :: message_
-        type(ParseResult_t) :: EmptyError
+        type(ParserOutput_t) :: EmptyError
 
         EmptyError%empty = .true.
         EmptyError%ok = .false.
@@ -157,7 +157,7 @@ contains
         type(VARYING_STRING), intent(in) :: remaining
         type(Position_t), intent(in) :: position
         type(Message_t), intent(in) :: message_
-        type(ParseResult_t) :: EmptyOk
+        type(ParserOutput_t) :: EmptyOk
 
         EmptyOk%empty = .true.
         EmptyOk%ok = .true.
@@ -191,7 +191,7 @@ contains
     function mergeError(message1, message2) result(result_)
         type(Message_t), intent(in) :: message1
         type(Message_t), intent(in) :: message2
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
         result_ = EmptyError(merge_(message1, message2))
     end function mergeError
@@ -203,7 +203,7 @@ contains
         type(Position_t), intent(in) :: position
         type(Message_t), intent(in) :: message1
         type(Message_t), intent(in) :: message2
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
         result_ = EmptyOk( &
                 parsed, &
@@ -273,13 +273,13 @@ contains
 
         character(len=1), intent(in) :: the_char
         type(State_t), intent(in) :: the_state
-        type(ParseResult_t) :: the_result
+        type(ParserOutput_t) :: the_result
 
         the_result = withLabel(var_str(the_char), theParser, the_state)
     contains
         function theParser(state_) result(result_)
             type(State_t), intent(in) :: state_
-            type(ParseResult_t) :: result_
+            type(ParserOutput_t) :: result_
 
             result_ = satisfy(theMatcher, state_)
         end function theParser
@@ -298,7 +298,7 @@ contains
 
         procedure(match) :: matches
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
         character(len=1) :: first_character
         type(Position_t) :: new_position
@@ -335,9 +335,9 @@ contains
         procedure(parser) :: parser1
         procedure(thenParser) :: parser2
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
-        type(ParseResult_t) :: first_result
+        type(ParserOutput_t) :: first_result
 
         first_result = parser1(state_)
         if (first_result%ok) then
@@ -369,9 +369,9 @@ contains
         type(VARYING_STRING), intent(in) :: label
         procedure(parser) :: parse
         type(State_t), intent(in) :: state_
-        type(ParseResult_t) :: result_
+        type(ParserOutput_t) :: result_
 
-        type(ParseResult_t) :: the_result
+        type(ParserOutput_t) :: the_result
         type(Message_t) :: the_message
 
         the_result = parse(state_)
