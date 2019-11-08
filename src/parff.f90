@@ -1,5 +1,6 @@
 module parff
-    use iso_varying_string, only: VARYING_STRING
+    use iso_varying_string, only: VARYING_STRING, len, var_str
+    use strff, only: firstCharacter, withoutFirstCharacter
 
     implicit none
     private
@@ -168,8 +169,6 @@ contains
     end function EmptyOk
 
     function expect(message_, label) result(new_message)
-        use iso_varying_string, only: VARYING_STRING
-
         type(Message_t), intent(in) :: message_
         type(VARYING_STRING), intent(in) :: label
         type(Message_t) :: new_message
@@ -213,8 +212,6 @@ contains
     end function mergeOk
 
     function Message(position, found, expected)
-        use iso_varying_string, only: VARYING_STRING
-
         type(Position_t), intent(in) :: position
         type(VARYING_STRING), intent(in) :: found
         type(VARYING_STRING), intent(in) :: expected(:)
@@ -239,8 +236,6 @@ contains
     end function newPosition
 
     function newState(input)
-        use iso_varying_string, only: VARYING_STRING
-
         type(VARYING_STRING), intent(in) :: input
         type(State_t) :: newState
 
@@ -268,9 +263,6 @@ contains
     end function nextPosition
 
     function parseChar(the_char, the_state) result(the_result)
-        use iso_varying_string, only: VARYING_STRING, len, var_str
-        use strff, only: firstCharacter, withoutFirstCharacter
-
         character(len=1), intent(in) :: the_char
         type(State_t), intent(in) :: the_state
         type(ParserOutput_t) :: the_result
@@ -293,9 +285,6 @@ contains
     end function parseChar
 
     function satisfy(matches, state_) result(result_)
-        use iso_varying_string, only: VARYING_STRING, len, var_str
-        use strff, only: firstCharacter, withoutFirstCharacter
-
         procedure(match) :: matches
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
@@ -353,8 +342,6 @@ contains
     end function sequence
 
     function State(input, position)
-        use iso_varying_string, only: VARYING_STRING
-
         type(VARYING_STRING), intent(in) :: input
         type(Position_t), intent(in) :: position
         type(State_t) :: State
@@ -364,8 +351,6 @@ contains
     end function State
 
     function withLabel(label, parse, state_) result(result_)
-        use iso_varying_string, only: VARYING_STRING, char
-
         type(VARYING_STRING), intent(in) :: label
         procedure(parser) :: parse
         type(State_t), intent(in) :: state_

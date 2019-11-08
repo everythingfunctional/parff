@@ -1,12 +1,28 @@
 module drop_then_test
+    use iso_varying_string, only: var_str
+    use parff, only: &
+            ParsedCharacter_t, &
+            ParserOutput_t, &
+            State_t, &
+            dropThen, &
+            newState, &
+            parseChar
+    use Vegetables_m, only: &
+            Result_t, &
+            TestItem_t, &
+            assertEquals, &
+            assertNot, &
+            assertThat, &
+            Describe, &
+            fail, &
+            It
+
     implicit none
     private
 
     public :: test_drop_then
 contains
     function test_drop_then() result(tests)
-        use Vegetables_m, only: TestItem_t, Describe, It
-
         type(TestItem_t) :: tests
 
         type(TestItem_t) :: individual_tests(3)
@@ -24,10 +40,6 @@ contains
     end function test_drop_then
 
     function checkBothPass() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParserOutput_t, ParsedCharacter_t, dropThen, newState
-        use Vegetables_m, only: Result_t, assertEquals, assertThat, fail
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -46,10 +58,6 @@ contains
     end function checkBothPass
 
     function checkFirstFail() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParserOutput_t, dropThen, newState
-        use Vegetables_m, only: Result_t, assertEquals, assertNot, fail
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -65,10 +73,6 @@ contains
     end function checkFirstFail
 
     function checkSecondFail() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParserOutput_t, dropThen, newState
-        use Vegetables_m, only: Result_t, assertEquals, assertNot, fail
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -84,8 +88,6 @@ contains
     end function checkSecondFail
 
     function parseA(state_) result(result_)
-        use parff, only: ParserOutput_t, State_t, parseChar
-
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
@@ -93,8 +95,6 @@ contains
     end function parseA
 
     function parseB(state_) result(result_)
-        use parff, only: ParserOutput_t, State_t, parseChar
-
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 

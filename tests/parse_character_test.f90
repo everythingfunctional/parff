@@ -1,12 +1,22 @@
 module parse_character_test
+    use iso_varying_string, only: var_str
+    use parff, only: ParsedCharacter_t, ParserOutput_t, newState, parseChar
+    use Vegetables_m, only: &
+            Result_t, &
+            TestItem_t, &
+            assertEquals, &
+            assertNot, &
+            assertThat, &
+            Describe, &
+            fail, &
+            It
+
     implicit none
     private
 
     public :: test_parse_character
 contains
     function test_parse_character() result(tests)
-        use Vegetables_m, only: TestItem_t, Describe, It
-
         type(TestItem_t) :: tests
 
         type(TestItem_t) :: individual_tests(3)
@@ -24,11 +34,6 @@ contains
     end function test_parse_character
 
     function checkParseFirstCharacter() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParserOutput_t, newState, parseChar
-        use Vegetables_m, only: &
-                Result_t, assertEquals, assertNot, assertThat, fail
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -51,10 +56,6 @@ contains
     end function checkParseFirstCharacter
 
     function checkParseDifferentCharacter() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParserOutput_t, newState, parseChar
-        use Vegetables_m, only: Result_t, assertEquals, assertNot
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -68,10 +69,6 @@ contains
     end function checkParseDifferentCharacter
 
     function checkParseEmptyString() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParserOutput_t, newState, parseChar
-        use Vegetables_m, only: Result_t, assertEquals, assertNot
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result

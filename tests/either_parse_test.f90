@@ -1,12 +1,28 @@
 module either_parse_test
+    use iso_varying_string, only: var_str
+    use parff, only: &
+            ParsedCharacter_t, &
+            ParserOutput_t, &
+            State_t, &
+            either, &
+            newState, &
+            parseChar
+    use Vegetables_m, only: &
+            Result_t, &
+            TestItem_t, &
+            assertEquals, &
+            assertNot, &
+            assertThat, &
+            Describe, &
+            fail, &
+            It
+
     implicit none
     private
 
     public :: test_or_parse
 contains
     function test_or_parse() result(tests)
-        use Vegetables_m, only: TestItem_t, Describe, It
-
         type(TestItem_t) :: tests
 
         type(TestItem_t) :: individual_tests(3)
@@ -21,11 +37,6 @@ contains
     end function test_or_parse
 
     function checkFirstPass() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParserOutput_t, either, newState
-        use Vegetables_m, only: &
-                Result_t, assertEquals, assertNot, assertThat, fail
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -48,11 +59,6 @@ contains
     end function checkFirstPass
 
     function checkSecondPass() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParserOutput_t, either, newState
-        use Vegetables_m, only: &
-                Result_t, assertEquals, assertNot, assertThat, fail
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -75,11 +81,6 @@ contains
     end function checkSecondPass
 
     function checkBothFail() result(result_)
-        use iso_varying_string, only: var_str
-        use parff, only: ParsedCharacter_t, ParserOutput_t, either, newState
-        use Vegetables_m, only: &
-                Result_t, assertEquals, assertNot, assertThat, fail
-
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -93,8 +94,6 @@ contains
     end function checkBothFail
 
     function parseA(state_) result(result_)
-        use parff, only: ParserOutput_t, State_t, parseChar
-
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
@@ -102,8 +101,6 @@ contains
     end function parseA
 
     function parseF(state_) result(result_)
-        use parff, only: ParserOutput_t, State_t, parseChar
-
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
