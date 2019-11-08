@@ -1,6 +1,7 @@
 module parff
-    use iso_varying_string, only: VARYING_STRING, len, var_str
-    use strff, only: firstCharacter, withoutFirstCharacter
+    use iso_varying_string, only: VARYING_STRING, operator(//), len, var_str
+    use strff, only: &
+            firstCharacter, join, toString, withoutFirstCharacter, NEWLINE
 
     implicit none
     private
@@ -31,6 +32,7 @@ module parff
         type(VARYING_STRING) :: found
         type(VARYING_STRING), allocatable :: expected(:)
     contains
+        procedure :: toString => messageToString
         final :: messageDestructor
     end type Message_t
 
@@ -43,6 +45,12 @@ module parff
         type(VARYING_STRING) :: remaining
         type(Position_t) :: position
     end type ParserOutput_t
+
+    type, public :: ParseResult_t
+        logical :: ok
+        class(ParsedValue_t), allocatable :: parsed
+        type(VARYING_STRING) :: message
+    end type ParseResult_t
 
     abstract interface
         function match(char_) result(matches)
@@ -64,7 +72,12 @@ module parff
         end function thenParser
     end interface
 
-    public :: dropThen, either, newState, parseChar, sequence
+    interface parseWith
+        module procedure parseWithC
+        module procedure parseWithS
+    end interface parseWith
+
+    public :: dropThen, either, newState, parseChar, parseWith, sequence
 contains
     function ConsumedOk(parsed, remaining, position, message_)
         class(ParsedValue_t), intent(in) :: parsed
@@ -228,6 +241,14 @@ contains
         if(allocated(self%expected)) deallocate(self%expected)
     end subroutine messageDestructor
 
+    function messageToString(self) result(string)
+        class(Message_t), intent(in) :: self
+        type(VARYING_STRING) :: string
+
+        string = "At line " // toString(self%position%line) // " and column " // toString(self%position%column) // NEWLINE &
+                // "    found " // self%found // " but expected " // join(self%expected, " or ")
+    end function messageToString
+
     function newPosition()
         type(Position_t) :: newPosition
 
@@ -248,9 +269,9 @@ contains
         type(Position_t) :: nextPosition
 
         character(len=1), parameter :: TAB = char(z'0009')
-        character(len=1), parameter :: NEWLINE = char(z'000A')
+        character(len=1), parameter :: NEWLINE_ = char(z'000A')
 
-        if (char_ == NEWLINE) then
+        if (char_ == NEWLINE_) then
             nextPosition%line = position%line + 1
             nextPosition%column = position%column
         else if (char_ == TAB) then
@@ -283,6 +304,31 @@ contains
             matches = char_ == the_char
         end function theMatcher
     end function parseChar
+
+    function parseWithC(theParser, string) result(result_)
+        procedure(parser) :: theParser
+        character(len=*), intent(in) :: string
+        type(ParseResult_t) :: result_
+
+        result_ = parseWith(theParser, var_str(string))
+    end function parseWithC
+
+    function parseWithS(theParser, string) result(result_)
+        procedure(parser) :: theParser
+        type(VARYING_STRING), intent(in) :: string
+        type(ParseResult_t) :: result_
+
+        type(ParserOutput_t) :: the_results
+
+        the_results = theParser(newState(string))
+        if (the_results%ok) then
+            result_%ok = .true.
+            allocate(result_%parsed, source = the_results%parsed)
+        else
+            result_%ok = .false.
+            result_%message = the_results%message%toString()
+        end if
+    end function parseWithS
 
     function satisfy(matches, state_) result(result_)
         procedure(match) :: matches
