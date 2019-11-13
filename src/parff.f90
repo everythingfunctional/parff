@@ -72,6 +72,11 @@ module parff
         end function thenParser
     end interface
 
+    interface dropThen
+        module procedure dropThenParser
+        module procedure dropThenResult
+    end interface dropThen
+
     interface parseWith
         module procedure parseWithC
         module procedure parseWithS
@@ -100,25 +105,30 @@ contains
         ConsumedOk%message = message_
     end function ConsumedOk
 
-    pure function dropThen(parser1, parser2, state_) result(result_)
+    pure function dropThenParser(parser1, parser2, state_) result(result_)
         procedure(parser) :: parser1
         procedure(parser) :: parser2
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
-        type(ParserOutput_t) :: first_result
+        result_ = dropThen(parser1(state_), parser2)
+    end function dropThenParser
 
-        first_result = parser1(state_)
-        if (first_result%ok) then
-            result_ = parser2( &
-                    State(first_result%remaining, first_result%position))
-            if (.not.first_result%empty) then
+    pure function dropThenResult(previous, parser_) result(result_)
+        type(ParserOutput_t), intent(in) :: previous
+        procedure(parser) :: parser_
+        type(ParserOutput_t) :: result_
+
+        if (previous%ok) then
+            result_ = parser_( &
+                    State(previous%remaining, previous%position))
+            if (.not.previous%empty) then
                 result_%empty = .false.
             end if
         else
-            result_ = first_result
+            result_ = previous
         end if
-    end function dropThen
+    end function dropThenResult
 
     pure function either(parse1, parse2, state_) result(result_)
         procedure(parser) :: parse1
