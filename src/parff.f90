@@ -77,7 +77,8 @@ module parff
         module procedure parseWithS
     end interface parseWith
 
-    public :: dropThen, either, newState, parseChar, parseWith, sequence
+    public :: &
+            dropThen, either, newState, parseChar, parseWith, return_, sequence
 contains
     function ConsumedOk(parsed, remaining, position, message_)
         class(ParsedValue_t), intent(in) :: parsed
@@ -329,6 +330,16 @@ contains
             result_%message = the_results%message%toString()
         end if
     end function parseWithS
+
+    function return_(parsed, state_) result(result_)
+        class(ParsedValue_t), intent(in) :: parsed
+        type(State_t), intent(in) :: state_
+        type(ParserOutput_t) :: result_
+
+        result_ = EmptyOk( &
+                parsed, state_%input, state_%position, Message( &
+                        state_%position, var_str(""), [VARYING_STRING::]))
+    end function return_
 
     function satisfy(matches, state_) result(result_)
         procedure(match) :: matches
