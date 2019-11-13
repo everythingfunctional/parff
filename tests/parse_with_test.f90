@@ -28,7 +28,7 @@ contains
         tests = Describe("parseWith", individual_tests)
     end function test_parse_with
 
-    function checkSuccessful() result(result_)
+    pure function checkSuccessful() result(result_)
         type(Result_t) :: result_
 
         type(ParseResult_t) :: the_result
@@ -47,7 +47,7 @@ contains
         end if
     end function checkSuccessful
 
-    function checkFailure() result(result_)
+    pure function checkFailure() result(result_)
         type(Result_t) :: result_
 
         type(ParseResult_t) :: the_result
@@ -57,7 +57,7 @@ contains
         result_ = assertNot(the_result%ok, the_result%message)
     end function checkFailure
 
-    function theParser(state) result(result_)
+    pure function theParser(state) result(result_)
         type(State_t), intent(in) :: state
         type(ParserOutput_t) :: result_
 

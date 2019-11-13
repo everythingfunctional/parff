@@ -33,7 +33,7 @@ contains
         tests = Describe("charP", individual_tests)
     end function test_parse_character
 
-    function checkParseFirstCharacter() result(result_)
+    pure function checkParseFirstCharacter() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -55,7 +55,7 @@ contains
         end if
     end function checkParseFirstCharacter
 
-    function checkParseDifferentCharacter() result(result_)
+    pure function checkParseDifferentCharacter() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -68,7 +68,7 @@ contains
                 .and.assertEquals("A", parse_result%message%expected(1))
     end function checkParseDifferentCharacter
 
-    function checkParseEmptyString() result(result_)
+    pure function checkParseEmptyString() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result

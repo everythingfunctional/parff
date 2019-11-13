@@ -36,7 +36,7 @@ contains
         tests = Describe("either", individual_tests)
     end function test_or_parse
 
-    function checkFirstPass() result(result_)
+    pure function checkFirstPass() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -58,7 +58,7 @@ contains
         end if
     end function checkFirstPass
 
-    function checkSecondPass() result(result_)
+    pure function checkSecondPass() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -80,7 +80,7 @@ contains
         end if
     end function checkSecondPass
 
-    function checkBothFail() result(result_)
+    pure function checkBothFail() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -93,14 +93,14 @@ contains
                 .and.assertEquals(2, size(parse_result%message%expected))
     end function checkBothFail
 
-    function parseA(state_) result(result_)
+    pure function parseA(state_) result(result_)
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
         result_ = parseChar("A", state_)
     end function parseA
 
-    function parseF(state_) result(result_)
+    pure function parseF(state_) result(result_)
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 

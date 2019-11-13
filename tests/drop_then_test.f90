@@ -39,7 +39,7 @@ contains
         tests = Describe("dropThen", individual_tests)
     end function test_drop_then
 
-    function checkBothPass() result(result_)
+    pure function checkBothPass() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -57,7 +57,7 @@ contains
         end if
     end function checkBothPass
 
-    function checkFirstFail() result(result_)
+    pure function checkFirstFail() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -72,7 +72,7 @@ contains
         end if
     end function checkFirstFail
 
-    function checkSecondFail() result(result_)
+    pure function checkSecondFail() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: parse_result
@@ -87,14 +87,14 @@ contains
         end if
     end function checkSecondFail
 
-    function parseA(state_) result(result_)
+    pure function parseA(state_) result(result_)
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
         result_ = parseChar("A", state_)
     end function parseA
 
-    function parseB(state_) result(result_)
+    pure function parseB(state_) result(result_)
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
