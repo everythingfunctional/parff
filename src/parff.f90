@@ -77,6 +77,11 @@ module parff
         module procedure parseWithS
     end interface parseWith
 
+    interface sequence
+        module procedure sequenceParser
+        module procedure sequenceResult
+    end interface sequence
+
     public :: &
             dropThen, either, newState, parseChar, parseWith, return_, sequence
 contains
@@ -377,26 +382,31 @@ contains
         end if
     end function satisfy
 
-    pure function sequence(parser1, parser2, state_) result(result_)
+    pure function sequenceParser(parser1, parser2, state_) result(result_)
         procedure(parser) :: parser1
         procedure(thenParser) :: parser2
         type(State_t), intent(in) :: state_
         type(ParserOutput_t) :: result_
 
-        type(ParserOutput_t) :: first_result
+        result_ = sequence(parser1(state_), parser2)
+    end function sequenceParser
 
-        first_result = parser1(state_)
-        if (first_result%ok) then
-            result_ = parser2( &
-                    first_result%parsed, &
-                    State(first_result%remaining, first_result%position))
-            if (.not.first_result%empty) then
+    pure function sequenceResult(previous, parser_) result(result_)
+        type(ParserOutput_t), intent(in) :: previous
+        procedure(thenParser) :: parser_
+        type(ParserOutput_t) :: result_
+
+        if (previous%ok) then
+            result_ = parser_( &
+                    previous%parsed, &
+                    State(previous%remaining, previous%position))
+            if (.not.previous%empty) then
                 result_%empty = .false.
             end if
         else
-            result_ = first_result
+            result_ = previous
         end if
-    end function sequence
+    end function sequenceResult
 
     pure function State(input, position)
         type(VARYING_STRING), intent(in) :: input
