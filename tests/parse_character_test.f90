@@ -30,7 +30,7 @@ contains
         individual_tests(3) = It( &
                 "Parsing an empty string produces an error", &
                 checkParseEmptyString)
-        tests = Describe("charP", individual_tests)
+        tests = Describe("parseChar", individual_tests)
     end function test_parse_character
 
     pure function checkParseFirstCharacter() result(result_)

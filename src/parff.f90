@@ -1,5 +1,11 @@
 module parff
-    use iso_varying_string, only: VARYING_STRING, operator(//), len, var_str
+    use iso_varying_string, only: &
+            VARYING_STRING, &
+            assignment(=), &
+            operator(//), &
+            operator(==), &
+            len, &
+            var_str
     use strff, only: &
             firstCharacter, join, toString, withoutFirstCharacter, NEWLINE
 
@@ -85,6 +91,11 @@ module parff
         module procedure dropThenResult
     end interface dropThen
 
+    interface parseString
+        module procedure parseStringC
+        module procedure parseStringS
+    end interface parseString
+
     interface parseWith
         module procedure parseWithC
         module procedure parseWithS
@@ -103,6 +114,7 @@ module parff
             newState, &
             parseChar, &
             parseNothing, &
+            parseString, &
             parseWith, &
             return_, &
             sequence
@@ -344,6 +356,81 @@ contains
 
         the_result = return_(PARSED_NOTHING, the_state)
     end function parseNothing
+
+    pure function parseStringC(string, the_state) result(the_result)
+        character(len=*), intent(in) :: string
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = parseString(var_str(string), the_state)
+    end function parseStringC
+
+    pure function parseStringS(string, the_state) result(the_result)
+        type(VARYING_STRING), intent(in) :: string
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = withLabel(string, start, the_state)
+    contains
+        pure function start(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedString_t) :: empty
+            type(IntermediateParsedString_t) :: initial
+
+            if (string == "") then
+                empty%value_ = ""
+                result_ = EmptyOk(empty, state_%input, state_%position, Message( &
+                        state_%position, var_str(""), [VARYING_STRING::]))
+            else
+                initial%left_to_parse = string
+                initial%parsed_so_far = ""
+                result_ = sequence(return_(initial, state_), recurse)
+            end if
+        end function start
+
+        pure recursive function recurse(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedString_t) :: final_string
+
+            select type (previous)
+            type is (IntermediateParsedString_t)
+                if (len(previous%left_to_parse) == 0) then
+                    final_string%value_ = previous%parsed_so_far
+                    result_ = ConsumedOk( &
+                            final_string, &
+                            state_%input, &
+                            state_%position, &
+                            Message(state_%position, var_str(""), [VARYING_STRING::]))
+                else
+                    result_ = sequence(parseNext(previous, state_), recurse)
+                end if
+            end select
+        end function recurse
+
+        pure function parseNext(previous, state_) result(result_)
+            type(IntermediateParsedString_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(IntermediateParsedString_t) :: next
+
+            result_ = parseChar(firstCharacter(previous%left_to_parse), state_)
+            if (result_%ok) then
+                next%left_to_parse = withoutFirstCharacter(previous%left_to_parse)
+                select type (the_char => result_%parsed)
+                type is (ParsedCharacter_t)
+                    next%parsed_so_far = previous%parsed_so_far // the_char%value_
+                    deallocate(result_%parsed)
+                    allocate(result_%parsed, source = next)
+                end select
+            end if
+        end function parseNext
+    end function parseStringS
 
     pure function parseWithC(theParser, string) result(result_)
         procedure(parser) :: theParser
