@@ -9,6 +9,9 @@ module parff
     type, public, abstract :: ParsedValue_t
     end type ParsedValue_t
 
+    type, public, extends(ParsedValue_t) :: ParsedNothing_t
+    end type ParsedNothing_t
+
     type, public, extends(ParsedValue_t) :: ParsedCharacter_t
         character(len=1) :: value_
     end type ParsedCharacter_t
@@ -16,6 +19,11 @@ module parff
     type, public, extends(ParsedValue_t) :: ParsedString_t
         type(VARYING_STRING) :: value_
     end type ParsedString_t
+
+    type, public, extends(ParsedValue_t) :: IntermediateParsedString_t
+        type(VARYING_STRING) :: parsed_so_far
+        type(VARYING_STRING) :: left_to_parse
+    end type IntermediateParsedString_t
 
     type, public :: Position_t
         integer :: line
@@ -87,8 +95,17 @@ module parff
         module procedure sequenceResult
     end interface sequence
 
+    type(ParsedNothing_t), parameter :: PARSED_NOTHING = ParsedNothing_t()
+
     public :: &
-            dropThen, either, newState, parseChar, parseWith, return_, sequence
+            dropThen, &
+            either, &
+            newState, &
+            parseChar, &
+            parseNothing, &
+            parseWith, &
+            return_, &
+            sequence
 contains
     pure function ConsumedOk(parsed, remaining, position, message_)
         class(ParsedValue_t), intent(in) :: parsed
@@ -320,6 +337,13 @@ contains
             matches = char_ == the_char
         end function theMatcher
     end function parseChar
+
+    pure function parseNothing(the_state) result(the_result)
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = return_(PARSED_NOTHING, the_state)
+    end function parseNothing
 
     pure function parseWithC(theParser, string) result(result_)
         procedure(parser) :: theParser
