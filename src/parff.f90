@@ -15,6 +15,10 @@ module parff
     type, public, abstract :: ParsedValue_t
     end type ParsedValue_t
 
+    type, public :: ParsedItem_t
+        class(ParsedValue_t), allocatable :: item
+    end type ParsedItem_t
+
     type, public, extends(ParsedValue_t) :: ParsedNothing_t
     end type ParsedNothing_t
 
@@ -30,6 +34,10 @@ module parff
         type(VARYING_STRING) :: parsed_so_far
         type(VARYING_STRING) :: left_to_parse
     end type IntermediateParsedString_t
+
+    type, public, extends(ParsedValue_t) :: ParsedItems_t
+        type(ParsedItem_t), allocatable :: items(:)
+    end type ParsedItems_t
 
     type, public :: Position_t
         integer :: line
@@ -111,6 +119,7 @@ module parff
     public :: &
             dropThen, &
             either, &
+            many, &
             newState, &
             parseChar, &
             parseNothing, &
@@ -233,6 +242,57 @@ contains
 
         new_message = Message(message_%position, message_%found, [label])
     end function expect
+
+    pure function many(the_parser, the_state) result(the_result)
+        procedure(parser) :: the_parser
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        type(ParsedItems_t) :: start
+
+        allocate(start%items(0))
+        the_result = recurse(start, the_state)
+    contains
+        pure recursive function recurse(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedItems_t) :: all
+            type(ParserOutput_t) :: next
+            type(ParsedItem_t) :: the_item
+
+            select type (previous)
+            type is (ParsedItems_t)
+                next = the_parser(state_)
+                if (next%ok) then
+                    allocate(the_item%item, source = next%parsed)
+                    allocate(all%items, source = [previous%items,the_item])
+                    result_ = recurse(all, State(next%remaining, next%position))
+                else
+                    if (size(previous%items) == 0) then
+                        result_ = EmptyOk( &
+                                previous, &
+                                state_%input, &
+                                state_%position, &
+                                Message( &
+                                        state_%position, &
+                                        var_str(""), &
+                                        [VARYING_STRING::]))
+                    else
+                        result_ = ConsumedOk( &
+                                previous, &
+                                state_%input, &
+                                state_%position, &
+                                Message( &
+                                        state_%position, &
+                                        var_str(""), &
+                                        [VARYING_STRING::]))
+                    end if
+                end if
+            end select
+        end function recurse
+    end function many
 
     pure function merge_(message1, message2) result(merged)
         type(Message_t), intent(in) :: message1
