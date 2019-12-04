@@ -7,7 +7,12 @@ module parff
             len, &
             var_str
     use strff, only: &
-            firstCharacter, join, toString, withoutFirstCharacter, NEWLINE
+            operator(.includes.), &
+            firstCharacter, &
+            join, &
+            toString, &
+            withoutFirstCharacter, &
+            NEWLINE
 
     implicit none
     private
@@ -119,6 +124,11 @@ module parff
         module procedure thenDropResult
     end interface thenDrop
 
+    interface withLabel
+        module procedure withLabelC
+        module procedure withLabelS
+    end interface withLabel
+
     type(ParsedNothing_t), parameter :: PARSED_NOTHING = ParsedNothing_t()
 
     public :: &
@@ -129,6 +139,7 @@ module parff
             parseChar, &
             parseNothing, &
             parseString, &
+            parseWhitespace, &
             parseWith, &
             return_, &
             sequence, &
@@ -399,7 +410,7 @@ contains
         type(State_t), intent(in) :: the_state
         type(ParserOutput_t) :: the_result
 
-        the_result = withLabel(var_str(the_char), theParser, the_state)
+        the_result = withLabel(the_char, theParser, the_state)
     contains
         pure function theParser(state_) result(result_)
             type(State_t), intent(in) :: state_
@@ -497,6 +508,33 @@ contains
             end if
         end function parseNext
     end function parseStringS
+
+    pure function parseWhitespace(the_state) result(the_result)
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = withLabel("whitespace", theParser, the_state)
+    contains
+        pure function theParser(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = satisfy(theMatcher, state_)
+        end function theParser
+
+        pure function theMatcher(char_) result(matches)
+            character(len=1), intent(in) :: char_
+            logical :: matches
+
+            character(len=1), parameter :: TAB = char(z'0009')
+            character(len=1), parameter :: CARRIAGE_RETURN = char(z'000D')
+            character(len=1), parameter :: SPACE = char(z'0020')
+            character(len=*), parameter :: WHITESPACE = &
+                    TAB // NEWLINE // CARRIAGE_RETURN // SPACE
+
+            matches = WHITESPACE.includes.char_
+        end function theMatcher
+    end function parseWhitespace
 
     pure function parseWithC(theParser, string) result(result_)
         procedure(parser) :: theParser
@@ -631,7 +669,16 @@ contains
         end if
     end function thenDropResult
 
-    pure function withLabel(label, parse, state_) result(result_)
+    pure function withLabelC(label, parse, state_) result(result_)
+        character(len=*), intent(in) :: label
+        procedure(parser) :: parse
+        type(State_t), intent(in) :: state_
+        type(ParserOutput_t) :: result_
+
+        result_ = withLabel(var_str(label), parse, state_)
+    end function withLabelC
+
+    pure function withLabelS(label, parse, state_) result(result_)
         type(VARYING_STRING), intent(in) :: label
         procedure(parser) :: parse
         type(State_t), intent(in) :: state_
@@ -656,5 +703,5 @@ contains
         else
             result_ = the_result
         end if
-    end function withLabel
+    end function withLabelS
 end module parff
