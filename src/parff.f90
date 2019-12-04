@@ -114,6 +114,11 @@ module parff
         module procedure sequenceResult
     end interface sequence
 
+    interface thenDrop
+        module procedure thenDropParser
+        module procedure thenDropResult
+    end interface thenDrop
+
     type(ParsedNothing_t), parameter :: PARSED_NOTHING = ParsedNothing_t()
 
     public :: &
@@ -126,7 +131,8 @@ module parff
             parseString, &
             parseWith, &
             return_, &
-            sequence
+            sequence, &
+            thenDrop
 contains
     pure function ConsumedOk(parsed, remaining, position, message_)
         class(ParsedValue_t), intent(in) :: parsed
@@ -597,6 +603,33 @@ contains
         State%input = input
         State%position = position
     end function State
+
+    pure function thenDropParser(parser1, parser2, state_) result(result_)
+        procedure(parser) :: parser1
+        procedure(parser) :: parser2
+        type(State_t), intent(in) :: state_
+        type(ParserOutput_t) :: result_
+
+        result_ = thenDrop(parser1(state_), parser2)
+    end function thenDropParser
+
+    pure function thenDropResult(previous, parser_) result(result_)
+        type(ParserOutput_t), intent(in) :: previous
+        procedure(parser) :: parser_
+        type(ParserOutput_t) :: result_
+
+        if (previous%ok) then
+            result_ = parser_( &
+                    State(previous%remaining, previous%position))
+            result_%empty = previous%empty .and. result_%empty
+            if (result_%ok) then
+                deallocate(result_%parsed)
+                allocate(result_%parsed, source = previous%parsed)
+            end if
+        else
+            result_ = previous
+        end if
+    end function thenDropResult
 
     pure function withLabel(label, parse, state_) result(result_)
         type(VARYING_STRING), intent(in) :: label
