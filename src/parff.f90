@@ -137,6 +137,7 @@ module parff
             many, &
             newState, &
             parseChar, &
+            parseDigit, &
             parseNothing, &
             parseString, &
             parseWhitespace, &
@@ -426,6 +427,27 @@ contains
             matches = char_ == the_char
         end function theMatcher
     end function parseChar
+
+    pure function parseDigit(the_state) result(the_result)
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = withLabel("digit", theParser, the_state)
+    contains
+        pure function theParser(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = satisfy(theMatcher, state_)
+        end function theParser
+
+        pure function theMatcher(char_) result(matches)
+            character(len=1), intent(in) :: char_
+            logical :: matches
+
+            matches = "0123456789".includes.char_
+        end function theMatcher
+    end function parseDigit
 
     pure function parseNothing(the_state) result(the_result)
         type(State_t), intent(in) :: the_state
