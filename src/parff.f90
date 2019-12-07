@@ -144,7 +144,8 @@ module parff
             parseWith, &
             return_, &
             sequence, &
-            thenDrop
+            thenDrop, &
+            withLabel
 contains
     pure function ConsumedOk(parsed, remaining, position, message_)
         class(ParsedValue_t), intent(in) :: parsed
