@@ -143,6 +143,7 @@ module parff
             parseWhitespace, &
             parseWith, &
             return_, &
+            satisfy, &
             sequence, &
             thenDrop, &
             withLabel
