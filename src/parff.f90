@@ -138,6 +138,7 @@ module parff
             EmptyError, &
             EmptyOk, &
             many, &
+            many1, &
             Message, &
             newState, &
             parseChar, &
@@ -317,6 +318,32 @@ contains
             end select
         end function recurse
     end function many
+
+    pure function many1(the_parser, the_state) result(the_result)
+        procedure(parser) :: the_parser
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = sequence(the_parser, more, the_state)
+    contains
+        pure function more(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedItems_t) :: all
+            type(ParsedItem_t) :: first_item
+
+            allocate(first_item%item, source = previous)
+            result_ = many(the_parser, state_)
+            select type (items => result_%parsed)
+            type is (ParsedItems_t)
+                allocate(all%items, source = [first_item, items%items])
+                deallocate(result_%parsed)
+                allocate(result_%parsed, source = all)
+            end select
+        end function more
+    end function many1
 
     pure function merge_(message1, message2) result(merged)
         type(Message_t), intent(in) :: message1
