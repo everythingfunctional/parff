@@ -44,6 +44,11 @@ module parff
         type(ParsedItem_t), allocatable :: items(:)
     end type ParsedItems_t
 
+    type, public, extends(ParsedValue_t) :: IntermediateRepeat_t
+        type(ParsedItems_t) :: parsed_so_far
+        integer :: remaining
+    end type IntermediateRepeat_t
+
     type, public :: Position_t
         integer :: line
         integer :: column
@@ -147,6 +152,7 @@ module parff
             parseString, &
             parseWhitespace, &
             parseWith, &
+            repeat_, &
             return_, &
             satisfy, &
             sequence, &
@@ -615,6 +621,74 @@ contains
             result_%message = the_results%message%toString()
         end if
     end function parseWithS
+
+    pure function repeat_(the_parser, times, the_state) result(the_result)
+        procedure(parser) :: the_parser
+        integer, intent(in) :: times
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = start(the_state)
+    contains
+        pure function start(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedItems_t) :: empty
+            type(IntermediateRepeat_t) :: initial
+
+            if (times <= 0) then
+                allocate(empty%items, source = [ParsedItem_t::])
+                result_ = EmptyOk(empty, state_%input, state_%position, Message( &
+                        state_%position, var_str(""), [VARYING_STRING::]))
+            else
+                initial%remaining = times
+                allocate(initial%parsed_so_far%items, source = [ParsedItem_t::])
+                result_ = sequence(return_(initial, state_), recurse)
+            end if
+        end function start
+
+        pure recursive function recurse(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedItems_t) :: final_list
+
+            select type (previous)
+            type is (IntermediateRepeat_t)
+                if (previous%remaining <= 0) then
+                    allocate(final_list%items, source =  &
+                            previous%parsed_so_far%items)
+                    result_ = ConsumedOk( &
+                            final_list, &
+                            state_%input, &
+                            state_%position, &
+                            Message(state_%position, var_str(""), [VARYING_STRING::]))
+                else
+                    result_ = sequence(parseNext(previous, state_), recurse)
+                end if
+            end select
+        end function recurse
+
+        pure function parseNext(previous, state_) result(result_)
+            type(IntermediateRepeat_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(IntermediateRepeat_t) :: next
+            type(ParsedItem_t) :: this_item
+
+            result_ = the_parser(state_)
+            if (result_%ok) then
+                next%remaining = previous%remaining - 1
+                allocate(this_item%item, source = result_%parsed)
+                allocate(next%parsed_so_far%items, source = [previous%parsed_so_far%items, this_item])
+                deallocate(result_%parsed)
+                allocate(result_%parsed, source = next)
+            end if
+        end function parseNext
+    end function repeat_
 
     pure function return_(parsed, state_) result(result_)
         class(ParsedValue_t), intent(in) :: parsed
