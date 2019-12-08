@@ -132,9 +132,13 @@ module parff
     type(ParsedNothing_t), parameter :: PARSED_NOTHING = ParsedNothing_t()
 
     public :: &
+            ConsumedOk, &
             dropThen, &
             either, &
+            EmptyError, &
+            EmptyOk, &
             many, &
+            Message, &
             newState, &
             parseChar, &
             parseDigit, &
