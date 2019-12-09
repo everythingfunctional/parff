@@ -42,6 +42,8 @@ module parff
 
     type, public, extends(ParsedValue_t) :: ParsedItems_t
         type(ParsedItem_t), allocatable :: items(:)
+    contains
+        final :: parsedItemsDestructor
     end type ParsedItems_t
 
     type, public, extends(ParsedValue_t) :: IntermediateRepeat_t
@@ -487,6 +489,12 @@ contains
             matches = "0123456789".includes.char_
         end function theMatcher
     end function parseDigit
+
+    pure subroutine parsedItemsDestructor(self)
+        type(ParsedItems_t), intent(inout) :: self
+
+        if (allocated(self%items)) deallocate(self%items)
+    end subroutine parsedItemsDestructor
 
     pure function parseNothing(the_state) result(the_result)
         type(State_t), intent(in) :: the_state
