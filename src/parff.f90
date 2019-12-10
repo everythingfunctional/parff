@@ -146,6 +146,8 @@ module parff
             EmptyOk, &
             many, &
             many1, &
+            many1WithSeparator, &
+            manyWithSeparator, &
             Message, &
             newState, &
             parseChar, &
@@ -352,6 +354,111 @@ contains
             end select
         end function more
     end function many1
+
+    pure recursive function many1WithSeparator( &
+            the_parser, the_separator, the_state) result(the_result)
+        procedure(parser) :: the_parser
+        procedure(parser) :: the_separator
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = either(parseMultiple, parseJustOne, the_state)
+    contains
+        pure function parseJustOne(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedItems_t) :: items
+            type(ParsedItem_t) :: the_item
+
+            result_ = the_parser(state_)
+            if (result_%ok) then
+                allocate(the_item%item, source = result_%parsed)
+                allocate(items%items(1))
+                items%items(1) = the_item
+                deallocate(result_%parsed)
+                allocate(result_%parsed, source = items)
+            end if
+        end function parseJustOne
+
+        pure function parseMultiple(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = sequence(thenDrop(the_parser, the_separator, state_), parseMore)
+        end function parseMultiple
+
+        pure function parseMore(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedItems_t) :: all
+            type(ParsedItem_t) :: first_item
+
+            allocate(first_item%item, source = previous)
+            result_ = many1WithSeparator(the_parser, the_separator, state_)
+            select type (items => result_%parsed)
+            type is (ParsedItems_t)
+                allocate(all%items, source = [first_item, items%items])
+                deallocate(result_%parsed)
+                allocate(result_%parsed, source = all)
+            end select
+        end function parseMore
+    end function many1WithSeparator
+
+    pure function manyWithSeparator( &
+            the_parser, the_separator, the_state) result(the_result)
+        procedure(parser) :: the_parser
+        procedure(parser) :: the_separator
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        type(ParsedItems_t) :: start
+
+        allocate(start%items(0))
+        the_result = recurse(start, the_state)
+    contains
+        pure recursive function recurse(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedItems_t) :: all
+            type(ParserOutput_t) :: next
+            type(ParsedItem_t) :: the_item
+
+            select type (previous)
+            type is (ParsedItems_t)
+                next = thenDrop(the_parser, the_separator, state_)
+                if (next%ok) then
+                    allocate(the_item%item, source = next%parsed)
+                    allocate(all%items, source = [previous%items, the_item])
+                    result_ = recurse(all, State(next%remaining, next%position))
+                else
+                    if (size(previous%items) == 0) then
+                        result_ = EmptyOk( &
+                                previous, &
+                                state_%input, &
+                                state_%position, &
+                                Message( &
+                                        state_%position, &
+                                        var_str(""), &
+                                        [VARYING_STRING::]))
+                    else
+                        result_ = ConsumedOk( &
+                                previous, &
+                                state_%input, &
+                                state_%position, &
+                                Message( &
+                                        state_%position, &
+                                        var_str(""), &
+                                        [VARYING_STRING::]))
+                    end if
+                end if
+            end select
+        end function recurse
+    end function manyWithSeparator
 
     pure function merge_(message1, message2) result(merged)
         type(Message_t), intent(in) :: message1
