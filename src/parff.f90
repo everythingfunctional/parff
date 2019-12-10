@@ -392,50 +392,39 @@ contains
         type(State_t), intent(in) :: the_state
         type(ParserOutput_t) :: the_result
 
-        type(ParsedItems_t) :: start
+        type(ParsedItems_t) :: all
+        type(ParserOutput_t) :: next
+        type(ParsedItems_t) :: temp
 
-        allocate(start%items(0))
-        the_result = recurse(start, the_state)
-    contains
-        pure recursive function recurse(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
-
-            type(ParsedItems_t) :: all
-            type(ParserOutput_t) :: next
-            type(ParsedItem_t) :: the_item
-
-            select type (previous)
-            type is (ParsedItems_t)
-                next = thenDrop(the_parser, the_separator, state_)
-                if (next%ok) then
-                    allocate(the_item%item, source = next%parsed)
-                    allocate(all%items, source = [previous%items, the_item])
-                    result_ = recurse(all, State(next%remaining, next%position))
-                else
-                    if (size(previous%items) == 0) then
-                        result_ = EmptyOk( &
-                                previous, &
-                                state_%input, &
-                                state_%position, &
-                                Message( &
-                                        state_%position, &
-                                        var_str(""), &
-                                        [VARYING_STRING::]))
-                    else
-                        result_ = ConsumedOk( &
-                                previous, &
-                                state_%input, &
-                                state_%position, &
-                                Message( &
-                                        state_%position, &
-                                        var_str(""), &
-                                        [VARYING_STRING::]))
-                    end if
-                end if
-            end select
-        end function recurse
+        the_result = the_parser(the_state)
+        if (the_result%ok) then
+            allocate(all%items(1))
+            allocate(all%items(1)%item, source = the_result%parsed)
+            do
+                next = dropThen(the_separator, the_parser, State(the_result%remaining, the_result%position))
+                if (.not.next%ok) exit
+                allocate(temp%items(size(all%items)))
+                temp%items = all%items
+                deallocate(all%items)
+                allocate(all%items(size(temp%items) + 1))
+                all%items(1:size(temp%items)) = temp%items
+                allocate(all%items(size(all%items))%item, source = next%parsed)
+                deallocate(temp%items)
+                the_result = next
+            end do
+            deallocate(the_result%parsed)
+            allocate(the_result%parsed, source = all)
+        else
+            allocate(all%items(0))
+            the_result = EmptyOk( &
+                    all, &
+                    the_state%input, &
+                    the_state%position, &
+                    Message( &
+                            the_state%position, &
+                            var_str(""), &
+                            [VARYING_STRING::]))
+        end if
     end function manyWithSeparator
 
     pure function merge_(message1, message2) result(merged)

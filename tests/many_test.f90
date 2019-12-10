@@ -18,25 +18,44 @@ contains
     function test_many() result(tests)
         type(TestItem_t) :: tests
 
-        type(TestItem_t) :: individual_tests(2)
+        type(TestItem_t) :: individual_tests(3)
 
-        individual_tests(1) = it( &
-                "parses until the parser doesn't match", checkMany)
+        individual_tests(1) = it("can parse one item", checkOne)
         individual_tests(2) = it( &
+                "parses until the parser doesn't match", checkMany)
+        individual_tests(3) = it( &
                 "returns empty if the first result doesn't match", checkNone)
         tests = describe("many", individual_tests)
     end function test_many
+
+    pure function checkOne() result(result_)
+        type(Result_t) :: result_
+
+        type(ParserOutput_t) :: results
+
+        results = many(parseA, newState(var_str("AB")))
+        if (results%ok) then
+            select type (parsed => results%parsed)
+            type is (ParsedItems_t)
+                result_ = assertEquals(1, size(parsed%items))
+            class default
+                result_ = fail("Didn't get list back")
+            end select
+        else
+            result_ = fail(results%message%toString())
+        end if
+    end function checkOne
 
     pure function checkMany() result(result_)
         type(Result_t) :: result_
 
         type(ParserOutput_t) :: results
 
-        results = many(parseA, newState(var_str("AAB")))
+        results = many(parseA, newState(var_str("AAAB")))
         if (results%ok) then
             select type (parsed => results%parsed)
             type is (ParsedItems_t)
-                result_ = assertEquals(2, size(parsed%items))
+                result_ = assertEquals(3, size(parsed%items))
             class default
                 result_ = fail("Didn't get list back")
             end select
