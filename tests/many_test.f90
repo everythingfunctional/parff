@@ -37,7 +37,9 @@ contains
         if (results%ok) then
             select type (parsed => results%parsed)
             type is (ParsedItems_t)
-                result_ = assertEquals(1, size(parsed%items))
+                result_ = &
+                        assertEquals(1, size(parsed%items)) &
+                        .and.assertEquals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -55,7 +57,9 @@ contains
         if (results%ok) then
             select type (parsed => results%parsed)
             type is (ParsedItems_t)
-                result_ = assertEquals(3, size(parsed%items))
+                result_ = &
+                        assertEquals(3, size(parsed%items)) &
+                        .and.assertEquals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select

@@ -19,7 +19,7 @@ contains
     function test_many_with_separator() result(tests)
         type(TestItem_t) :: tests
 
-        type(TestItem_t) :: individual_tests(4)
+        type(TestItem_t) :: individual_tests(5)
 
         individual_tests(1) = it("can parse one item", checkOne)
         individual_tests(2) = it( &
@@ -28,6 +28,8 @@ contains
         individual_tests(3) = it( &
                 "parses until the parser doesn't match", checkMany)
         individual_tests(4) = it( &
+                "leaves a trailing separator", checkManyWithSeparator)
+        individual_tests(5) = it( &
                 "returns empty if the first result doesn't match", checkNone)
         tests = describe("manyWithSeparator", individual_tests)
     end function test_many_with_separator
@@ -41,7 +43,9 @@ contains
         if (results%ok) then
             select type (parsed => results%parsed)
             type is (ParsedItems_t)
-                result_ = assertEquals(1, size(parsed%items)).and.assertEquals("B", results%remaining)
+                result_ = &
+                        assertEquals(1, size(parsed%items)) &
+                        .and.assertEquals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -63,7 +67,9 @@ contains
                 if (result_%passed()) then
                     select type (the_item => parsed%items(1)%item)
                     type is (ParsedCharacter_t)
-                        result_ = assertEquals("A", the_item%value_).and.assertEquals(",B", results%remaining)
+                        result_ = &
+                                assertEquals("A", the_item%value_) &
+                                .and.assertEquals(",B", results%remaining)
                     end select
                 end if
             class default
@@ -83,7 +89,9 @@ contains
         if (results%ok) then
             select type (parsed => results%parsed)
             type is (ParsedItems_t)
-                result_ = assertEquals(3, size(parsed%items))
+                result_ = &
+                        assertEquals(3, size(parsed%items))&
+                        .and.assertEquals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -91,6 +99,26 @@ contains
             result_ = fail(results%message%toString())
         end if
     end function checkMany
+
+    pure function checkManyWithSeparator() result(result_)
+        type(Result_t) :: result_
+
+        type(ParserOutput_t) :: results
+
+        results = manyWithSeparator(parseA, parseComma, newState(var_str("A,A,A,B")))
+        if (results%ok) then
+            select type (parsed => results%parsed)
+            type is (ParsedItems_t)
+                result_ = &
+                        assertEquals(3, size(parsed%items))&
+                        .and.assertEquals(",B", results%remaining)
+            class default
+                result_ = fail("Didn't get list back")
+            end select
+        else
+            result_ = fail(results%message%toString())
+        end if
+    end function checkManyWithSeparator
 
     pure function checkNone() result(result_)
         type(Result_t) :: result_

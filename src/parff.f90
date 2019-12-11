@@ -362,27 +362,29 @@ contains
         type(State_t), intent(in) :: the_state
         type(ParserOutput_t) :: the_result
 
-        the_result = sequence( &
-                thenDrop(the_parser, the_separator, the_state), &
-                more)
-    contains
-        pure function more(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        type(ParsedItems_t) :: all
+        type(ParserOutput_t) :: next
+        type(ParsedItems_t) :: temp
 
-            type(ParsedItems_t) :: all
-            type(ParsedItem_t) :: first_item
-
-            allocate(first_item%item, source = previous)
-            result_ = manyWithSeparator(the_parser, the_separator, state_)
-            select type (items => result_%parsed)
-            type is (ParsedItems_t)
-                allocate(all%items, source = [first_item, items%items])
-                deallocate(result_%parsed)
-                allocate(result_%parsed, source = all)
-            end select
-        end function more
+        the_result = the_parser(the_state)
+        if (the_result%ok) then
+            allocate(all%items(1))
+            allocate(all%items(1)%item, source = the_result%parsed)
+            do
+                next = dropThen(the_separator, the_parser, State(the_result%remaining, the_result%position))
+                if (.not.next%ok) exit
+                allocate(temp%items(size(all%items)))
+                temp%items = all%items
+                deallocate(all%items)
+                allocate(all%items(size(temp%items) + 1))
+                all%items(1:size(temp%items)) = temp%items
+                allocate(all%items(size(all%items))%item, source = next%parsed)
+                deallocate(temp%items)
+                the_result = next
+            end do
+            deallocate(the_result%parsed)
+            allocate(the_result%parsed, source = all)
+        end if
     end function many1WithSeparator
 
     pure function manyWithSeparator( &
