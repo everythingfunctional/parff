@@ -428,8 +428,8 @@ contains
         type(Position_t), intent(in) :: position
         type(Position_t) :: nextPosition
 
-        character(len=1), parameter :: TAB = char(z'0009')
-        character(len=1), parameter :: NEWLINE_ = char(z'000A')
+        character(len=1), parameter :: TAB = char(9)
+        character(len=1), parameter :: NEWLINE_ = char(10)
 
         if (char_ == NEWLINE_) then
             nextPosition%line = position%line + 1
@@ -591,9 +591,9 @@ contains
             character(len=1), intent(in) :: char_
             logical :: matches
 
-            character(len=1), parameter :: TAB = char(z'0009')
-            character(len=1), parameter :: CARRIAGE_RETURN = char(z'000D')
-            character(len=1), parameter :: SPACE = char(z'0020')
+            character(len=1), parameter :: TAB = char(9)
+            character(len=1), parameter :: CARRIAGE_RETURN = char(13)
+            character(len=1), parameter :: SPACE = char(32)
             character(len=*), parameter :: WHITESPACE = &
                     TAB // NEWLINE // CARRIAGE_RETURN // SPACE
 
