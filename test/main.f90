@@ -16,6 +16,8 @@ contains
             many_many => test_many
         use many_with_separator_test, only: &
             many_with_separator_many_with_separator => test_many_with_separator
+        use optionally_test, only: &
+            optionally_optionally => test_optionally
         use parse_character_test, only: &
             parse_character_parse_character => test_parse_character
         use parse_digit_test, only: &
@@ -36,7 +38,7 @@ contains
         use Vegetables_m, only: TestItem_t, testThat, runTests
 
         type(TestItem_t) :: tests
-        type(TestItem_t) :: individual_tests(14)
+        type(TestItem_t) :: individual_tests(15)
 
         individual_tests(1) = drop_then_drop_then()
         individual_tests(2) = either_parse_or_parse()
@@ -44,14 +46,15 @@ contains
         individual_tests(4) = many1_with_separator_many1_with_separator()
         individual_tests(5) = many_many()
         individual_tests(6) = many_with_separator_many_with_separator()
-        individual_tests(7) = parse_character_parse_character()
-        individual_tests(8) = parse_digit_parse_digit()
-        individual_tests(9) = parse_string_parse_string()
-        individual_tests(10) = parse_whitespace_parse_whitespace()
-        individual_tests(11) = parse_with_parse_with()
-        individual_tests(12) = repeat_repeat()
-        individual_tests(13) = sequence_sequence()
-        individual_tests(14) = then_drop_then_drop()
+        individual_tests(7) = optionally_optionally()
+        individual_tests(8) = parse_character_parse_character()
+        individual_tests(9) = parse_digit_parse_digit()
+        individual_tests(10) = parse_string_parse_string()
+        individual_tests(11) = parse_whitespace_parse_whitespace()
+        individual_tests(12) = parse_with_parse_with()
+        individual_tests(13) = repeat_repeat()
+        individual_tests(14) = sequence_sequence()
+        individual_tests(15) = then_drop_then_drop()
         tests = testThat(individual_tests)
 
         call runTests(tests)

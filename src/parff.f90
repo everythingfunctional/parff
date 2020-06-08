@@ -150,6 +150,7 @@ module parff
             manyWithSeparator, &
             Message, &
             newState, &
+            optionally, &
             parseChar, &
             parseDigit, &
             parseNothing, &
@@ -442,6 +443,14 @@ contains
             nextPosition%column = position%column + 1
         end if
     end function nextPosition
+
+    pure function optionally(the_parser, the_state) result(the_result)
+        procedure(parser) :: the_parser
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = either(the_parser, parseNothing, the_state)
+    end function optionally
 
     pure function parseChar(the_char, the_state) result(the_result)
         character(len=1), intent(in) :: the_char
