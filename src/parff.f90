@@ -35,6 +35,10 @@ module parff
         type(VARYING_STRING) :: value_
     end type ParsedString_t
 
+    type, public, extends(ParsedValue_t) :: ParsedInteger_t
+        integer :: value_
+    end type ParsedInteger_t
+
     type, public, extends(ParsedValue_t) :: IntermediateParsedString_t
         type(VARYING_STRING) :: parsed_so_far
         type(VARYING_STRING) :: left_to_parse
@@ -153,6 +157,7 @@ module parff
             optionally, &
             parseChar, &
             parseDigit, &
+            parseInteger, &
             parseNothing, &
             parseString, &
             parseWhitespace, &
@@ -494,6 +499,98 @@ contains
             matches = "0123456789".includes.char_
         end function theMatcher
     end function parseDigit
+
+    pure function parseInteger(the_state) result(the_result)
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = withLabel("integer", theParser, the_state)
+    contains
+        pure function theParser(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            integer :: the_number
+            character(len=64) :: the_string
+            type(ParsedInteger_t) :: the_value
+
+            result_ = sequence(optionally(parseSign, state_), thenParseDigits)
+            if (result_%ok) then
+                select type (parsed_string => result_%parsed)
+                type is (ParsedString_t)
+                    the_string = parsed_string%value_
+                    read(the_string, *) the_number
+                    the_value%value_ = the_number
+                    deallocate(result_%parsed)
+                    allocate(result_%parsed, source = the_value)
+                end select
+            end if
+        end function theParser
+
+        pure function parseSign(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = either(parsePlus, parseMinus, state_)
+        end function parseSign
+
+        pure function parsePlus(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("+", state_)
+        end function parsePlus
+
+        pure function parseMinus(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("-", state_)
+        end function parseMinus
+
+        pure function thenParseDigits(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseDigits(state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedCharacter_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            end if
+        end function thenParseDigits
+
+        pure function parseDigits(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(VARYING_STRING), allocatable :: digits(:)
+            integer :: i
+            type(ParsedString_t) :: parsed_digits
+
+            result_ = many1(parseDigit, state_)
+            if (result_%ok) then
+                select type (results => result_%parsed)
+                type is (ParsedItems_t)
+                    allocate(digits(size(results%items)))
+                    do i = 1, size(digits)
+                        select type (string => results%items(i)%item)
+                        type is (ParsedCharacter_t)
+                            digits(i) = string%value_
+                        end select
+                    end do
+                end select
+                deallocate(result_%parsed)
+                parsed_digits%value_ = join(digits, "")
+                allocate(result_%parsed, source = parsed_digits)
+            end if
+        end function parseDigits
+    end function parseInteger
 
     pure subroutine parsedItemsDestructor(self)
         type(ParsedItems_t), intent(inout) :: self
