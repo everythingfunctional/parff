@@ -35,6 +35,14 @@ module parff
         type(VARYING_STRING) :: value_
     end type ParsedString_t
 
+    type, public, extends(ParsedValue_t) :: ParsedInteger_t
+        integer :: value_
+    end type ParsedInteger_t
+
+    type, public, extends(ParsedValue_t) :: ParsedRational_t
+        double precision :: value_
+    end type ParsedRational_t
+
     type, public, extends(ParsedValue_t) :: IntermediateParsedString_t
         type(VARYING_STRING) :: parsed_so_far
         type(VARYING_STRING) :: left_to_parse
@@ -150,9 +158,12 @@ module parff
             manyWithSeparator, &
             Message, &
             newState, &
+            optionally, &
             parseChar, &
             parseDigit, &
+            parseInteger, &
             parseNothing, &
+            parseRational, &
             parseString, &
             parseWhitespace, &
             parseWith, &
@@ -443,6 +454,14 @@ contains
         end if
     end function nextPosition
 
+    pure function optionally(the_parser, the_state) result(the_result)
+        procedure(parser) :: the_parser
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = either(the_parser, parseNothing, the_state)
+    end function optionally
+
     pure function parseChar(the_char, the_state) result(the_result)
         character(len=1), intent(in) :: the_char
         type(State_t), intent(in) :: the_state
@@ -486,6 +505,98 @@ contains
         end function theMatcher
     end function parseDigit
 
+    pure function parseInteger(the_state) result(the_result)
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = withLabel("integer", theParser, the_state)
+    contains
+        pure function theParser(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            integer :: the_number
+            character(len=64) :: the_string
+            type(ParsedInteger_t) :: the_value
+
+            result_ = sequence(optionally(parseSign, state_), thenParseDigits)
+            if (result_%ok) then
+                select type (parsed_string => result_%parsed)
+                type is (ParsedString_t)
+                    the_string = parsed_string%value_
+                    read(the_string, *) the_number
+                    the_value%value_ = the_number
+                    deallocate(result_%parsed)
+                    allocate(result_%parsed, source = the_value)
+                end select
+            end if
+        end function theParser
+
+        pure function parseSign(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = either(parsePlus, parseMinus, state_)
+        end function parseSign
+
+        pure function parsePlus(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("+", state_)
+        end function parsePlus
+
+        pure function parseMinus(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("-", state_)
+        end function parseMinus
+
+        pure function thenParseDigits(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseDigits(state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedCharacter_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            end if
+        end function thenParseDigits
+
+        pure function parseDigits(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(VARYING_STRING), allocatable :: digits(:)
+            integer :: i
+            type(ParsedString_t) :: parsed_digits
+
+            result_ = many1(parseDigit, state_)
+            if (result_%ok) then
+                select type (results => result_%parsed)
+                type is (ParsedItems_t)
+                    allocate(digits(size(results%items)))
+                    do i = 1, size(digits)
+                        select type (string => results%items(i)%item)
+                        type is (ParsedCharacter_t)
+                            digits(i) = string%value_
+                        end select
+                    end do
+                end select
+                deallocate(result_%parsed)
+                parsed_digits%value_ = join(digits, "")
+                allocate(result_%parsed, source = parsed_digits)
+            end if
+        end function parseDigits
+    end function parseInteger
+
     pure subroutine parsedItemsDestructor(self)
         type(ParsedItems_t), intent(inout) :: self
 
@@ -498,6 +609,337 @@ contains
 
         the_result = return_(PARSED_NOTHING, the_state)
     end function parseNothing
+
+    pure function parseRational(the_state) result(the_result)
+        type(State_t), intent(in) :: the_state
+        type(ParserOutput_t) :: the_result
+
+        the_result = withLabel("rational", theParser, the_state)
+    contains
+        pure function theParser(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            double precision :: the_number
+            character(len=64) :: the_string
+            type(ParsedRational_t) :: the_value
+
+            result_ = sequence( &
+                    sequence(parseSign, thenParseNumber, state_), &
+                    thenParseExponent)
+            if (result_%ok) then
+                select type (parsed_string => result_%parsed)
+                type is (ParsedString_t)
+                    the_string = parsed_string%value_
+                    read(the_string, *) the_number
+                    the_value%value_ = the_number
+                    deallocate(result_%parsed)
+                    allocate(result_%parsed, source = the_value)
+                end select
+            end if
+        end function theParser
+
+        pure function parseSign(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedString_t) :: the_string
+
+            result_ = either(parsePlus, parseMinus, state_)
+            if (result_%ok) then
+                select type (the_character => result_%parsed)
+                type is (ParsedCharacter_t)
+                    the_string%value_ = the_character%value_
+                    deallocate(result_%parsed)
+                    allocate(result_%parsed, source = the_string)
+                end select
+            else
+                the_string%value_ = ""
+                result_ = EmptyOk( &
+                    the_string, &
+                    state_%input, &
+                    state_%position, &
+                    Message(state_%position, var_str(""), [VARYING_STRING::]))
+            end if
+        end function parseSign
+
+        pure function parsePlus(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("+", state_)
+        end function parsePlus
+
+        pure function parseMinus(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("-", state_)
+        end function parseMinus
+
+        pure function thenParseNumber(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = either(parseCoveredDecimal, parseUncoveredDecimal, state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedString_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            end if
+        end function thenParseNumber
+
+        pure function parseCoveredDecimal(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = sequence(parseDigits, thenParseFraction, state_)
+        end function parseCoveredDecimal
+
+        pure function parseDigits(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(VARYING_STRING), allocatable :: digits(:)
+            integer :: i
+            type(ParsedString_t) :: parsed_digits
+
+            result_ = many1(parseDigit, state_)
+            if (result_%ok) then
+                select type (results => result_%parsed)
+                type is (ParsedItems_t)
+                    allocate(digits(size(results%items)))
+                    do i = 1, size(digits)
+                        select type (string => results%items(i)%item)
+                        type is (ParsedCharacter_t)
+                            digits(i) = string%value_
+                        end select
+                    end do
+                    deallocate(result_%parsed)
+                    parsed_digits%value_ = join(digits, "")
+                    allocate(result_%parsed, source = parsed_digits)
+                end select
+            end if
+        end function parseDigits
+
+        pure function thenParseFraction(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = sequence(parseDecimal, thenParseMaybeDigits, state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedString_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            else
+                result_ = EmptyOk( &
+                        previous, &
+                        state_%input, &
+                        state_%position, &
+                        Message(state_%position, var_str(""), [VARYING_STRING::]))
+            end if
+        end function thenParseFraction
+
+        pure function parseDecimal(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedString_t) :: the_string
+
+            result_ = parseChar(".", state_)
+            if (result_%ok) then
+                select type (the_character => result_%parsed)
+                type is (ParsedCharacter_t)
+                    the_string%value_ = the_character%value_
+                    deallocate(result_%parsed)
+                    allocate(result_%parsed, source = the_string)
+                end select
+            end if
+        end function parseDecimal
+
+        pure function thenParseMaybeDigits(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseMaybeDigits(state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedString_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            end if
+        end function thenParseMaybeDigits
+
+        pure function parseMaybeDigits(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(VARYING_STRING), allocatable :: digits(:)
+            integer :: i
+            type(ParsedString_t) :: parsed_digits
+
+            result_ = many(parseDigit, state_)
+            select type (results => result_%parsed)
+            type is (ParsedItems_t)
+                allocate(digits(size(results%items)))
+                do i = 1, size(digits)
+                    select type (string => results%items(i)%item)
+                    type is (ParsedCharacter_t)
+                        digits(i) = string%value_
+                    end select
+                end do
+                deallocate(result_%parsed)
+                parsed_digits%value_ = join(digits, "")
+                allocate(result_%parsed, source = parsed_digits)
+            end select
+        end function parseMaybeDigits
+
+        pure function parseUncoveredDecimal(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = sequence(parseDecimal, thenParseDigits, state_)
+        end function parseUncoveredDecimal
+
+        pure function thenParseDigits(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseDigits(state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedString_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            end if
+        end function thenParseDigits
+
+        pure function thenParseExponent(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseExponent(state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedString_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            else
+                result_ = EmptyOk( &
+                        previous, &
+                        state_%input, &
+                        state_%position, &
+                        Message(state_%position, var_str(""), [VARYING_STRING::]))
+            end if
+        end function thenParseExponent
+
+        pure function parseExponent(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = sequence( &
+                    sequence(parseLetter, thenParseSign, state_), &
+                    thenParseDigits)
+        end function parseExponent
+
+        pure function parseLetter(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            type(ParsedString_t) :: the_string
+
+            result_ = either(parseE, parseD, state_)
+            if (result_%ok) then
+                select type (the_character => result_%parsed)
+                type is (ParsedCharacter_t)
+                    the_string%value_ = the_character%value_
+                    deallocate(result_%parsed)
+                    allocate(result_%parsed, source = the_string)
+                end select
+            end if
+        end function parseLetter
+
+        pure function parseE(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = either(parseUpperE, parseLowerE, state_)
+        end function parseE
+
+        pure function parseUpperE(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("E", state_)
+        end function parseUpperE
+
+        pure function parseLowerE(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("e", state_)
+        end function parseLowerE
+
+        pure function parseD(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = either(parseUpperD, parseLowerD, state_)
+        end function parseD
+
+        pure function parseUpperD(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("D", state_)
+        end function parseUpperD
+
+        pure function parseLowerD(state_) result(result_)
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseChar("d", state_)
+        end function parseLowerD
+
+        pure function thenParseSign(previous, state_) result(result_)
+            class(ParsedValue_t), intent(in) :: previous
+            type(State_t), intent(in) :: state_
+            type(ParserOutput_t) :: result_
+
+            result_ = parseSign(state_)
+            if (result_%ok) then
+                select type (previous)
+                type is (ParsedString_t)
+                    select type (next => result_%parsed)
+                    type is (ParsedString_t)
+                        next%value_ = previous%value_ // next%value_
+                    end select
+                end select
+            end if
+        end function thenParseSign
+    end function parseRational
 
     pure function parseStringC(string, the_state) result(the_result)
         character(len=*), intent(in) :: string
