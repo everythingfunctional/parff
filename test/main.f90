@@ -24,6 +24,8 @@ contains
             parse_digit_parse_digit => test_parse_digit
         use parse_integer_test, only: &
             parse_integer_parse_integer => test_parse_integer
+        use parse_rational_test, only: &
+            parse_rational_parse_rational => test_parse_rational
         use parse_string_test, only: &
             parse_string_parse_string => test_parse_string
         use parse_whitespace_test, only: &
@@ -40,7 +42,7 @@ contains
         use Vegetables_m, only: TestItem_t, testThat, runTests
 
         type(TestItem_t) :: tests
-        type(TestItem_t) :: individual_tests(16)
+        type(TestItem_t) :: individual_tests(17)
 
         individual_tests(1) = drop_then_drop_then()
         individual_tests(2) = either_parse_or_parse()
@@ -52,12 +54,13 @@ contains
         individual_tests(8) = parse_character_parse_character()
         individual_tests(9) = parse_digit_parse_digit()
         individual_tests(10) = parse_integer_parse_integer()
-        individual_tests(11) = parse_string_parse_string()
-        individual_tests(12) = parse_whitespace_parse_whitespace()
-        individual_tests(13) = parse_with_parse_with()
-        individual_tests(14) = repeat_repeat()
-        individual_tests(15) = sequence_sequence()
-        individual_tests(16) = then_drop_then_drop()
+        individual_tests(11) = parse_rational_parse_rational()
+        individual_tests(12) = parse_string_parse_string()
+        individual_tests(13) = parse_whitespace_parse_whitespace()
+        individual_tests(14) = parse_with_parse_with()
+        individual_tests(15) = repeat_repeat()
+        individual_tests(16) = sequence_sequence()
+        individual_tests(17) = then_drop_then_drop()
         tests = testThat(individual_tests)
 
         call runTests(tests)
