@@ -55,7 +55,7 @@ contains
         individual_tests(1) = it( &
                 "Can parse various numbers", &
                 number_examples, &
-                checkParseInteger)
+                checkParseRational)
         individual_tests(2) = it( &
                 "Parsing invalid numbers produce errors", &
                 invalid_examples, &
@@ -65,7 +65,7 @@ contains
         tests = describe("parseRational", individual_tests)
     end function test_parse_rational
 
-    pure function checkParseInteger(input) result(result_)
+    pure function checkParseRational(input) result(result_)
         class(Input_t), intent(in) :: input
         type(Result_t) :: result_
 
@@ -88,7 +88,7 @@ contains
         class default
             result_ = fail("Expected to get a NumberInput_t")
         end select
-    end function checkParseInteger
+    end function checkParseRational
 
     pure function checkParseInvalid(input) result(result_)
         class(Input_t), intent(in) :: input
