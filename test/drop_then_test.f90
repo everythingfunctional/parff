@@ -1,103 +1,103 @@
 module drop_then_test
-    use iso_varying_string, only: var_str
-    use parff, only: &
-            ParsedCharacter_t, &
-            ParserOutput_t, &
-            State_t, &
-            dropThen, &
-            newState, &
-            parseChar
-    use Vegetables_m, only: &
-            Result_t, &
-            TestItem_t, &
-            assertEquals, &
-            assertNot, &
-            assertThat, &
-            Describe, &
-            fail, &
-            It
-
     implicit none
     private
 
     public :: test_drop_then
 contains
     function test_drop_then() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(3)
+        type(test_item_t) :: tests
 
-        individual_tests(1) = It( &
+        type(test_item_t) :: individual_tests(3)
+
+        individual_tests(1) = it( &
                 "When both parses pass, we get the results of the second one", &
-                checkBothPass)
-        individual_tests(2) = It( &
+                check_both_pass)
+        individual_tests(2) = it( &
                 "When the first parse fails, that error comes back", &
-                checkFirstFail)
-        individual_tests(3) = It( &
+                check_first_fail)
+        individual_tests(3) = it( &
                 "When the second parse fails, that error comes back", &
-                checkSecondFail)
-        tests = Describe("dropThen", individual_tests)
-    end function test_drop_then
+                check_second_fail)
+        tests = describe("drop_then", individual_tests)
+    end function
 
-    pure function checkBothPass() result(result_)
-        type(Result_t) :: result_
+    pure function check_both_pass() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parsed_character_t, parser_output_t, drop_then, new_state
+        use vegetables, only: result_t, assert_equals, assert_that, fail
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = dropThen(parseA, parseB, newState(var_str("AB")))
+        type(parser_output_t) :: parse_result
 
-        result_ = assertThat(parse_result%ok)
+        parse_result = drop_then(parse_a, parse_b, new_state(var_str("AB")))
+
+        result_ = assert_that(parse_result%ok)
         if (result_%passed()) then
             select type (string => parse_result%parsed)
-            type is (ParsedCharacter_t)
-                result_ = assertEquals("B", string%value_)
+            type is (parsed_character_t)
+                result_ = assert_equals("B", string%value_)
             class default
                 result_ = fail("Didn't get character back")
             end select
         end if
-    end function checkBothPass
+    end function
 
-    pure function checkFirstFail() result(result_)
-        type(Result_t) :: result_
+    pure function check_first_fail() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, drop_then, new_state
+        use vegetables, only: result_t, assert_equals, assert_not
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = dropThen(parseA, parseB, newState(var_str("BB")))
+        type(parser_output_t) :: parse_result
 
-        result_ = assertNot(parse_result%ok)
+        parse_result = drop_then(parse_a, parse_b, new_state(var_str("BB")))
+
+        result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
             result_ = &
-                    assertEquals("B", parse_result%message%found) &
-                    .and.assertEquals("A", parse_result%message%expected(1))
+                    assert_equals("B", parse_result%message%found) &
+                    .and.assert_equals("A", parse_result%message%expected(1))
         end if
-    end function checkFirstFail
+    end function
 
-    pure function checkSecondFail() result(result_)
-        type(Result_t) :: result_
+    pure function check_second_fail() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, drop_then, new_state
+        use vegetables, only: result_t, assert_equals, assert_not
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = dropThen(parseA, parseB, newState(var_str("AA")))
+        type(parser_output_t) :: parse_result
 
-        result_ = assertNot(parse_result%ok)
+        parse_result = drop_then(parse_a, parse_b, new_state(var_str("AA")))
+
+        result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
             result_ = &
-                    assertEquals("A", parse_result%message%found) &
-                    .and.assertEquals("B", parse_result%message%expected(1))
+                    assert_equals("A", parse_result%message%found) &
+                    .and.assert_equals("B", parse_result%message%expected(1))
         end if
-    end function checkSecondFail
+    end function
 
-    pure function parseA(state_) result(result_)
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+    pure function parse_a(state_) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
 
-        result_ = parseChar("A", state_)
-    end function parseA
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
-    pure function parseB(state_) result(result_)
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        result_ = parse_char("A", state_)
+    end function
 
-        result_ = parseChar("B", state_)
-    end function parseB
-end module drop_then_test
+    pure function parse_b(state_) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
+
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        result_ = parse_char("B", state_)
+    end function
+end module

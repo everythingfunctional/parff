@@ -1,149 +1,171 @@
 module many_with_separator_test
-    use iso_varying_string, only: var_str
-    use parff, only: &
-            ParsedCharacter_t, &
-            ParsedItems_t, &
-            ParserOutput_t, &
-            State_t, &
-            manyWithSeparator, &
-            newState, &
-            parseChar
-    use Vegetables_m, only: &
-            Result_t, TestItem_t, assertEquals, assertThat, describe, fail, it
-
     implicit none
     private
 
     public :: test_many_with_separator
 contains
     function test_many_with_separator() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(5)
+        type(test_item_t) :: tests
 
-        individual_tests(1) = it("can parse one item", checkOne)
+        type(test_item_t) :: individual_tests(5)
+
+        individual_tests(1) = it("can parse one item", check_one)
         individual_tests(2) = it( &
                 "can parse one item followed by a separator", &
-                checkOneWithSeparator)
+                check_one_with_separator)
         individual_tests(3) = it( &
-                "parses until the parser doesn't match", checkMany)
+                "parses until the parser doesn't match", check_many)
         individual_tests(4) = it( &
-                "leaves a trailing separator", checkManyWithSeparator)
+                "leaves a trailing separator", check_many_with_separator)
         individual_tests(5) = it( &
-                "returns empty if the first result doesn't match", checkNone)
-        tests = describe("manyWithSeparator", individual_tests)
-    end function test_many_with_separator
+                "returns empty if the first result doesn't match", check_none)
+        tests = describe("many_with_separator", individual_tests)
+    end function
 
-    pure function checkOne() result(result_)
-        type(Result_t) :: result_
+    pure function check_one() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: &
+                parsed_items_t, parser_output_t, many_with_separator, new_state
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = manyWithSeparator(parseA, parseComma, newState(var_str("AB")))
+        type(parser_output_t) :: results
+
+        results = many_with_separator(parse_a, parse_comma, new_state(var_str("AB")))
         if (results%ok) then
             select type (parsed => results%parsed)
-            type is (ParsedItems_t)
+            type is (parsed_items_t)
                 result_ = &
-                        assertEquals(1, size(parsed%items)) &
-                        .and.assertEquals("B", results%remaining)
+                        assert_equals(1, size(parsed%items)) &
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkOne
+    end function
 
-    pure function checkOneWithSeparator() result(result_)
-        type(Result_t) :: result_
+    pure function check_one_with_separator() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: &
+                parsed_character_t, &
+                parsed_items_t, &
+                parser_output_t, &
+                many_with_separator, &
+                new_state
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = manyWithSeparator(parseA, parseComma, newState(var_str("A,B")))
+        type(parser_output_t) :: results
+
+        results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,B")))
         if (results%ok) then
             select type (parsed => results%parsed)
-            type is (ParsedItems_t)
-                result_ = assertEquals(1, size(parsed%items))
+            type is (parsed_items_t)
+                result_ = assert_equals(1, size(parsed%items))
                 if (result_%passed()) then
                     select type (the_item => parsed%items(1)%item)
-                    type is (ParsedCharacter_t)
+                    type is (parsed_character_t)
                         result_ = &
-                                assertEquals("A", the_item%value_) &
-                                .and.assertEquals(",B", results%remaining)
+                                assert_equals("A", the_item%value_) &
+                                .and.assert_equals(",B", results%remaining)
                     end select
                 end if
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkOneWithSeparator
+    end function
 
-    pure function checkMany() result(result_)
-        type(Result_t) :: result_
+    pure function check_many() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: &
+                parsed_items_t, parser_output_t, many_with_separator, new_state
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = manyWithSeparator(parseA, parseComma, newState(var_str("A,A,AB")))
+        type(parser_output_t) :: results
+
+        results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,AB")))
         if (results%ok) then
             select type (parsed => results%parsed)
-            type is (ParsedItems_t)
+            type is (parsed_items_t)
                 result_ = &
-                        assertEquals(3, size(parsed%items))&
-                        .and.assertEquals("B", results%remaining)
+                        assert_equals(3, size(parsed%items))&
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkMany
+    end function
 
-    pure function checkManyWithSeparator() result(result_)
-        type(Result_t) :: result_
+    pure function check_many_with_separator() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: &
+                parsed_items_t, parser_output_t, many_with_separator, new_state
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = manyWithSeparator(parseA, parseComma, newState(var_str("A,A,A,B")))
+        type(parser_output_t) :: results
+
+        results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,A,B")))
         if (results%ok) then
             select type (parsed => results%parsed)
-            type is (ParsedItems_t)
+            type is (parsed_items_t)
                 result_ = &
-                        assertEquals(3, size(parsed%items))&
-                        .and.assertEquals(",B", results%remaining)
+                        assert_equals(3, size(parsed%items))&
+                        .and.assert_equals(",B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkManyWithSeparator
+    end function
 
-    pure function checkNone() result(result_)
-        type(Result_t) :: result_
+    pure function check_none() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, many_with_separator, new_state
+        use vegetables, only: result_t, assert_that, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = manyWithSeparator(parseA, parseComma, newState(var_str("B,A,A")))
+        type(parser_output_t) :: results
+
+        results = many_with_separator(parse_a, parse_comma, new_state(var_str("B,A,A")))
         if (results%ok) then
-            result_ = assertThat(results%empty)
+            result_ = assert_that(results%empty)
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkNone
+    end function
 
-    pure function parseA(state_) result(result_)
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+    pure function parse_a(state_) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
 
-        result_ = parseChar("A", state_)
-    end function parseA
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
-    pure function parseComma(state_) result(result_)
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        result_ = parse_char("A", state_)
+    end function
 
-        result_ = parseChar(",", state_)
-    end function parseComma
-end module many_with_separator_test
+    pure function parse_comma(state_) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
+
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        result_ = parse_char(",", state_)
+    end function
+end module

@@ -1,227 +1,227 @@
 module parff
-    use iso_varying_string, only: &
-            VARYING_STRING, &
-            assignment(=), &
-            operator(//), &
-            operator(==), &
-            len, &
-            var_str
-    use strff, only: &
-            operator(.includes.), &
-            firstCharacter, &
-            join, &
-            toString, &
-            withoutFirstCharacter, &
-            NEWLINE
+    use iso_varying_string, only: varying_string
 
     implicit none
     private
-
-    type, public, abstract :: ParsedValue_t
-    end type ParsedValue_t
-
-    type, public :: ParsedItem_t
-        class(ParsedValue_t), allocatable :: item
-    end type ParsedItem_t
-
-    type, public, extends(ParsedValue_t) :: ParsedNothing_t
-    end type ParsedNothing_t
-
-    type, public, extends(ParsedValue_t) :: ParsedCharacter_t
-        character(len=1) :: value_
-    end type ParsedCharacter_t
-
-    type, public, extends(ParsedValue_t) :: ParsedString_t
-        type(VARYING_STRING) :: value_
-    end type ParsedString_t
-
-    type, public, extends(ParsedValue_t) :: ParsedInteger_t
-        integer :: value_
-    end type ParsedInteger_t
-
-    type, public, extends(ParsedValue_t) :: ParsedRational_t
-        double precision :: value_
-    end type ParsedRational_t
-
-    type, public, extends(ParsedValue_t) :: IntermediateParsedString_t
-        type(VARYING_STRING) :: parsed_so_far
-        type(VARYING_STRING) :: left_to_parse
-    end type IntermediateParsedString_t
-
-    type, public, extends(ParsedValue_t) :: ParsedItems_t
-        type(ParsedItem_t), allocatable :: items(:)
-    contains
-        final :: parsedItemsDestructor
-    end type ParsedItems_t
-
-    type, public, extends(ParsedValue_t) :: IntermediateRepeat_t
-        type(ParsedItems_t) :: parsed_so_far
-        integer :: remaining
-    end type IntermediateRepeat_t
-
-    type, public :: Position_t
-        integer :: line
-        integer :: column
-    end type Position_t
-
-    type, public :: State_t
-        type(VARYING_STRING) :: input
-        type(Position_t) :: position
-    end type State_t
-
-    type, public :: Message_t
-        type(Position_t) :: position
-        type(VARYING_STRING) :: found
-        type(VARYING_STRING), allocatable :: expected(:)
-    contains
-        procedure :: toString => messageToString
-        final :: messageDestructor
-    end type Message_t
-
-    type, public :: ParserOutput_t
-        logical :: empty
-        logical :: ok
-        type(Message_t) :: message
-        ! The following are only defined if ok
-        class(ParsedValue_t), allocatable :: parsed
-        type(VARYING_STRING) :: remaining
-        type(Position_t) :: position
-    end type ParserOutput_t
-
-    type, public :: ParseResult_t
-        logical :: ok
-        class(ParsedValue_t), allocatable :: parsed
-        type(VARYING_STRING) :: message
-    end type ParseResult_t
-
-    abstract interface
-        pure function match(char_) result(matches)
-            character(len=1), intent(in) :: char_
-            logical :: matches
-        end function match
-
-        pure function parser(state_) result(result_)
-            import ParserOutput_t, State_t
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
-        end function parser
-
-        pure function thenParser(previous, state_) result(result_)
-            import ParserOutput_t, ParsedValue_t, State_t
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
-        end function thenParser
-    end interface
-
-    interface dropThen
-        module procedure dropThenParser
-        module procedure dropThenResult
-    end interface dropThen
-
-    interface parseString
-        module procedure parseStringC
-        module procedure parseStringS
-    end interface parseString
-
-    interface parseWith
-        module procedure parseWithC
-        module procedure parseWithS
-    end interface parseWith
-
-    interface sequence
-        module procedure sequenceParser
-        module procedure sequenceResult
-    end interface sequence
-
-    interface thenDrop
-        module procedure thenDropParser
-        module procedure thenDropResult
-    end interface thenDrop
-
-    interface withLabel
-        module procedure withLabelC
-        module procedure withLabelS
-    end interface withLabel
-
-    type(ParsedNothing_t), parameter :: PARSED_NOTHING = ParsedNothing_t()
-
     public :: &
-            ConsumedOk, &
-            dropThen, &
+            intermediate_parsed_string_t, &
+            intermediate_repeat_t, &
+            message_t, &
+            parse_result_t, &
+            parsed_character_t, &
+            parsed_integer_t, &
+            parsed_item_t, &
+            parsed_items_t, &
+            parsed_nothing_t, &
+            parsed_rational_t, &
+            parsed_string_t, &
+            parsed_value_t, &
+            parser_output_t, &
+            position_t, &
+            state_t, &
+            consumed_ok, &
+            drop_then, &
             either, &
-            EmptyError, &
-            EmptyOk, &
+            empty_error, &
+            empty_ok, &
             many, &
             many1, &
-            many1WithSeparator, &
-            manyWithSeparator, &
-            Message, &
-            newState, &
+            many1_with_separator, &
+            many_with_separator, &
+            message, &
+            new_state, &
             optionally, &
-            parseChar, &
-            parseDigit, &
-            parseInteger, &
-            parseNothing, &
-            parseRational, &
-            parseString, &
-            parseWhitespace, &
-            parseWith, &
+            parse_char, &
+            parse_digit, &
+            parse_integer, &
+            parse_nothing, &
+            parse_rational, &
+            parse_string, &
+            parse_whitespace, &
+            parse_with, &
             repeat_, &
             return_, &
             satisfy, &
             sequence, &
-            thenDrop, &
-            withLabel
+            then_drop, &
+            with_label
+
+    type, abstract :: parsed_value_t
+    end type
+
+    type :: parsed_item_t
+        class(parsed_value_t), allocatable :: item
+    end type
+
+    type, extends(parsed_value_t) :: parsed_nothing_t
+    end type
+
+    type, extends(parsed_value_t) :: parsed_character_t
+        character(len=1) :: value_
+    end type
+
+    type, extends(parsed_value_t) :: parsed_string_t
+        type(varying_string) :: value_
+    end type
+
+    type, extends(parsed_value_t) :: parsed_integer_t
+        integer :: value_
+    end type
+
+    type, extends(parsed_value_t) :: parsed_rational_t
+        double precision :: value_
+    end type
+
+    type, extends(parsed_value_t) :: intermediate_parsed_string_t
+        type(varying_string) :: parsed_so_far
+        type(varying_string) :: left_to_parse
+    end type
+
+    type, extends(parsed_value_t) :: parsed_items_t
+        type(parsed_item_t), allocatable :: items(:)
+    end type
+
+    type, extends(parsed_value_t) :: intermediate_repeat_t
+        type(parsed_items_t) :: parsed_so_far
+        integer :: remaining
+    end type
+
+    type :: position_t
+        integer :: line
+        integer :: column
+    end type
+
+    type :: state_t
+        type(varying_string) :: input
+        type(position_t) :: position
+    end type
+
+    type :: message_t
+        type(position_t) :: position
+        type(varying_string) :: found
+        type(varying_string), allocatable :: expected(:)
+    contains
+        procedure :: to_string => message_to_string
+    end type
+
+    type :: parser_output_t
+        logical :: empty
+        logical :: ok
+        type(message_t) :: message
+        ! The following are only defined if ok
+        class(parsed_value_t), allocatable :: parsed
+        type(varying_string) :: remaining
+        type(position_t) :: position
+    end type
+
+    type :: parse_result_t
+        logical :: ok
+        class(parsed_value_t), allocatable :: parsed
+        type(varying_string) :: message
+    end type
+
+    abstract interface
+        pure function match_i(char_) result(matches)
+            character(len=1), intent(in) :: char_
+            logical :: matches
+        end function
+
+        pure function parser_i(state_) result(result_)
+            import parser_output_t, state_t
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+        end function
+
+        pure function then_parser_i(previous, state_) result(result_)
+            import parser_output_t, parsed_value_t, state_t
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+        end function
+    end interface
+
+    interface drop_then
+        module procedure drop_then_parser
+        module procedure drop_then_result
+    end interface
+
+    interface parse_string
+        module procedure parse_string_c
+        module procedure parse_string_s
+    end interface
+
+    interface parse_with
+        module procedure parse_with_c
+        module procedure parse_with_s
+    end interface
+
+    interface sequence
+        module procedure sequence_parser
+        module procedure sequence_result
+    end interface
+
+    interface then_drop
+        module procedure then_drop_parser
+        module procedure then_drop_result
+    end interface
+
+    interface with_label
+        module procedure with_label_c
+        module procedure with_label_s
+    end interface
+
+    type(parsed_nothing_t), parameter :: PARSED_NOTHING = parsed_nothing_t()
 contains
-    pure function ConsumedOk(parsed, remaining, position, message_)
-        class(ParsedValue_t), intent(in) :: parsed
-        type(VARYING_STRING), intent(in) :: remaining
-        type(Position_t), intent(in) :: position
-        type(Message_t), intent(in) :: message_
-        type(ParserOutput_t) :: ConsumedOk
+    pure function consumed_ok(parsed, remaining, position, message_)
+        use iso_varying_string, only: varying_string
 
-        ConsumedOk%empty = .false.
-        ConsumedOk%ok = .true.
-        allocate(ConsumedOk%parsed, source = parsed)
-        ConsumedOk%remaining = remaining
-        ConsumedOk%position = position
-        ConsumedOk%message = message_
-    end function ConsumedOk
+        class(parsed_value_t), intent(in) :: parsed
+        type(varying_string), intent(in) :: remaining
+        type(position_t), intent(in) :: position
+        type(message_t), intent(in) :: message_
+        type(parser_output_t) :: consumed_ok
 
-    pure function dropThenParser(parser1, parser2, state_) result(result_)
-        procedure(parser) :: parser1
-        procedure(parser) :: parser2
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        consumed_ok%empty = .false.
+        consumed_ok%ok = .true.
+        allocate(consumed_ok%parsed, source = parsed)
+        consumed_ok%remaining = remaining
+        consumed_ok%position = position
+        consumed_ok%message = message_
+    end function
 
-        result_ = dropThen(parser1(state_), parser2)
-    end function dropThenParser
+    pure recursive function drop_then_parser(parser1, parser2, state_) result(result_)
+        procedure(parser_i) :: parser1
+        procedure(parser_i) :: parser2
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
-    pure function dropThenResult(previous, parser_) result(result_)
-        type(ParserOutput_t), intent(in) :: previous
-        procedure(parser) :: parser_
-        type(ParserOutput_t) :: result_
+        result_ = drop_then(parser1(state_), parser2)
+    end function
+
+    pure recursive function drop_then_result(previous, parser) result(result_)
+        type(parser_output_t), intent(in) :: previous
+        procedure(parser_i) :: parser
+        type(parser_output_t) :: result_
 
         if (previous%ok) then
-            result_ = parser_( &
-                    State(previous%remaining, previous%position))
+            result_ = parser( &
+                    state(previous%remaining, previous%position))
             if (.not.previous%empty) then
                 result_%empty = .false.
             end if
         else
             result_ = previous
         end if
-    end function dropThenResult
+    end function
 
-    pure function either(parse1, parse2, state_) result(result_)
-        procedure(parser) :: parse1
-        procedure(parser) :: parse2
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+    pure recursive function either(parse1, parse2, state_) result(result_)
+        procedure(parser_i) :: parse1
+        procedure(parser_i) :: parse2
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
-        type(ParserOutput_t) :: first_result
-        type(ParserOutput_t) :: second_result
+        type(parser_output_t) :: first_result
+        type(parser_output_t) :: second_result
 
         first_result = parse1(state_)
 
@@ -229,7 +229,7 @@ contains
             second_result = parse2(state_)
             if (second_result%empty) then
                 if (first_result%ok) then
-                    result_ = mergeOk( &
+                    result_ = merge_ok( &
                             first_result%parsed, &
                             first_result%remaining, &
                             first_result%position, &
@@ -237,14 +237,14 @@ contains
                             second_result%message)
                 else
                     if (second_result%ok) then
-                        result_ = mergeOk( &
+                        result_ = merge_ok( &
                                 second_result%parsed, &
                                 second_result%remaining, &
                                 second_result%position, &
                                 first_result%message, &
                                 second_result%message)
                     else
-                        result_ = mergeError( &
+                        result_ = merge_error( &
                                 first_result%message, &
                                 second_result%message)
                     end if
@@ -255,73 +255,77 @@ contains
         else
             result_ = first_result
         end if
-    end function either
+    end function
 
-    pure function EmptyError(message_)
-        type(Message_t), intent(in) :: message_
-        type(ParserOutput_t) :: EmptyError
+    pure function empty_error(message_)
+        type(message_t), intent(in) :: message_
+        type(parser_output_t) :: empty_error
 
-        EmptyError%empty = .true.
-        EmptyError%ok = .false.
-        EmptyError%message = message_
-    end function EmptyError
+        empty_error%empty = .true.
+        empty_error%ok = .false.
+        empty_error%message = message_
+    end function
 
-    pure function EmptyOk(parsed, remaining, position, message_)
-        class(ParsedValue_t), intent(in) :: parsed
-        type(VARYING_STRING), intent(in) :: remaining
-        type(Position_t), intent(in) :: position
-        type(Message_t), intent(in) :: message_
-        type(ParserOutput_t) :: EmptyOk
+    pure function empty_ok(parsed, remaining, position, message_)
+        use iso_varying_string, only: varying_string
 
-        EmptyOk%empty = .true.
-        EmptyOk%ok = .true.
-        allocate(EmptyOk%parsed, source = parsed)
-        EmptyOk%remaining = remaining
-        EmptyOk%position = position
-        EmptyOk%message = message_
-    end function EmptyOk
+        class(parsed_value_t), intent(in) :: parsed
+        type(varying_string), intent(in) :: remaining
+        type(position_t), intent(in) :: position
+        type(message_t), intent(in) :: message_
+        type(parser_output_t) :: empty_ok
+
+        empty_ok%empty = .true.
+        empty_ok%ok = .true.
+        allocate(empty_ok%parsed, source = parsed)
+        empty_ok%remaining = remaining
+        empty_ok%position = position
+        empty_ok%message = message_
+    end function
 
     pure function expect(message_, label) result(new_message)
-        type(Message_t), intent(in) :: message_
-        type(VARYING_STRING), intent(in) :: label
-        type(Message_t) :: new_message
+        use iso_varying_string, only: varying_string
 
-        new_message = Message(message_%position, message_%found, [label])
-    end function expect
+        type(message_t), intent(in) :: message_
+        type(varying_string), intent(in) :: label
+        type(message_t) :: new_message
+
+        new_message = message(message_%position, message_%found, [label])
+    end function
 
     pure function many(the_parser, the_state) result(the_result)
-        procedure(parser) :: the_parser
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+        procedure(parser_i) :: the_parser
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = manyWithSeparator(the_parser, parseNothing, the_state)
-    end function many
+        the_result = many_with_separator(the_parser, parse_nothing, the_state)
+    end function
 
     pure function many1(the_parser, the_state) result(the_result)
-        procedure(parser) :: the_parser
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+        procedure(parser_i) :: the_parser
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = many1WithSeparator(the_parser, parseNothing, the_state)
-    end function many1
+        the_result = many1_with_separator(the_parser, parse_nothing, the_state)
+    end function
 
-    pure function many1WithSeparator( &
+    pure function many1_with_separator( &
             the_parser, the_separator, the_state) result(the_result)
-        procedure(parser) :: the_parser
-        procedure(parser) :: the_separator
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+        procedure(parser_i) :: the_parser
+        procedure(parser_i) :: the_separator
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        type(ParsedItems_t) :: all
-        type(ParserOutput_t) :: next
-        type(ParsedItems_t) :: temp
+        type(parsed_items_t) :: all
+        type(parser_output_t) :: next
+        type(parsed_items_t) :: temp
 
         the_result = the_parser(the_state)
         if (the_result%ok) then
             allocate(all%items(1))
             allocate(all%items(1)%item, source = the_result%parsed)
             do
-                next = dropThen(the_separator, the_parser, State(the_result%remaining, the_result%position))
+                next = drop_then(the_separator, the_parser, state(the_result%remaining, the_result%position))
                 if (.not.next%ok) exit
                 allocate(temp%items(size(all%items)))
                 temp%items = all%items
@@ -335,194 +339,203 @@ contains
             deallocate(the_result%parsed)
             allocate(the_result%parsed, source = all)
         end if
-    end function many1WithSeparator
+    end function
 
-    pure function manyWithSeparator( &
+    pure function many_with_separator( &
             the_parser, the_separator, the_state) result(the_result)
-        procedure(parser) :: the_parser
-        procedure(parser) :: the_separator
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+        use iso_varying_string, only: varying_string, var_str
 
-        type(ParsedItems_t) :: all
+        procedure(parser_i) :: the_parser
+        procedure(parser_i) :: the_separator
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = many1WithSeparator(the_parser, the_separator, the_state)
+        type(parsed_items_t) :: all
+
+        the_result = many1_with_separator(the_parser, the_separator, the_state)
         if (.not.the_result%ok) then
             allocate(all%items(0))
-            the_result = EmptyOk( &
+            the_result = empty_ok( &
                     all, &
                     the_state%input, &
                     the_state%position, &
-                    Message( &
+                    message( &
                             the_state%position, &
                             var_str(""), &
-                            [VARYING_STRING::]))
+                            [varying_string::]))
         end if
-    end function manyWithSeparator
+    end function
 
     pure function merge_(message1, message2) result(merged)
-        type(Message_t), intent(in) :: message1
-        type(Message_t), intent(in) :: message2
-        type(Message_t) :: merged
+        type(message_t), intent(in) :: message1
+        type(message_t), intent(in) :: message2
+        type(message_t) :: merged
 
-        merged = Message( &
+        merged = message( &
                 message1%position, &
                 message1%found, &
                 [message1%expected, message2%expected])
-    end function merge_
+    end function
 
-    pure function mergeError(message1, message2) result(result_)
-        type(Message_t), intent(in) :: message1
-        type(Message_t), intent(in) :: message2
-        type(ParserOutput_t) :: result_
+    pure function merge_error(message1, message2) result(result_)
+        type(message_t), intent(in) :: message1
+        type(message_t), intent(in) :: message2
+        type(parser_output_t) :: result_
 
-        result_ = EmptyError(merge_(message1, message2))
-    end function mergeError
+        result_ = empty_error(merge_(message1, message2))
+    end function
 
-    pure function mergeOk( &
+    pure function merge_ok( &
             parsed, remaining, position, message1, message2) result(result_)
-        class(ParsedValue_t), intent(in) :: parsed
-        type(VARYING_STRING), intent(in) :: remaining
-        type(Position_t), intent(in) :: position
-        type(Message_t), intent(in) :: message1
-        type(Message_t), intent(in) :: message2
-        type(ParserOutput_t) :: result_
+        use iso_varying_string, only: varying_string
 
-        result_ = EmptyOk( &
+        class(parsed_value_t), intent(in) :: parsed
+        type(varying_string), intent(in) :: remaining
+        type(position_t), intent(in) :: position
+        type(message_t), intent(in) :: message1
+        type(message_t), intent(in) :: message2
+        type(parser_output_t) :: result_
+
+        result_ = empty_ok( &
                 parsed, &
                 remaining, &
                 position, &
                 merge_(message1, message2))
-    end function mergeOk
+    end function
 
-    pure function Message(position, found, expected)
-        type(Position_t), intent(in) :: position
-        type(VARYING_STRING), intent(in) :: found
-        type(VARYING_STRING), intent(in) :: expected(:)
-        type(Message_t) :: Message
+    pure function message(position, found, expected)
+        use iso_varying_string, only: varying_string
 
-        Message%position = position
-        Message%found = found
-        allocate(Message%expected, source = expected)
-    end function Message
+        type(position_t), intent(in) :: position
+        type(varying_string), intent(in) :: found
+        type(varying_string), intent(in) :: expected(:)
+        type(message_t) :: message
 
-    pure subroutine messageDestructor(self)
-        type(Message_t), intent(inout) :: self
+        message%position = position
+        message%found = found
+        allocate(message%expected, source = expected)
+    end function
 
-        if(allocated(self%expected)) deallocate(self%expected)
-    end subroutine messageDestructor
+    pure function message_to_string(self) result(string)
+        use iso_varying_string, only: varying_string, operator(//)
+        use strff, only: join, to_string, NEWLINE
 
-    pure function messageToString(self) result(string)
-        class(Message_t), intent(in) :: self
-        type(VARYING_STRING) :: string
+        class(message_t), intent(in) :: self
+        type(varying_string) :: string
 
-        string = "At line " // toString(self%position%line) // " and column " // toString(self%position%column) // NEWLINE &
+        string = "At line " // to_string(self%position%line) // " and column " // to_string(self%position%column) // NEWLINE &
                 // "    found " // self%found // " but expected " // join(self%expected, " or ")
-    end function messageToString
+    end function
 
-    pure function newPosition()
-        type(Position_t) :: newPosition
+    pure function new_position()
+        type(position_t) :: new_position
 
-        newPosition%line = 1
-        newPosition%column = 1
-    end function newPosition
+        new_position%line = 1
+        new_position%column = 1
+    end function
 
-    pure function newState(input)
-        type(VARYING_STRING), intent(in) :: input
-        type(State_t) :: newState
+    pure function new_state(input)
+        use iso_varying_string, only: varying_string
 
-        newState = State(input, newPosition())
-    end function newState
+        type(varying_string), intent(in) :: input
+        type(state_t) :: new_state
 
-    pure function nextPosition(char_, position)
+        new_state = state(input, new_position())
+    end function
+
+    pure function next_position(char_, position)
         character(len=1), intent(in) :: char_
-        type(Position_t), intent(in) :: position
-        type(Position_t) :: nextPosition
+        type(position_t), intent(in) :: position
+        type(position_t) :: next_position
 
         character(len=1), parameter :: TAB = char(9)
         character(len=1), parameter :: NEWLINE_ = char(10)
 
         if (char_ == NEWLINE_) then
-            nextPosition%line = position%line + 1
-            nextPosition%column = position%column
+            next_position%line = position%line + 1
+            next_position%column = position%column
         else if (char_ == TAB) then
-            nextPosition%line = position%line
-            nextPosition%column = position%column + 8 - mod(position%column - 1, 8)
+            next_position%line = position%line
+            next_position%column = position%column + 8 - mod(position%column - 1, 8)
         else
-            nextPosition%line = position%line
-            nextPosition%column = position%column + 1
+            next_position%line = position%line
+            next_position%column = position%column + 1
         end if
-    end function nextPosition
+    end function
 
-    pure function optionally(the_parser, the_state) result(the_result)
-        procedure(parser) :: the_parser
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+    pure function optionally(parser, the_state) result(the_result)
+        procedure(parser_i) :: parser
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = either(the_parser, parseNothing, the_state)
-    end function optionally
+        the_result = either(parser, parse_nothing, the_state)
+    end function
 
-    pure function parseChar(the_char, the_state) result(the_result)
+    pure function parse_char(the_char, the_state) result(the_result)
         character(len=1), intent(in) :: the_char
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = withLabel(the_char, theParser, the_state)
+        the_result = with_label(the_char, the_parser, the_state)
     contains
-        pure function theParser(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function the_parser(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = satisfy(theMatcher, state_)
-        end function theParser
+            result_ = satisfy(the_matcher, state_)
+        end function
 
-        pure function theMatcher(char_) result(matches)
+        pure function the_matcher(char_) result(matches)
             character(len=1), intent(in) :: char_
             logical :: matches
 
             matches = char_ == the_char
-        end function theMatcher
-    end function parseChar
+        end function
+    end function
 
-    pure function parseDigit(the_state) result(the_result)
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+    pure function parse_digit(the_state) result(the_result)
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = withLabel("digit", theParser, the_state)
+        the_result = with_label("digit", the_parser, the_state)
     contains
-        pure function theParser(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function the_parser(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = satisfy(theMatcher, state_)
-        end function theParser
+            result_ = satisfy(the_matcher, state_)
+        end function
 
-        pure function theMatcher(char_) result(matches)
+        pure function the_matcher(char_) result(matches)
+            use strff, only: operator(.includes.)
+
             character(len=1), intent(in) :: char_
             logical :: matches
 
             matches = "0123456789".includes.char_
-        end function theMatcher
-    end function parseDigit
+        end function
+    end function
 
-    pure function parseInteger(the_state) result(the_result)
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+    pure function parse_integer(the_state) result(the_result)
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = withLabel("integer", theParser, the_state)
+        the_result = with_label("integer", the_parser, the_state)
     contains
-        pure function theParser(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function the_parser(state_) result(result_)
+            use iso_varying_string, only: assignment(=)
+
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
             integer :: the_number
             character(len=64) :: the_string
-            type(ParsedInteger_t) :: the_value
+            type(parsed_integer_t) :: the_value
 
-            result_ = sequence(optionally(parseSign, state_), thenParseDigits)
+            result_ = sequence(optionally(parse_sign, state_), then_parse_digits)
             if (result_%ok) then
                 select type (parsed_string => result_%parsed)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     the_string = parsed_string%value_
                     read(the_string, *) the_number
                     the_value%value_ = the_number
@@ -530,62 +543,67 @@ contains
                     allocate(result_%parsed, source = the_value)
                 end select
             end if
-        end function theParser
+        end function
 
-        pure function parseSign(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_sign(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = either(parsePlus, parseMinus, state_)
-        end function parseSign
+            result_ = either(parse_plus, parse_minus, state_)
+        end function
 
-        pure function parsePlus(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_plus(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("+", state_)
-        end function parsePlus
+            result_ = parse_char("+", state_)
+        end function
 
-        pure function parseMinus(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_minus(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("-", state_)
-        end function parseMinus
+            result_ = parse_char("-", state_)
+        end function
 
-        pure function thenParseDigits(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function then_parse_digits(previous, state_) result(result_)
+            use iso_varying_string, only: operator(//)
 
-            result_ = parseDigits(state_)
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            result_ = parse_digits(state_)
             if (result_%ok) then
                 select type (previous)
-                type is (ParsedCharacter_t)
+                type is (parsed_character_t)
                     select type (next => result_%parsed)
-                    type is (ParsedString_t)
+                    type is (parsed_string_t)
                         next%value_ = previous%value_ // next%value_
                     end select
                 end select
             end if
-        end function thenParseDigits
+        end function
 
-        pure function parseDigits(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_digits(state_) result(result_)
+            use iso_varying_string, only: varying_string, assignment(=)
+            use strff, only: join
 
-            type(VARYING_STRING), allocatable :: digits(:)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            type(varying_string), allocatable :: digits(:)
             integer :: i
-            type(ParsedString_t) :: parsed_digits
+            type(parsed_string_t) :: parsed_digits
 
-            result_ = many1(parseDigit, state_)
+            result_ = many1(parse_digit, state_)
             if (result_%ok) then
                 select type (results => result_%parsed)
-                type is (ParsedItems_t)
+                type is (parsed_items_t)
                     allocate(digits(size(results%items)))
                     do i = 1, size(digits)
                         select type (string => results%items(i)%item)
-                        type is (ParsedCharacter_t)
+                        type is (parsed_character_t)
                             digits(i) = string%value_
                         end select
                     end do
@@ -594,42 +612,38 @@ contains
                 parsed_digits%value_ = join(digits, "")
                 allocate(result_%parsed, source = parsed_digits)
             end if
-        end function parseDigits
-    end function parseInteger
+        end function
+    end function
 
-    pure subroutine parsedItemsDestructor(self)
-        type(ParsedItems_t), intent(inout) :: self
-
-        if (allocated(self%items)) deallocate(self%items)
-    end subroutine parsedItemsDestructor
-
-    pure function parseNothing(the_state) result(the_result)
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+    pure function parse_nothing(the_state) result(the_result)
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
         the_result = return_(PARSED_NOTHING, the_state)
-    end function parseNothing
+    end function
 
-    pure function parseRational(the_state) result(the_result)
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+    pure function parse_rational(the_state) result(the_result)
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = withLabel("rational", theParser, the_state)
+        the_result = with_label("rational", the_parser, the_state)
     contains
-        pure function theParser(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function the_parser(state_) result(result_)
+            use iso_varying_string, only: assignment(=)
+
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
             double precision :: the_number
             character(len=64) :: the_string
-            type(ParsedRational_t) :: the_value
+            type(parsed_rational_t) :: the_value
 
             result_ = sequence( &
-                    sequence(parseSign, thenParseNumber, state_), &
-                    thenParseExponent)
+                    sequence(parse_sign, then_parse_number, state_), &
+                    then_parse_exponent)
             if (result_%ok) then
                 select type (parsed_string => result_%parsed)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     the_string = parsed_string%value_
                     read(the_string, *) the_number
                     the_value%value_ = the_number
@@ -637,86 +651,93 @@ contains
                     allocate(result_%parsed, source = the_value)
                 end select
             end if
-        end function theParser
+        end function
 
-        pure function parseSign(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_sign(state_) result(result_)
+            use iso_varying_string, only: varying_string, assignment(=), var_str
 
-            type(ParsedString_t) :: the_string
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = either(parsePlus, parseMinus, state_)
+            type(parsed_string_t) :: the_string
+
+            result_ = either(parse_plus, parse_minus, state_)
             if (result_%ok) then
                 select type (the_character => result_%parsed)
-                type is (ParsedCharacter_t)
+                type is (parsed_character_t)
                     the_string%value_ = the_character%value_
                     deallocate(result_%parsed)
                     allocate(result_%parsed, source = the_string)
                 end select
             else
                 the_string%value_ = ""
-                result_ = EmptyOk( &
+                result_ = empty_ok( &
                     the_string, &
                     state_%input, &
                     state_%position, &
-                    Message(state_%position, var_str(""), [VARYING_STRING::]))
+                    message(state_%position, var_str(""), [varying_string::]))
             end if
-        end function parseSign
+        end function
 
-        pure function parsePlus(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_plus(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("+", state_)
-        end function parsePlus
+            result_ = parse_char("+", state_)
+        end function
 
-        pure function parseMinus(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_minus(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("-", state_)
-        end function parseMinus
+            result_ = parse_char("-", state_)
+        end function
 
-        pure function thenParseNumber(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function then_parse_number(previous, state_) result(result_)
+            use iso_varying_string, only: operator(//)
 
-            result_ = either(parseCoveredDecimal, parseUncoveredDecimal, state_)
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            result_ = either(parse_covered_decimal, parse_uncovered_decimal, state_)
             if (result_%ok) then
                 select type (previous)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     select type (next => result_%parsed)
-                    type is (ParsedString_t)
+                    type is (parsed_string_t)
                         next%value_ = previous%value_ // next%value_
                     end select
                 end select
             end if
-        end function thenParseNumber
+        end function
 
-        pure function parseCoveredDecimal(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_covered_decimal(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = sequence(parseDigits, thenParseFraction, state_)
-        end function parseCoveredDecimal
+            result_ = sequence(parse_digits, then_parse_fraction, state_)
+        end function
 
-        pure function parseDigits(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_digits(state_) result(result_)
+            use iso_varying_string, only: assignment(=), varying_string
+            use strff, only: join
 
-            type(VARYING_STRING), allocatable :: digits(:)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            type(varying_string), allocatable :: digits(:)
             integer :: i
-            type(ParsedString_t) :: parsed_digits
+            type(parsed_string_t) :: parsed_digits
 
-            result_ = many1(parseDigit, state_)
+            result_ = many1(parse_digit, state_)
             if (result_%ok) then
                 select type (results => result_%parsed)
-                type is (ParsedItems_t)
+                type is (parsed_items_t)
                     allocate(digits(size(results%items)))
                     do i = 1, size(digits)
                         select type (string => results%items(i)%item)
-                        type is (ParsedCharacter_t)
+                        type is (parsed_character_t)
                             digits(i) = string%value_
                         end select
                     end do
@@ -725,80 +746,89 @@ contains
                     allocate(result_%parsed, source = parsed_digits)
                 end select
             end if
-        end function parseDigits
+        end function
 
-        pure function thenParseFraction(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function then_parse_fraction(previous, state_) result(result_)
+            use iso_varying_string, only: varying_string, operator(//), var_str
 
-            result_ = sequence(parseDecimal, thenParseMaybeDigits, state_)
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            result_ = sequence(parse_decimal, then_parse_maybe_digits, state_)
             if (result_%ok) then
                 select type (previous)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     select type (next => result_%parsed)
-                    type is (ParsedString_t)
+                    type is (parsed_string_t)
                         next%value_ = previous%value_ // next%value_
                     end select
                 end select
             else
-                result_ = EmptyOk( &
+                result_ = empty_ok( &
                         previous, &
                         state_%input, &
                         state_%position, &
-                        Message(state_%position, var_str(""), [VARYING_STRING::]))
+                        message(state_%position, var_str(""), [varying_string::]))
             end if
-        end function thenParseFraction
+        end function
 
-        pure function parseDecimal(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_decimal(state_) result(result_)
+            use iso_varying_string, only: assignment(=)
 
-            type(ParsedString_t) :: the_string
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar(".", state_)
+            type(parsed_string_t) :: the_string
+
+            result_ = parse_char(".", state_)
             if (result_%ok) then
                 select type (the_character => result_%parsed)
-                type is (ParsedCharacter_t)
+                type is (parsed_character_t)
                     the_string%value_ = the_character%value_
                     deallocate(result_%parsed)
                     allocate(result_%parsed, source = the_string)
                 end select
             end if
-        end function parseDecimal
+        end function
 
-        pure function thenParseMaybeDigits(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function then_parse_maybe_digits(previous, state_) result(result_)
+            use iso_varying_string, only: operator(//)
 
-            result_ = parseMaybeDigits(state_)
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            result_ = parse_maybe_digits(state_)
             if (result_%ok) then
                 select type (previous)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     select type (next => result_%parsed)
-                    type is (ParsedString_t)
+                    type is (parsed_string_t)
                         next%value_ = previous%value_ // next%value_
                     end select
                 end select
             end if
-        end function thenParseMaybeDigits
+        end function
 
-        pure function parseMaybeDigits(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_maybe_digits(state_) result(result_)
+            use iso_varying_string, only: varying_string, assignment(=)
+            use strff, only: join
 
-            type(VARYING_STRING), allocatable :: digits(:)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            type(varying_string), allocatable :: digits(:)
             integer :: i
-            type(ParsedString_t) :: parsed_digits
+            type(parsed_string_t) :: parsed_digits
 
-            result_ = many(parseDigit, state_)
+            result_ = many(parse_digit, state_)
             select type (results => result_%parsed)
-            type is (ParsedItems_t)
+            type is (parsed_items_t)
                 allocate(digits(size(results%items)))
                 do i = 1, size(digits)
                     select type (string => results%items(i)%item)
-                    type is (ParsedCharacter_t)
+                    type is (parsed_character_t)
                         digits(i) = string%value_
                     end select
                 end do
@@ -806,230 +836,252 @@ contains
                 parsed_digits%value_ = join(digits, "")
                 allocate(result_%parsed, source = parsed_digits)
             end select
-        end function parseMaybeDigits
+        end function
 
-        pure function parseUncoveredDecimal(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_uncovered_decimal(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = sequence(parseDecimal, thenParseDigits, state_)
-        end function parseUncoveredDecimal
+            result_ = sequence(parse_decimal, then_parse_digits, state_)
+        end function
 
-        pure function thenParseDigits(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function then_parse_digits(previous, state_) result(result_)
+            use iso_varying_string, only: operator(//)
 
-            result_ = parseDigits(state_)
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            result_ = parse_digits(state_)
             if (result_%ok) then
                 select type (previous)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     select type (next => result_%parsed)
-                    type is (ParsedString_t)
+                    type is (parsed_string_t)
                         next%value_ = previous%value_ // next%value_
                     end select
                 end select
             end if
-        end function thenParseDigits
+        end function
 
-        pure function thenParseExponent(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function then_parse_exponent(previous, state_) result(result_)
+            use iso_varying_string, only: varying_string, operator(//), var_str
 
-            result_ = parseExponent(state_)
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            result_ = parse_exponent(state_)
             if (result_%ok) then
                 select type (previous)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     select type (next => result_%parsed)
-                    type is (ParsedString_t)
+                    type is (parsed_string_t)
                         next%value_ = previous%value_ // next%value_
                     end select
                 end select
             else
-                result_ = EmptyOk( &
+                result_ = empty_ok( &
                         previous, &
                         state_%input, &
                         state_%position, &
-                        Message(state_%position, var_str(""), [VARYING_STRING::]))
+                        message(state_%position, var_str(""), [varying_string::]))
             end if
-        end function thenParseExponent
+        end function
 
-        pure function parseExponent(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_exponent(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
             result_ = sequence( &
-                    sequence(parseLetter, thenParseSign, state_), &
-                    thenParseDigits)
-        end function parseExponent
+                    sequence(parse_letter, then_parse_sign, state_), &
+                    then_parse_digits)
+        end function
 
-        pure function parseLetter(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_letter(state_) result(result_)
+            use iso_varying_string, only: assignment(=)
 
-            type(ParsedString_t) :: the_string
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = either(parseE, parseD, state_)
+            type(parsed_string_t) :: the_string
+
+            result_ = either(parse_e, parse_d, state_)
             if (result_%ok) then
                 select type (the_character => result_%parsed)
-                type is (ParsedCharacter_t)
+                type is (parsed_character_t)
                     the_string%value_ = the_character%value_
                     deallocate(result_%parsed)
                     allocate(result_%parsed, source = the_string)
                 end select
             end if
-        end function parseLetter
+        end function
 
-        pure function parseE(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_e(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = either(parseUpperE, parseLowerE, state_)
-        end function parseE
+            result_ = either(parse_upper_e, parse_lower_e, state_)
+        end function
 
-        pure function parseUpperE(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_upper_e(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("E", state_)
-        end function parseUpperE
+            result_ = parse_char("E", state_)
+        end function
 
-        pure function parseLowerE(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_lower_e(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("e", state_)
-        end function parseLowerE
+            result_ = parse_char("e", state_)
+        end function
 
-        pure function parseD(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_d(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = either(parseUpperD, parseLowerD, state_)
-        end function parseD
+            result_ = either(parse_upper_d, parse_lower_d, state_)
+        end function
 
-        pure function parseUpperD(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_upper_d(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("D", state_)
-        end function parseUpperD
+            result_ = parse_char("D", state_)
+        end function
 
-        pure function parseLowerD(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_lower_d(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar("d", state_)
-        end function parseLowerD
+            result_ = parse_char("d", state_)
+        end function
 
-        pure function thenParseSign(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function then_parse_sign(previous, state_) result(result_)
+            use iso_varying_string, only: operator(//)
 
-            result_ = parseSign(state_)
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            result_ = parse_sign(state_)
             if (result_%ok) then
                 select type (previous)
-                type is (ParsedString_t)
+                type is (parsed_string_t)
                     select type (next => result_%parsed)
-                    type is (ParsedString_t)
+                    type is (parsed_string_t)
                         next%value_ = previous%value_ // next%value_
                     end select
                 end select
             end if
-        end function thenParseSign
-    end function parseRational
+        end function
+    end function
 
-    pure function parseStringC(string, the_state) result(the_result)
+    pure function parse_string_c(string, the_state) result(the_result)
+        use iso_varying_string, only: var_str
+
         character(len=*), intent(in) :: string
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = parseString(var_str(string), the_state)
-    end function parseStringC
+        the_result = parse_string(var_str(string), the_state)
+    end function
 
-    pure function parseStringS(string, the_state) result(the_result)
-        type(VARYING_STRING), intent(in) :: string
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+    pure function parse_string_s(string, the_state) result(the_result)
+        use iso_varying_string, only: varying_string
 
-        the_result = withLabel(string, start, the_state)
+        type(varying_string), intent(in) :: string
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
+
+        the_result = with_label(string, start, the_state)
     contains
         pure function start(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+            use iso_varying_string, only: &
+                    varying_string, assignment(=), operator(==), var_str
 
-            type(ParsedString_t) :: empty
-            type(IntermediateParsedString_t) :: initial
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            type(parsed_string_t) :: empty
+            type(intermediate_parsed_string_t) :: initial
 
             if (string == "") then
                 empty%value_ = ""
-                result_ = EmptyOk(empty, state_%input, state_%position, Message( &
-                        state_%position, var_str(""), [VARYING_STRING::]))
+                result_ = empty_ok(empty, state_%input, state_%position, message( &
+                        state_%position, var_str(""), [varying_string::]))
             else
                 initial%left_to_parse = string
                 initial%parsed_so_far = ""
                 result_ = sequence(return_(initial, state_), recurse)
             end if
-        end function start
+        end function
 
         pure recursive function recurse(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+            use iso_varying_string, only: varying_string, len, var_str
 
-            type(ParsedString_t) :: final_string
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            type(parsed_string_t) :: final_string
 
             select type (previous)
-            type is (IntermediateParsedString_t)
+            type is (intermediate_parsed_string_t)
                 if (len(previous%left_to_parse) == 0) then
                     final_string%value_ = previous%parsed_so_far
-                    result_ = ConsumedOk( &
+                    result_ = consumed_ok( &
                             final_string, &
                             state_%input, &
                             state_%position, &
-                            Message(state_%position, var_str(""), [VARYING_STRING::]))
+                            message(state_%position, var_str(""), [varying_string::]))
                 else
-                    result_ = sequence(parseNext(previous, state_), recurse)
+                    result_ = sequence(parse_next(previous, state_), recurse)
                 end if
             end select
-        end function recurse
+        end function
 
-        pure function parseNext(previous, state_) result(result_)
-            type(IntermediateParsedString_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_next(previous, state_) result(result_)
+            use iso_varying_string, only: operator(//)
+            use strff, only: first_character, without_first_character
 
-            type(IntermediateParsedString_t) :: next
+            type(intermediate_parsed_string_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = parseChar(firstCharacter(previous%left_to_parse), state_)
+            type(intermediate_parsed_string_t) :: next
+
+            result_ = parse_char(first_character(previous%left_to_parse), state_)
             if (result_%ok) then
-                next%left_to_parse = withoutFirstCharacter(previous%left_to_parse)
+                next%left_to_parse = without_first_character(previous%left_to_parse)
                 select type (the_char => result_%parsed)
-                type is (ParsedCharacter_t)
+                type is (parsed_character_t)
                     next%parsed_so_far = previous%parsed_so_far // the_char%value_
                     deallocate(result_%parsed)
                     allocate(result_%parsed, source = next)
                 end select
             end if
-        end function parseNext
-    end function parseStringS
+        end function
+    end function
 
-    pure function parseWhitespace(the_state) result(the_result)
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+    pure function parse_whitespace(the_state) result(the_result)
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
-        the_result = withLabel("whitespace", theParser, the_state)
+        the_result = with_label("whitespace", the_parser, the_state)
     contains
-        pure function theParser(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function the_parser(state_) result(result_)
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            result_ = satisfy(theMatcher, state_)
-        end function theParser
+            result_ = satisfy(the_matcher, state_)
+        end function
 
-        pure function theMatcher(char_) result(matches)
+        pure function the_matcher(char_) result(matches)
+            use strff, only: operator(.includes.), NEWLINE
+
             character(len=1), intent(in) :: char_
             logical :: matches
 
@@ -1040,90 +1092,98 @@ contains
                     TAB // NEWLINE // CARRIAGE_RETURN // SPACE
 
             matches = WHITESPACE.includes.char_
-        end function theMatcher
-    end function parseWhitespace
+        end function
+    end function
 
-    pure function parseWithC(theParser, string) result(result_)
-        procedure(parser) :: theParser
+    pure function parse_with_c(parser, string) result(result_)
+        use iso_varying_string, only: var_str
+
+        procedure(parser_i) :: parser
         character(len=*), intent(in) :: string
-        type(ParseResult_t) :: result_
+        type(parse_result_t) :: result_
 
-        result_ = parseWith(theParser, var_str(string))
-    end function parseWithC
+        result_ = parse_with(parser, var_str(string))
+    end function
 
-    pure function parseWithS(theParser, string) result(result_)
-        procedure(parser) :: theParser
-        type(VARYING_STRING), intent(in) :: string
-        type(ParseResult_t) :: result_
+    pure function parse_with_s(parser, string) result(result_)
+        use iso_varying_string, only: varying_string
 
-        type(ParserOutput_t) :: the_results
+        procedure(parser_i) :: parser
+        type(varying_string), intent(in) :: string
+        type(parse_result_t) :: result_
 
-        the_results = theParser(newState(string))
+        type(parser_output_t) :: the_results
+
+        the_results = parser(new_state(string))
         if (the_results%ok) then
             result_%ok = .true.
             allocate(result_%parsed, source = the_results%parsed)
         else
             result_%ok = .false.
-            result_%message = the_results%message%toString()
+            result_%message = the_results%message%to_string()
         end if
-    end function parseWithS
+    end function
 
     pure function repeat_(the_parser, times, the_state) result(the_result)
-        procedure(parser) :: the_parser
+        procedure(parser_i) :: the_parser
         integer, intent(in) :: times
-        type(State_t), intent(in) :: the_state
-        type(ParserOutput_t) :: the_result
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
 
         the_result = start(the_state)
     contains
         pure function start(state_) result(result_)
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+            use iso_varying_string, only: varying_string, var_str
 
-            type(ParsedItems_t) :: empty
-            type(IntermediateRepeat_t) :: initial
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            type(parsed_items_t) :: empty
+            type(intermediate_repeat_t) :: initial
 
             if (times <= 0) then
-                allocate(empty%items, source = [ParsedItem_t::])
-                result_ = EmptyOk(empty, state_%input, state_%position, Message( &
-                        state_%position, var_str(""), [VARYING_STRING::]))
+                allocate(empty%items, source = [parsed_item_t::])
+                result_ = empty_ok(empty, state_%input, state_%position, message( &
+                        state_%position, var_str(""), [varying_string::]))
             else
                 initial%remaining = times
-                allocate(initial%parsed_so_far%items, source = [ParsedItem_t::])
+                allocate(initial%parsed_so_far%items, source = [parsed_item_t::])
                 result_ = sequence(return_(initial, state_), recurse)
             end if
-        end function start
+        end function
 
         pure recursive function recurse(previous, state_) result(result_)
-            class(ParsedValue_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+            use iso_varying_string, only: varying_string, var_str
 
-            type(ParsedItems_t) :: final_list
+            class(parsed_value_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
+
+            type(parsed_items_t) :: final_list
 
             select type (previous)
-            type is (IntermediateRepeat_t)
+            type is (intermediate_repeat_t)
                 if (previous%remaining <= 0) then
                     allocate(final_list%items, source =  &
                             previous%parsed_so_far%items)
-                    result_ = ConsumedOk( &
+                    result_ = consumed_ok( &
                             final_list, &
                             state_%input, &
                             state_%position, &
-                            Message(state_%position, var_str(""), [VARYING_STRING::]))
+                            message(state_%position, var_str(""), [varying_string::]))
                 else
-                    result_ = sequence(parseNext(previous, state_), recurse)
+                    result_ = sequence(parse_next(previous, state_), recurse)
                 end if
             end select
-        end function recurse
+        end function
 
-        pure function parseNext(previous, state_) result(result_)
-            type(IntermediateRepeat_t), intent(in) :: previous
-            type(State_t), intent(in) :: state_
-            type(ParserOutput_t) :: result_
+        pure function parse_next(previous, state_) result(result_)
+            type(intermediate_repeat_t), intent(in) :: previous
+            type(state_t), intent(in) :: state_
+            type(parser_output_t) :: result_
 
-            type(IntermediateRepeat_t) :: next
-            type(ParsedItem_t) :: this_item
+            type(intermediate_repeat_t) :: next
+            type(parsed_item_t) :: this_item
 
             result_ = the_parser(state_)
             if (result_%ok) then
@@ -1133,107 +1193,114 @@ contains
                 deallocate(result_%parsed)
                 allocate(result_%parsed, source = next)
             end if
-        end function parseNext
-    end function repeat_
+        end function
+    end function
 
     pure function return_(parsed, state_) result(result_)
-        class(ParsedValue_t), intent(in) :: parsed
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        use iso_varying_string, only: varying_string, var_str
 
-        result_ = EmptyOk( &
-                parsed, state_%input, state_%position, Message( &
-                        state_%position, var_str(""), [VARYING_STRING::]))
-    end function return_
+        class(parsed_value_t), intent(in) :: parsed
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        result_ = empty_ok( &
+                parsed, state_%input, state_%position, message( &
+                        state_%position, var_str(""), [varying_string::]))
+    end function
 
     pure function satisfy(matches, state_) result(result_)
-        procedure(match) :: matches
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        use iso_varying_string, only: varying_string, len, var_str
+        use strff, only: first_character, without_first_character
 
-        character(len=1) :: first_character
-        type(Position_t) :: new_position
-        type(ParsedCharacter_t) :: parsed_character
+        procedure(match_i) :: matches
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        character(len=1) :: first_character_
+        type(position_t) :: new_position
+        type(parsed_character_t) :: parsed_character
 
         if (len(state_%input) > 0) then
-            first_character = firstCharacter(state_%input)
-            if (matches(first_character)) then
-                new_position = nextPosition(first_character, state_%position)
-                parsed_character%value_ = first_character
-                result_ = ConsumedOk( &
+            first_character_ = first_character(state_%input)
+            if (matches(first_character_)) then
+                new_position = next_position(first_character_, state_%position)
+                parsed_character%value_ = first_character_
+                result_ = consumed_ok( &
                         parsed_character, &
-                        withoutFirstCharacter(state_%input), &
+                        without_first_character(state_%input), &
                         new_position, &
-                        Message( &
+                        message( &
                                 new_position, &
                                 var_str(""), &
-                                [VARYING_STRING::]))
+                                [varying_string::]))
             else
-                result_ = EmptyError(Message( &
+                result_ = empty_error(message( &
                         state_%position, &
-                        var_str(first_character), &
-                        [VARYING_STRING::]))
+                        var_str(first_character_), &
+                        [varying_string::]))
             end if
         else
-            result_ = EmptyError(Message( &
+            result_ = empty_error(message( &
                     state_%position, &
                     var_str("end of input"), &
-                    [VARYING_STRING::]))
+                    [varying_string::]))
         end if
-    end function satisfy
+    end function
 
-    pure function sequenceParser(parser1, parser2, state_) result(result_)
-        procedure(parser) :: parser1
-        procedure(thenParser) :: parser2
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+    pure recursive function sequence_parser(parser1, parser2, state_) result(result_)
+        procedure(parser_i) :: parser1
+        procedure(then_parser_i) :: parser2
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
         result_ = sequence(parser1(state_), parser2)
-    end function sequenceParser
+    end function
 
-    pure function sequenceResult(previous, parser_) result(result_)
-        type(ParserOutput_t), intent(in) :: previous
-        procedure(thenParser) :: parser_
-        type(ParserOutput_t) :: result_
+    pure recursive function sequence_result(previous, parser) result(result_)
+        type(parser_output_t), intent(in) :: previous
+        procedure(then_parser_i) :: parser
+        type(parser_output_t) :: result_
 
         if (previous%ok) then
-            result_ = parser_( &
+            result_ = parser( &
                     previous%parsed, &
-                    State(previous%remaining, previous%position))
+                    state(previous%remaining, previous%position))
             if (.not.previous%empty) then
                 result_%empty = .false.
             end if
         else
             result_ = previous
         end if
-    end function sequenceResult
+    end function
 
-    pure function State(input, position)
-        type(VARYING_STRING), intent(in) :: input
-        type(Position_t), intent(in) :: position
-        type(State_t) :: State
+    pure function state(input, position)
+        use iso_varying_string, only: varying_string
 
-        State%input = input
-        State%position = position
-    end function State
+        type(varying_string), intent(in) :: input
+        type(position_t), intent(in) :: position
+        type(state_t) :: state
 
-    pure function thenDropParser(parser1, parser2, state_) result(result_)
-        procedure(parser) :: parser1
-        procedure(parser) :: parser2
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        state%input = input
+        state%position = position
+    end function
 
-        result_ = thenDrop(parser1(state_), parser2)
-    end function thenDropParser
+    pure function then_drop_parser(parser1, parser2, state_) result(result_)
+        procedure(parser_i) :: parser1
+        procedure(parser_i) :: parser2
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
-    pure function thenDropResult(previous, parser_) result(result_)
-        type(ParserOutput_t), intent(in) :: previous
-        procedure(parser) :: parser_
-        type(ParserOutput_t) :: result_
+        result_ = then_drop(parser1(state_), parser2)
+    end function
+
+    pure function then_drop_result(previous, parser) result(result_)
+        type(parser_output_t), intent(in) :: previous
+        procedure(parser_i) :: parser
+        type(parser_output_t) :: result_
 
         if (previous%ok) then
-            result_ = parser_( &
-                    State(previous%remaining, previous%position))
+            result_ = parser( &
+                    state(previous%remaining, previous%position))
             result_%empty = previous%empty .and. result_%empty
             if (result_%ok) then
                 deallocate(result_%parsed)
@@ -1242,41 +1309,45 @@ contains
         else
             result_ = previous
         end if
-    end function thenDropResult
+    end function
 
-    pure function withLabelC(label, parse, state_) result(result_)
+    pure recursive function with_label_c(label, parse, state_) result(result_)
+        use iso_varying_string, only: var_str
+
         character(len=*), intent(in) :: label
-        procedure(parser) :: parse
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        procedure(parser_i) :: parse
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
-        result_ = withLabel(var_str(label), parse, state_)
-    end function withLabelC
+        result_ = with_label(var_str(label), parse, state_)
+    end function
 
-    pure function withLabelS(label, parse, state_) result(result_)
-        type(VARYING_STRING), intent(in) :: label
-        procedure(parser) :: parse
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+    pure recursive function with_label_s(label, parse, state_) result(result_)
+        use iso_varying_string, only: varying_string
 
-        type(ParserOutput_t) :: the_result
-        type(Message_t) :: the_message
+        type(varying_string), intent(in) :: label
+        procedure(parser_i) :: parse
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        type(parser_output_t) :: the_result
+        type(message_t) :: the_message
 
         the_result = parse(state_)
         if (the_result%empty) then
             if (the_result%ok) then
                 the_message = expect(the_result%message, label)
-                result_ = EmptyOk( &
+                result_ = empty_ok( &
                         the_result%parsed, &
                         the_result%remaining, &
                         the_result%position, &
                         the_message)
             else
                 the_message = expect(the_result%message, label)
-                result_ = EmptyError(the_message)
+                result_ = empty_error(the_message)
             end if
         else
             result_ = the_result
         end if
-    end function withLabelS
-end module parff
+    end function
+end module

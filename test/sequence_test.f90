@@ -1,120 +1,125 @@
 module sequence_test
-    use iso_varying_string, only: assignment(=), var_str
-    use parff, only: &
-            ParsedCharacter_t, &
-            ParsedString_t, &
-            ParsedValue_t, &
-            ParserOutput_t, &
-            State_t, &
-            newState, &
-            parseChar, &
-            sequence
-    use Vegetables_m, only: &
-            Result_t, &
-            TestItem_t, &
-            assertEquals, &
-            assertNot, &
-            assertThat, &
-            Describe, &
-            fail, &
-            It
-
     implicit none
     private
 
     public :: test_sequence
 contains
     function test_sequence() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(3)
+        type(test_item_t) :: tests
 
-        individual_tests(1) = It( &
+        type(test_item_t) :: individual_tests(3)
+
+        individual_tests(1) = it( &
                 "When both parses pass, the results are combined", &
-                checkBothPass)
-        individual_tests(2) = It( &
+                check_both_pass)
+        individual_tests(2) = it( &
                 "When the first parse fails, that error comes back", &
-                checkFirstFail)
-        individual_tests(3) = It( &
+                check_first_fail)
+        individual_tests(3) = it( &
                 "When the second parse fails, that error comes back", &
-                checkSecondFail)
-        tests = Describe("sequence", individual_tests)
-    end function test_sequence
+                check_second_fail)
+        tests = describe("sequence", individual_tests)
+    end function
 
-    pure function checkBothPass() result(result_)
-        type(Result_t) :: result_
+    pure function check_both_pass() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parsed_string_t, parser_output_t, new_state, sequence
+        use vegetables, only: result_t, assert_equals, assert_that, fail
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = sequence(parseA, thenParseB, newState(var_str("AB")))
+        type(parser_output_t) :: parse_result
 
-        result_ = assertThat(parse_result%ok)
+        parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AB")))
+
+        result_ = assert_that(parse_result%ok)
         if (result_%passed()) then
             select type (string => parse_result%parsed)
-            type is (ParsedString_t)
-                result_ = assertEquals("AB", string%value_)
+            type is (parsed_string_t)
+                result_ = assert_equals("AB", string%value_)
             class default
                 result_ = fail("Didn't get string back")
             end select
         end if
-    end function checkBothPass
+    end function
 
-    pure function checkFirstFail() result(result_)
-        type(Result_t) :: result_
+    pure function check_first_fail() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, new_state, sequence
+        use vegetables, only: result_t, assert_equals, assert_not
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = sequence(parseA, thenParseB, newState(var_str("BB")))
+        type(parser_output_t) :: parse_result
 
-        result_ = assertNot(parse_result%ok)
+        parse_result = sequence(parse_a, then_parse_b, new_state(var_str("BB")))
+
+        result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
             result_ = &
-                    assertEquals("B", parse_result%message%found) &
-                    .and.assertEquals("A", parse_result%message%expected(1))
+                    assert_equals("B", parse_result%message%found) &
+                    .and.assert_equals("A", parse_result%message%expected(1))
         end if
-    end function checkFirstFail
+    end function
 
-    pure function checkSecondFail() result(result_)
-        type(Result_t) :: result_
+    pure function check_second_fail() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, new_state, sequence
+        use vegetables, only: result_t, assert_equals, assert_not
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = sequence(parseA, thenParseB, newState(var_str("AA")))
+        type(parser_output_t) :: parse_result
 
-        result_ = assertNot(parse_result%ok)
+        parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AA")))
+
+        result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
             result_ = &
-                    assertEquals("A", parse_result%message%found) &
-                    .and.assertEquals("B", parse_result%message%expected(1))
+                    assert_equals("A", parse_result%message%found) &
+                    .and.assert_equals("B", parse_result%message%expected(1))
         end if
-    end function checkSecondFail
+    end function
 
-    pure function parseA(state_) result(result_)
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+    pure function parse_a(state_) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
 
-        result_ = parseChar("A", state_)
-    end function parseA
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
 
-    pure function thenParseB(previous, state_) result(result_)
-        class(ParsedValue_t), intent(in) :: previous
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        result_ = parse_char("A", state_)
+    end function
 
-        type(ParsedString_t) :: parsed
+    pure function then_parse_b(previous, state_) result(result_)
+        use iso_varying_string, only: assignment(=)
+        use parff, only: &
+                parsed_character_t, &
+                parsed_string_t, &
+                parsed_value_t, &
+                parser_output_t, &
+                state_t, &
+                parse_char
 
-        result_ = parseChar("B", state_)
+        class(parsed_value_t), intent(in) :: previous
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        type(parsed_string_t) :: parsed
+
+        result_ = parse_char("B", state_)
 
         if (result_%ok) then
             select type (previous)
-            type is (ParsedCharacter_t)
+            type is (parsed_character_t)
                 select type (next => result_%parsed)
-                type is (ParsedCharacter_t)
+                type is (parsed_character_t)
                     parsed%value_ = previous%value_ // next%value_
                 end select
             end select
             deallocate(result_%parsed)
             allocate(result_%parsed, source = parsed)
         end if
-    end function thenParseB
-end module sequence_test
+    end function
+end module

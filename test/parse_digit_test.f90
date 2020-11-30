@@ -1,84 +1,87 @@
 module parse_digit_test
-    use iso_varying_string, only: var_str
-    use parff, only: &
-            ParsedCharacter_t, ParserOutput_t, newState, parseDigit
-    use Vegetables_m, only: &
-            Result_t, &
-            TestItem_t, &
-            assertEquals, &
-            assertNot, &
-            assertThat, &
-            Describe, &
-            fail, &
-            It
-
     implicit none
     private
 
     public :: test_parse_digit
 contains
     function test_parse_digit() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(3)
+        type(test_item_t) :: tests
 
-        individual_tests(1) = It( &
+        type(test_item_t) :: individual_tests(3)
+
+        individual_tests(1) = it( &
                 "Parsing the first character in a string consumes that character", &
-                checkParseFirstCharacter)
-        individual_tests(2) = It( &
+                check_parse_first_character)
+        individual_tests(2) = it( &
                 "Parsing a different character produces an error", &
-                checkParseDifferentCharacter)
-        individual_tests(3) = It( &
+                check_parse_different_character)
+        individual_tests(3) = it( &
                 "Parsing an empty string produces an error", &
-                checkParseEmptyString)
-        tests = Describe("parseDigit", individual_tests)
-    end function test_parse_digit
+                check_parse_empty_string)
+        tests = describe("parse_digit", individual_tests)
+    end function
 
-    pure function checkParseFirstCharacter() result(result_)
-        type(Result_t) :: result_
+    pure function check_parse_first_character() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: &
+                parsed_character_t, parser_output_t, new_state, parse_digit
+        use vegetables, only: &
+                result_t, assert_equals, assert_not, assert_that, fail
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = parseDigit(newState(var_str("1First")))
+        type(parser_output_t) :: parse_result
+
+        parse_result = parse_digit(new_state(var_str("1First")))
 
         result_ = &
-                assertThat(parse_result%ok, "Got result", "Didn't get result") &
-                .and.assertNot(parse_result%empty, "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed)
-            type is (ParsedCharacter_t)
+            type is (parsed_character_t)
                 result_ = &
-                        assertEquals("1", the_char%value_) &
-                        .and.assertEquals("First", parse_result%remaining)
+                        assert_equals("1", the_char%value_) &
+                        .and.assert_equals("First", parse_result%remaining)
             class default
                 result_ = fail("Didn't get a character back")
             end select
         end if
-    end function checkParseFirstCharacter
+    end function
 
-    pure function checkParseDifferentCharacter() result(result_)
-        type(Result_t) :: result_
+    pure function check_parse_different_character() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, new_state, parse_digit
+        use vegetables, only: result_t, assert_equals, assert_not, fail
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = parseDigit(newState(var_str("First")))
+        type(parser_output_t) :: parse_result
 
-        result_ = &
-                assertNot(parse_result%ok) &
-                .and.assertEquals("F", parse_result%message%found) &
-                .and.assertEquals("digit", parse_result%message%expected(1))
-    end function checkParseDifferentCharacter
-
-    pure function checkParseEmptyString() result(result_)
-        type(Result_t) :: result_
-
-        type(ParserOutput_t) :: parse_result
-
-        parse_result = parseDigit(newState(var_str("")))
+        parse_result = parse_digit(new_state(var_str("First")))
 
         result_ = &
-                assertNot(parse_result%ok) &
-                .and.assertEquals("end of input", parse_result%message%found) &
-                .and.assertEquals("digit", parse_result%message%expected(1))
-    end function checkParseEmptyString
-end module parse_digit_test
+                assert_not(parse_result%ok) &
+                .and.assert_equals("F", parse_result%message%found) &
+                .and.assert_equals("digit", parse_result%message%expected(1))
+    end function
+
+    pure function check_parse_empty_string() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, new_state, parse_digit
+        use vegetables, only: result_t, assert_equals, assert_not, fail
+
+        type(result_t) :: result_
+
+        type(parser_output_t) :: parse_result
+
+        parse_result = parse_digit(new_state(var_str("")))
+
+        result_ = &
+                assert_not(parse_result%ok) &
+                .and.assert_equals("end of input", parse_result%message%found) &
+                .and.assert_equals("digit", parse_result%message%expected(1))
+    end function
+end module

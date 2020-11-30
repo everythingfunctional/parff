@@ -1,66 +1,66 @@
 module parse_with_test
-    use parff, only: &
-            ParsedCharacter_t, &
-            ParseResult_t, &
-            ParserOutput_t, &
-            State_t, &
-            parseChar, &
-            parseWith
-    use Vegetables_m, only: &
-            Result_t, TestItem_t, assertEquals, assertNot, Describe, fail, It
-
     implicit none
     private
 
     public :: test_parse_with
 contains
     function test_parse_with() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(2)
+        type(test_item_t) :: tests
 
-        individual_tests(1) = It( &
+        type(test_item_t) :: individual_tests(2)
+
+        individual_tests(1) = it( &
                 "Gets the parsed result back if successful", &
-                checkSuccessful)
-        individual_tests(2) = It( &
+                check_successful)
+        individual_tests(2) = it( &
                 "Gets a message back if failed", &
-                checkFailure)
-        tests = Describe("parseWith", individual_tests)
-    end function test_parse_with
+                check_failure)
+        tests = describe("parse_with", individual_tests)
+    end function
 
-    pure function checkSuccessful() result(result_)
-        type(Result_t) :: result_
+    pure function check_successful() result(result_)
+        use parff, only: parse_result_t, parsed_character_t, parse_with
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParseResult_t) :: the_result
+        type(result_t) :: result_
 
-        the_result = parseWith(theParser, "A")
+        type(parse_result_t) :: the_result
+
+        the_result = parse_with(the_parser, "A")
 
         if (the_result%ok) then
             select type (parsed => the_result%parsed)
-            type is (ParsedCharacter_t)
-                result_ = assertEquals("A", parsed%value_)
+            type is (parsed_character_t)
+                result_ = assert_equals("A", parsed%value_)
             class default
                 result_ = fail("Didn't get a character back")
             end select
         else
             result_ = fail(the_result%message)
         end if
-    end function checkSuccessful
+    end function
 
-    pure function checkFailure() result(result_)
-        type(Result_t) :: result_
+    pure function check_failure() result(result_)
+        use parff, only: parse_result_t, parse_with
+        use vegetables, only: result_t, assert_not
 
-        type(ParseResult_t) :: the_result
+        type(result_t) :: result_
 
-        the_result = parseWith(theParser, "B")
+        type(parse_result_t) :: the_result
 
-        result_ = assertNot(the_result%ok, the_result%message)
-    end function checkFailure
+        the_result = parse_with(the_parser, "B")
 
-    pure function theParser(state) result(result_)
-        type(State_t), intent(in) :: state
-        type(ParserOutput_t) :: result_
+        result_ = assert_not(the_result%ok, the_result%message)
+    end function
 
-        result_ = parseChar("A", state)
-    end function theParser
-end module parse_with_test
+    pure function the_parser(state) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
+
+        type(state_t), intent(in) :: state
+        type(parser_output_t) :: result_
+
+        result_ = parse_char("A", state)
+    end function
+end module

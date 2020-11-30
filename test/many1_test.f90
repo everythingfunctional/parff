@@ -1,86 +1,91 @@
 module many1_test
-    use iso_varying_string, only: var_str
-    use parff, only: &
-            ParsedItems_t, &
-            ParserOutput_t, &
-            State_t, &
-            many1, &
-            newState, &
-            parseChar
-    use Vegetables_m, only: &
-            Result_t, TestItem_t, assertEquals, assertNot, describe, fail, it
-
     implicit none
     private
 
     public :: test_many1
 contains
     function test_many1() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(3)
+        type(test_item_t) :: tests
 
-        individual_tests(1) = it("can parse one item", checkParseOne)
+        type(test_item_t) :: individual_tests(3)
+
+        individual_tests(1) = it("can parse one item", check_parse_one)
         individual_tests(2) = it( &
-                "parses until the parser doesn't match", checkMany)
+                "parses until the parser doesn't match", check_many)
         individual_tests(3) = it( &
-                "fails if the first result doesn't match", checkNone)
+                "fails if the first result doesn't match", check_none)
         tests = describe("many1", individual_tests)
-    end function test_many1
+    end function
 
-    pure function checkParseOne() result(result_)
-        type(Result_t) :: result_
+    pure function check_parse_one() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parsed_items_t, parser_output_t, many1, new_state
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = many1(parseA, newState(var_str("AB")))
+        type(parser_output_t) :: results
+
+        results = many1(parse_a, new_state(var_str("AB")))
         if (results%ok) then
             select type (parsed => results%parsed)
-            type is (ParsedItems_t)
+            type is (parsed_items_t)
                 result_ = &
-                        assertEquals(1, size(parsed%items)) &
-                        .and.assertEquals("B", results%remaining)
+                        assert_equals(1, size(parsed%items)) &
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkParseOne
+    end function
 
-    pure function checkMany() result(result_)
-        type(Result_t) :: result_
+    pure function check_many() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parsed_items_t, parser_output_t, many1, new_state
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = many1(parseA, newState(var_str("AAB")))
+        type(parser_output_t) :: results
+
+        results = many1(parse_a, new_state(var_str("AAB")))
         if (results%ok) then
             select type (parsed => results%parsed)
-            type is (ParsedItems_t)
+            type is (parsed_items_t)
                 result_ = &
-                        assertEquals(2, size(parsed%items)) &
-                        .and.assertEquals("B", results%remaining)
+                        assert_equals(2, size(parsed%items)) &
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkMany
+    end function
 
-    pure function checkNone() result(result_)
-        type(Result_t) :: result_
+    pure function check_none() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, many1, new_state
+        use vegetables, only: result_t, assert_not
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = many1(parseA, newState(var_str("BAA")))
-        result_ = assertNot(results%ok, results%message%toString())
-    end function checkNone
+        type(parser_output_t) :: results
 
-    pure function parseA(state_) result(result_)
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+        results = many1(parse_a, new_state(var_str("BAA")))
+        result_ = assert_not(results%ok, results%message%to_string())
+    end function
 
-        result_ = parseChar("A", state_)
-    end function parseA
-end module many1_test
+    pure function parse_a(state_) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
+
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        result_ = parse_char("A", state_)
+    end function
+end module

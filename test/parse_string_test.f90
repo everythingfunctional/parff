@@ -1,67 +1,67 @@
 module parse_string_test
-    use iso_varying_string, only: var_str
-    use parff, only: ParsedString_t, ParserOutput_t, newState, parseString
-    use Vegetables_m, only: &
-            Result_t, &
-            TestItem_t, &
-            assertEquals, &
-            assertNot, &
-            assertThat, &
-            Describe, &
-            fail, &
-            It
-
     implicit none
     private
 
     public :: test_parse_string
 contains
     function test_parse_string() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(2)
+        type(test_item_t) :: tests
 
-        individual_tests(1) = It( &
+        type(test_item_t) :: individual_tests(2)
+
+        individual_tests(1) = it( &
                 "Parsing the first part of a string consumes that string", &
-                checkPass)
-        individual_tests(2) = It( &
+                check_pass)
+        individual_tests(2) = it( &
                 "Parsing something else produces an error", &
-                checkFail)
-        tests = Describe("parseString", individual_tests)
-    end function test_parse_string
+                check_fail)
+        tests = describe("parse_string", individual_tests)
+    end function
 
-    pure function checkPass() result(result_)
-        type(Result_t) :: result_
+    pure function check_pass() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: &
+                parsed_string_t, parser_output_t, new_state, parse_string
+        use vegetables, only: &
+                result_t, assert_equals, assert_not, assert_that, fail
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = parseString("Hello", newState(var_str("Hello World")))
+        type(parser_output_t) :: parse_result
+
+        parse_result = parse_string("Hello", new_state(var_str("Hello World")))
 
         result_ = &
-                assertThat(parse_result%ok, "Got result", "Didn't get result") &
-                .and.assertNot(parse_result%empty, "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_string => parse_result%parsed)
-            type is (ParsedString_t)
+            type is (parsed_string_t)
                 result_ = &
-                        assertEquals("Hello", the_string%value_) &
-                        .and.assertEquals(" World", parse_result%remaining)
+                        assert_equals("Hello", the_string%value_) &
+                        .and.assert_equals(" World", parse_result%remaining)
             class default
                 result_ = fail("Didn't get a string back")
             end select
         end if
-    end function checkPass
+    end function
 
-    pure function checkFail() result(result_)
-        type(Result_t) :: result_
+    pure function check_fail() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, new_state, parse_string
+        use vegetables, only: result_t, assert_equals, assert_not
 
-        type(ParserOutput_t) :: parse_result
+        type(result_t) :: result_
 
-        parse_result = parseString("Hello", newState(var_str("World")))
+        type(parser_output_t) :: parse_result
+
+        parse_result = parse_string("Hello", new_state(var_str("World")))
 
         result_ = &
-                assertNot(parse_result%ok) &
-                .and.assertEquals("W", parse_result%message%found) &
-                .and.assertEquals("Hello", parse_result%message%expected(1))
-    end function checkFail
-end module parse_string_test
+                assert_not(parse_result%ok) &
+                .and.assert_equals("W", parse_result%message%found) &
+                .and.assert_equals("Hello", parse_result%message%expected(1))
+    end function
+end module

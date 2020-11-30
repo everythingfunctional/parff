@@ -1,69 +1,70 @@
 module repeat_test
-    use iso_varying_string, only: var_str
-    use parff, only: &
-            ParsedItems_t, &
-            ParserOutput_t, &
-            State_t, &
-            newState, &
-            parseChar, &
-            repeat_
-    use Vegetables_m, only: &
-            Result_t, TestItem_t, assertEquals, assertNot, describe, fail, it
-
     implicit none
     private
 
     public :: test_repeat
 contains
     function test_repeat() result(tests)
-        type(TestItem_t) :: tests
+        use vegetables, only: test_item_t, describe, it
 
-        type(TestItem_t) :: individual_tests(2)
+        type(test_item_t) :: tests
+
+        type(test_item_t) :: individual_tests(2)
 
         individual_tests(1) = it( &
-                "uses the parser the given number of times", checkRepeat)
+                "uses the parser the given number of times", check_repeat)
         individual_tests(2) = it( &
-                "fails if it can't parse that many", checkNotEnough)
+                "fails if it can't parse that many", check_not_enough)
         tests = describe("repeat", individual_tests)
-    end function test_repeat
+    end function
 
-    pure function checkRepeat() result(result_)
-        type(Result_t) :: result_
+    pure function check_repeat() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parsed_items_t, parser_output_t, new_state, repeat_
+        use vegetables, only: result_t, assert_equals, fail
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = repeat_(parseA, 2, newState(var_str("AA")))
+        type(parser_output_t) :: results
+
+        results = repeat_(parse_a, 2, new_state(var_str("AA")))
         if (results%ok) then
             select type (parsed => results%parsed)
-            type is (ParsedItems_t)
-                result_ = assertEquals(2, size(parsed%items))
+            type is (parsed_items_t)
+                result_ = assert_equals(2, size(parsed%items))
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%toString())
+            result_ = fail(results%message%to_string())
         end if
-    end function checkRepeat
+    end function
 
-    pure function checkNotEnough() result(result_)
-        type(Result_t) :: result_
+    pure function check_not_enough() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: parser_output_t, new_state, repeat_
+        use vegetables, only: result_t, assert_equals, assert_not
 
-        type(ParserOutput_t) :: results
+        type(result_t) :: result_
 
-        results = repeat_(parseA, 3, newState(var_str("AAB")))
+        type(parser_output_t) :: results
 
-        result_ = assertNot(results%ok)
+        results = repeat_(parse_a, 3, new_state(var_str("AAB")))
+
+        result_ = assert_not(results%ok)
         if (result_%passed()) then
             result_ = &
-                    assertEquals("B", results%message%found) &
-                    .and.assertEquals("A", results%message%expected(1))
+                    assert_equals("B", results%message%found) &
+                    .and.assert_equals("A", results%message%expected(1))
         end if
-    end function checkNotEnough
+    end function
 
-    pure function parseA(state_) result(result_)
-        type(State_t), intent(in) :: state_
-        type(ParserOutput_t) :: result_
+    pure function parse_a(state_) result(result_)
+        use parff, only: parser_output_t, state_t, parse_char
 
-        result_ = parseChar("A", state_)
-    end function parseA
-end module repeat_test
+        type(state_t), intent(in) :: state_
+        type(parser_output_t) :: result_
+
+        result_ = parse_char("A", state_)
+    end function
+end module
