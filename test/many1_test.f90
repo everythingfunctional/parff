@@ -19,7 +19,7 @@ contains
         tests = describe("many1", individual_tests)
     end function
 
-    pure function check_parse_one() result(result_)
+    function check_parse_one() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, many1, new_state
         use vegetables, only: result_t, assert_equals, fail
@@ -43,7 +43,7 @@ contains
         end if
     end function
 
-    pure function check_many() result(result_)
+    function check_many() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, many1, new_state
         use vegetables, only: result_t, assert_equals, fail
@@ -67,7 +67,7 @@ contains
         end if
     end function
 
-    pure function check_none() result(result_)
+    function check_none() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, many1, new_state
         use vegetables, only: result_t, assert_not
@@ -80,7 +80,7 @@ contains
         result_ = assert_not(results%ok, results%message%to_string())
     end function
 
-    pure function parse_a(state_) result(result_)
+    function parse_a(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_

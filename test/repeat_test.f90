@@ -18,7 +18,7 @@ contains
         tests = describe("repeat", individual_tests)
     end function
 
-    pure function check_repeat() result(result_)
+    function check_repeat() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, new_state, repeat_
         use vegetables, only: result_t, assert_equals, fail
@@ -40,7 +40,7 @@ contains
         end if
     end function
 
-    pure function check_not_enough() result(result_)
+    function check_not_enough() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, repeat_
         use vegetables, only: result_t, assert_equals, assert_not
@@ -59,7 +59,7 @@ contains
         end if
     end function
 
-    pure function parse_a(state_) result(result_)
+    function parse_a(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_

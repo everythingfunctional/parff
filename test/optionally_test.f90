@@ -20,7 +20,7 @@ contains
         tests = describe("optionally", individual_tests)
     end function
 
-    pure function check_parse_succeed() result(result_)
+    function check_parse_succeed() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_character_t, parser_output_t, new_state, optionally
@@ -45,7 +45,7 @@ contains
         end if
     end function
 
-    pure function check_parse_fails() result(result_)
+    function check_parse_fails() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, optionally
         use vegetables, only: result_t, assert_that, fail
@@ -62,7 +62,7 @@ contains
         end if
     end function
 
-    pure function check_parse_empty() result(result_)
+    function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, optionally
         use vegetables, only: result_t, assert_that, fail
@@ -79,7 +79,7 @@ contains
         end if
     end function
 
-    pure function parse_a(state_) result(result_)
+    function parse_a(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_

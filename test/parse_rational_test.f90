@@ -57,7 +57,7 @@ contains
         tests = describe("parse_rational", individual_tests)
     end function
 
-    pure function check_parse_rational(input) result(result_)
+    function check_parse_rational(input) result(result_)
         use parff, only: &
                 parsed_rational_t, parser_output_t, new_state, parse_rational
         use vegetables, only: Input_t, result_t, assert_equals, fail
@@ -86,7 +86,7 @@ contains
         end select
     end function
 
-    pure function check_parse_invalid(input) result(result_)
+    function check_parse_invalid(input) result(result_)
         use parff, only: parser_output_t, new_state, parse_rational
         use vegetables, only: Input_t, result_t, assert_not, fail
 
@@ -105,7 +105,7 @@ contains
         end select
     end function
 
-    pure function check_parse_empty() result(result_)
+    function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, parse_rational
         use vegetables, only: Input_t, result_t, assert_not

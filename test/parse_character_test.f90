@@ -23,7 +23,7 @@ contains
         tests = describe("parse_char", individual_tests)
     end function
 
-    pure function check_parse_first_character() result(result_)
+    function check_parse_first_character() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_character_t, parser_output_t, new_state, parse_char
@@ -51,7 +51,7 @@ contains
         end if
     end function
 
-    pure function check_parse_different_character() result(result_)
+    function check_parse_different_character() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, parse_char
         use vegetables, only: result_t, assert_equals, assert_not
@@ -68,7 +68,7 @@ contains
                 .and.assert_equals("A", parse_result%message%expected(1))
     end function
 
-    pure function check_parse_empty_string() result(result_)
+    function check_parse_empty_string() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, parse_char
         use vegetables, only: result_t, assert_equals, assert_not

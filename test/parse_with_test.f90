@@ -20,7 +20,7 @@ contains
         tests = describe("parse_with", individual_tests)
     end function
 
-    pure function check_successful() result(result_)
+    function check_successful() result(result_)
         use parff, only: parse_result_t, parsed_character_t, parse_with
         use vegetables, only: result_t, assert_equals, fail
 
@@ -42,7 +42,7 @@ contains
         end if
     end function
 
-    pure function check_failure() result(result_)
+    function check_failure() result(result_)
         use parff, only: parse_result_t, parse_with
         use vegetables, only: result_t, assert_not
 
@@ -55,7 +55,7 @@ contains
         result_ = assert_not(the_result%ok, the_result%message)
     end function
 
-    pure function the_parser(state) result(result_)
+    function the_parser(state) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state

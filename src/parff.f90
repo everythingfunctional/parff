@@ -139,13 +139,13 @@ module parff
             logical :: matches
         end function
 
-        pure function parser_i(state_) result(result_)
+        function parser_i(state_) result(result_)
             import parser_output_t, state_t
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
         end function
 
-        pure function then_parser_i(previous, state_) result(result_)
+        function then_parser_i(previous, state_) result(result_)
             import parser_output_t, parsed_value_t, state_t
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
@@ -185,7 +185,7 @@ module parff
 
     type(parsed_nothing_t), parameter :: PARSED_NOTHING = parsed_nothing_t()
 contains
-    pure function consumed_ok(parsed, remaining, position, message_)
+    function consumed_ok(parsed, remaining, position, message_)
         class(parsed_value_t), intent(in) :: parsed
         type(varying_string), intent(in) :: remaining
         type(position_t), intent(in) :: position
@@ -200,7 +200,7 @@ contains
         consumed_ok%message = message_
     end function
 
-    pure recursive function drop_then_parser(parser1, parser2, state_) result(result_)
+    recursive function drop_then_parser(parser1, parser2, state_) result(result_)
         procedure(parser_i) :: parser1
         procedure(parser_i) :: parser2
         type(state_t), intent(in) :: state_
@@ -209,7 +209,7 @@ contains
         result_ = drop_then(parser1(state_), parser2)
     end function
 
-    pure recursive function drop_then_result(previous, parser) result(result_)
+    recursive function drop_then_result(previous, parser) result(result_)
         type(parser_output_t), intent(in) :: previous
         procedure(parser_i) :: parser
         type(parser_output_t) :: result_
@@ -225,7 +225,7 @@ contains
         end if
     end function
 
-    pure recursive function either(parse1, parse2, state_) result(result_)
+    recursive function either(parse1, parse2, state_) result(result_)
         procedure(parser_i) :: parse1
         procedure(parser_i) :: parse2
         type(state_t), intent(in) :: state_
@@ -268,7 +268,7 @@ contains
         end if
     end function
 
-    pure function empty_error(message_)
+    function empty_error(message_)
         type(message_t), intent(in) :: message_
         type(parser_output_t) :: empty_error
 
@@ -277,7 +277,7 @@ contains
         empty_error%message = message_
     end function
 
-    pure function empty_ok(parsed, remaining, position, message_)
+    function empty_ok(parsed, remaining, position, message_)
         class(parsed_value_t), intent(in) :: parsed
         type(varying_string), intent(in) :: remaining
         type(position_t), intent(in) :: position
@@ -300,7 +300,7 @@ contains
         new_message = message(message_%position, message_%found, [label])
     end function
 
-    pure function many(the_parser, the_state) result(the_result)
+    function many(the_parser, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -308,7 +308,7 @@ contains
         the_result = many_with_separator(the_parser, parse_nothing, the_state)
     end function
 
-    pure function many1(the_parser, the_state) result(the_result)
+    function many1(the_parser, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -316,7 +316,7 @@ contains
         the_result = many1_with_separator(the_parser, parse_nothing, the_state)
     end function
 
-    pure function many1_with_separator( &
+    function many1_with_separator( &
             the_parser, the_separator, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         procedure(parser_i) :: the_separator
@@ -348,7 +348,7 @@ contains
         end if
     end function
 
-    pure function many_with_separator( &
+    function many_with_separator( &
             the_parser, the_separator, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         procedure(parser_i) :: the_separator
@@ -382,7 +382,7 @@ contains
                 [message1%expected, message2%expected])
     end function
 
-    pure function merge_error(message1, message2) result(result_)
+    function merge_error(message1, message2) result(result_)
         type(message_t), intent(in) :: message1
         type(message_t), intent(in) :: message2
         type(parser_output_t) :: result_
@@ -390,7 +390,7 @@ contains
         result_ = empty_error(merge_(message1, message2))
     end function
 
-    pure function merge_ok( &
+    function merge_ok( &
             parsed, remaining, position, message1, message2) result(result_)
         class(parsed_value_t), intent(in) :: parsed
         type(varying_string), intent(in) :: remaining
@@ -459,7 +459,7 @@ contains
         end if
     end function
 
-    pure function optionally(parser, the_state) result(the_result)
+    function optionally(parser, the_state) result(the_result)
         procedure(parser_i) :: parser
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -467,14 +467,14 @@ contains
         the_result = either(parser, parse_nothing, the_state)
     end function
 
-    pure function parse_char(the_char, the_state) result(the_result)
+    function parse_char(the_char, the_state) result(the_result)
         character(len=1), intent(in) :: the_char
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
         the_result = with_label(the_char, the_parser, the_state)
     contains
-        pure function the_parser(state_) result(result_)
+        function the_parser(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -489,13 +489,13 @@ contains
         end function
     end function
 
-    pure function parse_digit(the_state) result(the_result)
+    function parse_digit(the_state) result(the_result)
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
         the_result = with_label("digit", the_parser, the_state)
     contains
-        pure function the_parser(state_) result(result_)
+        function the_parser(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -510,13 +510,13 @@ contains
         end function
     end function
 
-    pure function parse_integer(the_state) result(the_result)
+    function parse_integer(the_state) result(the_result)
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
         the_result = with_label("integer", the_parser, the_state)
     contains
-        pure function the_parser(state_) result(result_)
+        function the_parser(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -537,28 +537,28 @@ contains
             end if
         end function
 
-        pure function parse_sign(state_) result(result_)
+        function parse_sign(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = either(parse_plus, parse_minus, state_)
         end function
 
-        pure function parse_plus(state_) result(result_)
+        function parse_plus(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("+", state_)
         end function
 
-        pure function parse_minus(state_) result(result_)
+        function parse_minus(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("-", state_)
         end function
 
-        pure function then_parse_digits(previous, state_) result(result_)
+        function then_parse_digits(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -575,7 +575,7 @@ contains
             end if
         end function
 
-        pure function parse_digits(state_) result(result_)
+        function parse_digits(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -602,20 +602,20 @@ contains
         end function
     end function
 
-    pure function parse_nothing(the_state) result(the_result)
+    function parse_nothing(the_state) result(the_result)
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
         the_result = return_(PARSED_NOTHING, the_state)
     end function
 
-    pure function parse_rational(the_state) result(the_result)
+    function parse_rational(the_state) result(the_result)
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
         the_result = with_label("rational", the_parser, the_state)
     contains
-        pure function the_parser(state_) result(result_)
+        function the_parser(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -638,7 +638,7 @@ contains
             end if
         end function
 
-        pure function parse_sign(state_) result(result_)
+        function parse_sign(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -662,21 +662,21 @@ contains
             end if
         end function
 
-        pure function parse_plus(state_) result(result_)
+        function parse_plus(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("+", state_)
         end function
 
-        pure function parse_minus(state_) result(result_)
+        function parse_minus(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("-", state_)
         end function
 
-        pure function then_parse_number(previous, state_) result(result_)
+        function then_parse_number(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -693,14 +693,14 @@ contains
             end if
         end function
 
-        pure function parse_covered_decimal(state_) result(result_)
+        function parse_covered_decimal(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = sequence(parse_digits, then_parse_fraction, state_)
         end function
 
-        pure function parse_digits(state_) result(result_)
+        function parse_digits(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -726,7 +726,7 @@ contains
             end if
         end function
 
-        pure function then_parse_fraction(previous, state_) result(result_)
+        function then_parse_fraction(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -749,7 +749,7 @@ contains
             end if
         end function
 
-        pure function parse_decimal(state_) result(result_)
+        function parse_decimal(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -766,7 +766,7 @@ contains
             end if
         end function
 
-        pure function then_parse_maybe_digits(previous, state_) result(result_)
+        function then_parse_maybe_digits(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -783,7 +783,7 @@ contains
             end if
         end function
 
-        pure function parse_maybe_digits(state_) result(result_)
+        function parse_maybe_digits(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -807,14 +807,14 @@ contains
             end select
         end function
 
-        pure function parse_uncovered_decimal(state_) result(result_)
+        function parse_uncovered_decimal(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = sequence(parse_decimal, then_parse_digits, state_)
         end function
 
-        pure function then_parse_digits(previous, state_) result(result_)
+        function then_parse_digits(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -831,7 +831,7 @@ contains
             end if
         end function
 
-        pure function then_parse_exponent(previous, state_) result(result_)
+        function then_parse_exponent(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -854,7 +854,7 @@ contains
             end if
         end function
 
-        pure function parse_exponent(state_) result(result_)
+        function parse_exponent(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -863,7 +863,7 @@ contains
                     then_parse_digits)
         end function
 
-        pure function parse_letter(state_) result(result_)
+        function parse_letter(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -880,49 +880,49 @@ contains
             end if
         end function
 
-        pure function parse_e(state_) result(result_)
+        function parse_e(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = either(parse_upper_e, parse_lower_e, state_)
         end function
 
-        pure function parse_upper_e(state_) result(result_)
+        function parse_upper_e(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("E", state_)
         end function
 
-        pure function parse_lower_e(state_) result(result_)
+        function parse_lower_e(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("e", state_)
         end function
 
-        pure function parse_d(state_) result(result_)
+        function parse_d(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = either(parse_upper_d, parse_lower_d, state_)
         end function
 
-        pure function parse_upper_d(state_) result(result_)
+        function parse_upper_d(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("D", state_)
         end function
 
-        pure function parse_lower_d(state_) result(result_)
+        function parse_lower_d(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
             result_ = parse_char("d", state_)
         end function
 
-        pure function then_parse_sign(previous, state_) result(result_)
+        function then_parse_sign(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -940,7 +940,7 @@ contains
         end function
     end function
 
-    pure function parse_string_c(string, the_state) result(the_result)
+    function parse_string_c(string, the_state) result(the_result)
         character(len=*), intent(in) :: string
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -948,14 +948,14 @@ contains
         the_result = parse_string(var_str(string), the_state)
     end function
 
-    pure function parse_string_s(string, the_state) result(the_result)
+    function parse_string_s(string, the_state) result(the_result)
         type(varying_string), intent(in) :: string
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
         the_result = with_label(string, start, the_state)
     contains
-        pure function start(state_) result(result_)
+        function start(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -973,7 +973,7 @@ contains
             end if
         end function
 
-        pure recursive function recurse(previous, state_) result(result_)
+        recursive function recurse(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -995,7 +995,7 @@ contains
             end select
         end function
 
-        pure function parse_next(previous, state_) result(result_)
+        function parse_next(previous, state_) result(result_)
             type(intermediate_parsed_string_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -1015,13 +1015,13 @@ contains
         end function
     end function
 
-    pure function parse_whitespace(the_state) result(the_result)
+    function parse_whitespace(the_state) result(the_result)
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
         the_result = with_label("whitespace", the_parser, the_state)
     contains
-        pure function the_parser(state_) result(result_)
+        function the_parser(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -1042,7 +1042,7 @@ contains
         end function
     end function
 
-    pure function parse_with_c(parser, string) result(result_)
+    function parse_with_c(parser, string) result(result_)
         procedure(parser_i) :: parser
         character(len=*), intent(in) :: string
         type(parse_result_t) :: result_
@@ -1050,7 +1050,7 @@ contains
         result_ = parse_with(parser, var_str(string))
     end function
 
-    pure function parse_with_s(parser, string) result(result_)
+    function parse_with_s(parser, string) result(result_)
         procedure(parser_i) :: parser
         type(varying_string), intent(in) :: string
         type(parse_result_t) :: result_
@@ -1067,7 +1067,7 @@ contains
         end if
     end function
 
-    pure function repeat_(the_parser, times, the_state) result(the_result)
+    function repeat_(the_parser, times, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         integer, intent(in) :: times
         type(state_t), intent(in) :: the_state
@@ -1075,7 +1075,7 @@ contains
 
         the_result = start(the_state)
     contains
-        pure function start(state_) result(result_)
+        function start(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -1093,7 +1093,7 @@ contains
             end if
         end function
 
-        pure recursive function recurse(previous, state_) result(result_)
+        recursive function recurse(previous, state_) result(result_)
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -1116,7 +1116,7 @@ contains
             end select
         end function
 
-        pure function parse_next(previous, state_) result(result_)
+        function parse_next(previous, state_) result(result_)
             type(intermediate_repeat_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -1135,7 +1135,7 @@ contains
         end function
     end function
 
-    pure function return_(parsed, state_) result(result_)
+    function return_(parsed, state_) result(result_)
         class(parsed_value_t), intent(in) :: parsed
         type(state_t), intent(in) :: state_
         type(parser_output_t) :: result_
@@ -1145,7 +1145,7 @@ contains
                         state_%position, var_str(""), [varying_string::]))
     end function
 
-    pure function satisfy(matches, state_) result(result_)
+    function satisfy(matches, state_) result(result_)
         procedure(match_i) :: matches
         type(state_t), intent(in) :: state_
         type(parser_output_t) :: result_
@@ -1181,7 +1181,7 @@ contains
         end if
     end function
 
-    pure recursive function sequence_parser(parser1, parser2, state_) result(result_)
+    recursive function sequence_parser(parser1, parser2, state_) result(result_)
         procedure(parser_i) :: parser1
         procedure(then_parser_i) :: parser2
         type(state_t), intent(in) :: state_
@@ -1190,7 +1190,7 @@ contains
         result_ = sequence(parser1(state_), parser2)
     end function
 
-    pure recursive function sequence_result(previous, parser) result(result_)
+    recursive function sequence_result(previous, parser) result(result_)
         type(parser_output_t), intent(in) :: previous
         procedure(then_parser_i) :: parser
         type(parser_output_t) :: result_
@@ -1216,7 +1216,7 @@ contains
         state%position = position
     end function
 
-    pure function then_drop_parser(parser1, parser2, state_) result(result_)
+    function then_drop_parser(parser1, parser2, state_) result(result_)
         procedure(parser_i) :: parser1
         procedure(parser_i) :: parser2
         type(state_t), intent(in) :: state_
@@ -1225,7 +1225,7 @@ contains
         result_ = then_drop(parser1(state_), parser2)
     end function
 
-    pure function then_drop_result(previous, parser) result(result_)
+    function then_drop_result(previous, parser) result(result_)
         type(parser_output_t), intent(in) :: previous
         procedure(parser_i) :: parser
         type(parser_output_t) :: result_
@@ -1243,7 +1243,7 @@ contains
         end if
     end function
 
-    pure recursive function with_label_c(label, parse, state_) result(result_)
+    recursive function with_label_c(label, parse, state_) result(result_)
         character(len=*), intent(in) :: label
         procedure(parser_i) :: parse
         type(state_t), intent(in) :: state_
@@ -1252,7 +1252,7 @@ contains
         result_ = with_label(var_str(label), parse, state_)
     end function
 
-    pure recursive function with_label_s(label, parse, state_) result(result_)
+    recursive function with_label_s(label, parse, state_) result(result_)
         type(varying_string), intent(in) :: label
         procedure(parser_i) :: parse
         type(state_t), intent(in) :: state_

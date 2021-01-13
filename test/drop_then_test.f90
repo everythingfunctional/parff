@@ -23,7 +23,7 @@ contains
         tests = describe("drop_then", individual_tests)
     end function
 
-    pure function check_both_pass() result(result_)
+    function check_both_pass() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_character_t, parser_output_t, drop_then, new_state
         use vegetables, only: result_t, assert_equals, assert_that, fail
@@ -45,7 +45,7 @@ contains
         end if
     end function
 
-    pure function check_first_fail() result(result_)
+    function check_first_fail() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, drop_then, new_state
         use vegetables, only: result_t, assert_equals, assert_not
@@ -64,7 +64,7 @@ contains
         end if
     end function
 
-    pure function check_second_fail() result(result_)
+    function check_second_fail() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, drop_then, new_state
         use vegetables, only: result_t, assert_equals, assert_not
@@ -83,7 +83,7 @@ contains
         end if
     end function
 
-    pure function parse_a(state_) result(result_)
+    function parse_a(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_
@@ -92,7 +92,7 @@ contains
         result_ = parse_char("A", state_)
     end function
 
-    pure function parse_b(state_) result(result_)
+    function parse_b(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_

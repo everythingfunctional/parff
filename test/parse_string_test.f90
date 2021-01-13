@@ -20,7 +20,7 @@ contains
         tests = describe("parse_string", individual_tests)
     end function
 
-    pure function check_pass() result(result_)
+    function check_pass() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_string_t, parser_output_t, new_state, parse_string
@@ -48,7 +48,7 @@ contains
         end if
     end function
 
-    pure function check_fail() result(result_)
+    function check_fail() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, parse_string
         use vegetables, only: result_t, assert_equals, assert_not
