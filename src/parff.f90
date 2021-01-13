@@ -1,5 +1,18 @@
 module parff
-    use iso_varying_string, only: varying_string
+    use iso_varying_string, only: &
+            varying_string, &
+            assignment(=), &
+            operator(==), &
+            operator(//), &
+            len, &
+            var_str
+    use strff, only: &
+            operator(.includes.), &
+            first_character, &
+            join, &
+            to_string, &
+            without_first_character, &
+            NEWLINE
 
     implicit none
     private
@@ -173,8 +186,6 @@ module parff
     type(parsed_nothing_t), parameter :: PARSED_NOTHING = parsed_nothing_t()
 contains
     pure function consumed_ok(parsed, remaining, position, message_)
-        use iso_varying_string, only: varying_string
-
         class(parsed_value_t), intent(in) :: parsed
         type(varying_string), intent(in) :: remaining
         type(position_t), intent(in) :: position
@@ -267,8 +278,6 @@ contains
     end function
 
     pure function empty_ok(parsed, remaining, position, message_)
-        use iso_varying_string, only: varying_string
-
         class(parsed_value_t), intent(in) :: parsed
         type(varying_string), intent(in) :: remaining
         type(position_t), intent(in) :: position
@@ -284,8 +293,6 @@ contains
     end function
 
     pure function expect(message_, label) result(new_message)
-        use iso_varying_string, only: varying_string
-
         type(message_t), intent(in) :: message_
         type(varying_string), intent(in) :: label
         type(message_t) :: new_message
@@ -343,8 +350,6 @@ contains
 
     pure function many_with_separator( &
             the_parser, the_separator, the_state) result(the_result)
-        use iso_varying_string, only: varying_string, var_str
-
         procedure(parser_i) :: the_parser
         procedure(parser_i) :: the_separator
         type(state_t), intent(in) :: the_state
@@ -387,8 +392,6 @@ contains
 
     pure function merge_ok( &
             parsed, remaining, position, message1, message2) result(result_)
-        use iso_varying_string, only: varying_string
-
         class(parsed_value_t), intent(in) :: parsed
         type(varying_string), intent(in) :: remaining
         type(position_t), intent(in) :: position
@@ -404,8 +407,6 @@ contains
     end function
 
     pure function message(position, found, expected)
-        use iso_varying_string, only: varying_string
-
         type(position_t), intent(in) :: position
         type(varying_string), intent(in) :: found
         type(varying_string), intent(in) :: expected(:)
@@ -417,9 +418,6 @@ contains
     end function
 
     pure function message_to_string(self) result(string)
-        use iso_varying_string, only: varying_string, operator(//)
-        use strff, only: join, to_string, NEWLINE
-
         class(message_t), intent(in) :: self
         type(varying_string) :: string
 
@@ -435,8 +433,6 @@ contains
     end function
 
     pure function new_state(input)
-        use iso_varying_string, only: varying_string
-
         type(varying_string), intent(in) :: input
         type(state_t) :: new_state
 
@@ -507,8 +503,6 @@ contains
         end function
 
         pure function the_matcher(char_) result(matches)
-            use strff, only: operator(.includes.)
-
             character(len=1), intent(in) :: char_
             logical :: matches
 
@@ -523,8 +517,6 @@ contains
         the_result = with_label("integer", the_parser, the_state)
     contains
         pure function the_parser(state_) result(result_)
-            use iso_varying_string, only: assignment(=)
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -567,8 +559,6 @@ contains
         end function
 
         pure function then_parse_digits(previous, state_) result(result_)
-            use iso_varying_string, only: operator(//)
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -586,9 +576,6 @@ contains
         end function
 
         pure function parse_digits(state_) result(result_)
-            use iso_varying_string, only: varying_string, assignment(=)
-            use strff, only: join
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -629,8 +616,6 @@ contains
         the_result = with_label("rational", the_parser, the_state)
     contains
         pure function the_parser(state_) result(result_)
-            use iso_varying_string, only: assignment(=)
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -654,8 +639,6 @@ contains
         end function
 
         pure function parse_sign(state_) result(result_)
-            use iso_varying_string, only: varying_string, assignment(=), var_str
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -694,8 +677,6 @@ contains
         end function
 
         pure function then_parse_number(previous, state_) result(result_)
-            use iso_varying_string, only: operator(//)
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -720,9 +701,6 @@ contains
         end function
 
         pure function parse_digits(state_) result(result_)
-            use iso_varying_string, only: assignment(=), varying_string
-            use strff, only: join
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -749,8 +727,6 @@ contains
         end function
 
         pure function then_parse_fraction(previous, state_) result(result_)
-            use iso_varying_string, only: varying_string, operator(//), var_str
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -774,8 +750,6 @@ contains
         end function
 
         pure function parse_decimal(state_) result(result_)
-            use iso_varying_string, only: assignment(=)
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -793,8 +767,6 @@ contains
         end function
 
         pure function then_parse_maybe_digits(previous, state_) result(result_)
-            use iso_varying_string, only: operator(//)
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -812,9 +784,6 @@ contains
         end function
 
         pure function parse_maybe_digits(state_) result(result_)
-            use iso_varying_string, only: varying_string, assignment(=)
-            use strff, only: join
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -846,8 +815,6 @@ contains
         end function
 
         pure function then_parse_digits(previous, state_) result(result_)
-            use iso_varying_string, only: operator(//)
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -865,8 +832,6 @@ contains
         end function
 
         pure function then_parse_exponent(previous, state_) result(result_)
-            use iso_varying_string, only: varying_string, operator(//), var_str
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -899,8 +864,6 @@ contains
         end function
 
         pure function parse_letter(state_) result(result_)
-            use iso_varying_string, only: assignment(=)
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -960,8 +923,6 @@ contains
         end function
 
         pure function then_parse_sign(previous, state_) result(result_)
-            use iso_varying_string, only: operator(//)
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -980,8 +941,6 @@ contains
     end function
 
     pure function parse_string_c(string, the_state) result(the_result)
-        use iso_varying_string, only: var_str
-
         character(len=*), intent(in) :: string
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -990,8 +949,6 @@ contains
     end function
 
     pure function parse_string_s(string, the_state) result(the_result)
-        use iso_varying_string, only: varying_string
-
         type(varying_string), intent(in) :: string
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -999,9 +956,6 @@ contains
         the_result = with_label(string, start, the_state)
     contains
         pure function start(state_) result(result_)
-            use iso_varying_string, only: &
-                    varying_string, assignment(=), operator(==), var_str
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -1020,8 +974,6 @@ contains
         end function
 
         pure recursive function recurse(previous, state_) result(result_)
-            use iso_varying_string, only: varying_string, len, var_str
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -1044,9 +996,6 @@ contains
         end function
 
         pure function parse_next(previous, state_) result(result_)
-            use iso_varying_string, only: operator(//)
-            use strff, only: first_character, without_first_character
-
             type(intermediate_parsed_string_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -1080,8 +1029,6 @@ contains
         end function
 
         pure function the_matcher(char_) result(matches)
-            use strff, only: operator(.includes.), NEWLINE
-
             character(len=1), intent(in) :: char_
             logical :: matches
 
@@ -1096,8 +1043,6 @@ contains
     end function
 
     pure function parse_with_c(parser, string) result(result_)
-        use iso_varying_string, only: var_str
-
         procedure(parser_i) :: parser
         character(len=*), intent(in) :: string
         type(parse_result_t) :: result_
@@ -1106,8 +1051,6 @@ contains
     end function
 
     pure function parse_with_s(parser, string) result(result_)
-        use iso_varying_string, only: varying_string
-
         procedure(parser_i) :: parser
         type(varying_string), intent(in) :: string
         type(parse_result_t) :: result_
@@ -1133,8 +1076,6 @@ contains
         the_result = start(the_state)
     contains
         pure function start(state_) result(result_)
-            use iso_varying_string, only: varying_string, var_str
-
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -1153,8 +1094,6 @@ contains
         end function
 
         pure recursive function recurse(previous, state_) result(result_)
-            use iso_varying_string, only: varying_string, var_str
-
             class(parsed_value_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -1197,8 +1136,6 @@ contains
     end function
 
     pure function return_(parsed, state_) result(result_)
-        use iso_varying_string, only: varying_string, var_str
-
         class(parsed_value_t), intent(in) :: parsed
         type(state_t), intent(in) :: state_
         type(parser_output_t) :: result_
@@ -1209,9 +1146,6 @@ contains
     end function
 
     pure function satisfy(matches, state_) result(result_)
-        use iso_varying_string, only: varying_string, len, var_str
-        use strff, only: first_character, without_first_character
-
         procedure(match_i) :: matches
         type(state_t), intent(in) :: state_
         type(parser_output_t) :: result_
@@ -1274,8 +1208,6 @@ contains
     end function
 
     pure function state(input, position)
-        use iso_varying_string, only: varying_string
-
         type(varying_string), intent(in) :: input
         type(position_t), intent(in) :: position
         type(state_t) :: state
@@ -1312,8 +1244,6 @@ contains
     end function
 
     pure recursive function with_label_c(label, parse, state_) result(result_)
-        use iso_varying_string, only: var_str
-
         character(len=*), intent(in) :: label
         procedure(parser_i) :: parse
         type(state_t), intent(in) :: state_
@@ -1323,8 +1253,6 @@ contains
     end function
 
     pure recursive function with_label_s(label, parse, state_) result(result_)
-        use iso_varying_string, only: varying_string
-
         type(varying_string), intent(in) :: label
         procedure(parser_i) :: parse
         type(state_t), intent(in) :: state_
