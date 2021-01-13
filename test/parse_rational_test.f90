@@ -1,6 +1,6 @@
 module parse_rational_test
     use iso_varying_string, only: varying_string
-    use vegetables, only: Input_t
+    use vegetables, only: input_t
 
     implicit none
     private
@@ -18,7 +18,7 @@ module parse_rational_test
 contains
     function test_parse_rational() result(tests)
         use iso_varying_string, only: var_str
-        use vegetables, only: Example_t, test_item_t, describe, Example, it
+        use vegetables, only: example_t, test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -26,23 +26,23 @@ contains
         type(Example_t) :: invalid_examples(6)
         type(Example_t) :: number_examples(10)
 
-        number_examples(1) = Example(number_input_t(var_str("1"), 1.0d0))
-        number_examples(2) = Example(number_input_t(var_str("-2"), -2.0d0))
-        number_examples(3) = Example(number_input_t(var_str("+3"), 3.0d0))
-        number_examples(4) = Example(number_input_t(var_str("4."), 4.0d0))
-        number_examples(5) = Example(number_input_t(var_str("5.0"), 5.0d0))
-        number_examples(6) = Example(number_input_t(var_str(".6"), 0.6d0))
-        number_examples(7) = Example(number_input_t(var_str("7e8"), 7.0d8))
-        number_examples(8) = Example(number_input_t(var_str("9.E-1"), 9.0d-1))
-        number_examples(9) = Example(number_input_t(var_str(".2d+3"), 0.2d3))
-        number_examples(10) = Example(number_input_t(var_str("4.0D5"), 4.0d5))
+        number_examples(1) = example_t(number_input_t(var_str("1"), 1.0d0))
+        number_examples(2) = example_t(number_input_t(var_str("-2"), -2.0d0))
+        number_examples(3) = example_t(number_input_t(var_str("+3"), 3.0d0))
+        number_examples(4) = example_t(number_input_t(var_str("4."), 4.0d0))
+        number_examples(5) = example_t(number_input_t(var_str("5.0"), 5.0d0))
+        number_examples(6) = example_t(number_input_t(var_str(".6"), 0.6d0))
+        number_examples(7) = example_t(number_input_t(var_str("7e8"), 7.0d8))
+        number_examples(8) = example_t(number_input_t(var_str("9.E-1"), 9.0d-1))
+        number_examples(9) = example_t(number_input_t(var_str(".2d+3"), 0.2d3))
+        number_examples(10) = example_t(number_input_t(var_str("4.0D5"), 4.0d5))
 
-        invalid_examples(1) = Example(invalid_input_t(var_str("a")))
-        invalid_examples(2) = Example(invalid_input_t(var_str("-b")))
-        invalid_examples(3) = Example(invalid_input_t(var_str("+c")))
-        invalid_examples(4) = Example(invalid_input_t(var_str(".")))
-        invalid_examples(5) = Example(invalid_input_t(var_str(".e")))
-        invalid_examples(6) = Example(invalid_input_t(var_str("-d+")))
+        invalid_examples(1) = example_t(invalid_input_t(var_str("a")))
+        invalid_examples(2) = example_t(invalid_input_t(var_str("-b")))
+        invalid_examples(3) = example_t(invalid_input_t(var_str("+c")))
+        invalid_examples(4) = example_t(invalid_input_t(var_str(".")))
+        invalid_examples(5) = example_t(invalid_input_t(var_str(".e")))
+        invalid_examples(6) = example_t(invalid_input_t(var_str("-d+")))
 
         individual_tests(1) = it( &
                 "Can parse various numbers", &

@@ -1,6 +1,6 @@
 module parse_integer_test
     use iso_varying_string, only: varying_string
-    use vegetables, only: Input_t
+    use vegetables, only: input_t
 
     implicit none
     private
@@ -18,7 +18,7 @@ module parse_integer_test
 contains
     function test_parse_integer() result(tests)
         use iso_varying_string, only: var_str
-        use vegetables, only: Example_t, test_item_t, describe, Example, it
+        use vegetables, only: example_t, test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -26,17 +26,17 @@ contains
         type(Example_t) :: invalid_examples(3)
         type(Example_t) :: number_examples(7)
 
-        number_examples(1) = Example(number_input_t(var_str("0"), 0))
-        number_examples(2) = Example(number_input_t(var_str("-0"), 0))
-        number_examples(3) = Example(number_input_t(var_str("+0"), 0))
-        number_examples(4) = Example(number_input_t(var_str("1"), 1))
-        number_examples(5) = Example(number_input_t(var_str("-1"), -1))
-        number_examples(6) = Example(number_input_t(var_str("+1"), 1))
-        number_examples(7) = Example(number_input_t(var_str("-321"), -321))
+        number_examples(1) = example_t(number_input_t(var_str("0"), 0))
+        number_examples(2) = example_t(number_input_t(var_str("-0"), 0))
+        number_examples(3) = example_t(number_input_t(var_str("+0"), 0))
+        number_examples(4) = example_t(number_input_t(var_str("1"), 1))
+        number_examples(5) = example_t(number_input_t(var_str("-1"), -1))
+        number_examples(6) = example_t(number_input_t(var_str("+1"), 1))
+        number_examples(7) = example_t(number_input_t(var_str("-321"), -321))
 
-        invalid_examples(1) = Example(invalid_input_t(var_str("a")))
-        invalid_examples(2) = Example(invalid_input_t(var_str("-b")))
-        invalid_examples(3) = Example(invalid_input_t(var_str("+c")))
+        invalid_examples(1) = example_t(invalid_input_t(var_str("a")))
+        invalid_examples(2) = example_t(invalid_input_t(var_str("-b")))
+        invalid_examples(3) = example_t(invalid_input_t(var_str("+c")))
 
         individual_tests(1) = it( &
                 "Can parse various integers", &
