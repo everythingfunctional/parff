@@ -62,10 +62,12 @@ contains
 
         parse_result = parse_whitespace(new_state(var_str("First")))
 
-        result_ = &
-                assert_not(parse_result%ok) &
-                .and.assert_equals("F", parse_result%message%found) &
-                .and.assert_equals("whitespace", parse_result%message%expected(1))
+        associate(expected => parse_result%message%expected())
+            result_ = &
+                    assert_not(parse_result%ok) &
+                    .and.assert_equals("F", parse_result%message%found()) &
+                    .and.assert_equals("whitespace", expected(1))
+        end associate
     end function
 
     function check_parse_empty_string() result(result_)
@@ -79,9 +81,11 @@ contains
 
         parse_result = parse_whitespace(new_state(var_str("")))
 
-        result_ = &
-                assert_not(parse_result%ok) &
-                .and.assert_equals("end of input", parse_result%message%found) &
-                .and.assert_equals("whitespace", parse_result%message%expected(1))
+        associate(expected => parse_result%message%expected())
+            result_ = &
+                    assert_not(parse_result%ok) &
+                    .and.assert_equals("end of input", parse_result%message%found()) &
+                    .and.assert_equals("whitespace", expected(1))
+        end associate
     end function
 end module

@@ -58,9 +58,11 @@ contains
 
         result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
-            result_ = &
-                    assert_equals("B", parse_result%message%found) &
-                    .and.assert_equals("A", parse_result%message%expected(1))
+            associate(expected => parse_result%message%expected())
+                result_ = &
+                        assert_equals("B", parse_result%message%found()) &
+                        .and.assert_equals("A", expected(1))
+            end associate
         end if
     end function
 
@@ -77,9 +79,11 @@ contains
 
         result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
-            result_ = &
-                    assert_equals("A", parse_result%message%found) &
-                    .and.assert_equals("B", parse_result%message%expected(1))
+            associate(expected => parse_result%message%expected())
+                result_ = &
+                        assert_equals("A", parse_result%message%found()) &
+                        .and.assert_equals("B", expected(1))
+            end associate
         end if
     end function
 

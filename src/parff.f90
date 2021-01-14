@@ -8,6 +8,7 @@ module parff
             var_str
     use parff_intermediate_parsed_string_m, only: intermediate_parsed_string_t
     use parff_intermediate_repeat_m, only: intermediate_repeat_t
+    use parff_message_m, only: message_t, expect, merge_
     use parff_parsed_character_m, only: parsed_character_t
     use parff_parsed_integer_m, only: parsed_integer_t
     use parff_parsed_item_m, only: parsed_item_t
@@ -16,6 +17,8 @@ module parff
     use parff_parsed_rational_m, only: parsed_rational_t
     use parff_parsed_string_m, only: parsed_string_t
     use parff_parsed_value_m, only: parsed_value_t
+    use parff_position_m, only: position_t
+    use parff_state_m, only: state_t, new_state
     use strff, only: &
             operator(.includes.), &
             first_character, &
@@ -51,7 +54,6 @@ module parff
             many1, &
             many1_with_separator, &
             many_with_separator, &
-            message, &
             new_state, &
             optionally, &
             parse_char, &
@@ -68,24 +70,6 @@ module parff
             sequence, &
             then_drop, &
             with_label
-
-    type :: position_t
-        integer :: line
-        integer :: column
-    end type
-
-    type :: state_t
-        type(varying_string) :: input
-        type(position_t) :: position
-    end type
-
-    type :: message_t
-        type(position_t) :: position
-        type(varying_string) :: found
-        type(varying_string), allocatable :: expected(:)
-    contains
-        procedure :: to_string => message_to_string
-    end type
 
     type :: parser_output_t
         logical :: empty
@@ -184,7 +168,7 @@ contains
 
         if (previous%ok) then
             result_ = parser( &
-                    state(previous%remaining, previous%position))
+                    state_t(previous%remaining, previous%position))
             if (.not.previous%empty) then
                 result_%empty = .false.
             end if
@@ -260,14 +244,6 @@ contains
         empty_ok%message = message_
     end function
 
-    pure function expect(message_, label) result(new_message)
-        type(message_t), intent(in) :: message_
-        type(varying_string), intent(in) :: label
-        type(message_t) :: new_message
-
-        new_message = message(message_%position, message_%found, [label])
-    end function
-
     function many(the_parser, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         type(state_t), intent(in) :: the_state
@@ -298,7 +274,7 @@ contains
         if (the_result%ok) then
             all = parsed_items_t([parsed_item_t(the_result%parsed)])
             do
-                next = drop_then(the_separator, the_parser, state(the_result%remaining, the_result%position))
+                next = drop_then(the_separator, the_parser, state_t(the_result%remaining, the_result%position))
                 if (.not.next%ok) exit
                 all = parsed_items_t([all%items(), parsed_item_t(next%parsed)])
                 the_result = next
@@ -322,24 +298,13 @@ contains
             all = parsed_items_t([parsed_item_t::])
             the_result = empty_ok( &
                     all, &
-                    the_state%input, &
-                    the_state%position, &
-                    message( &
-                            the_state%position, &
+                    the_state%input(), &
+                    the_state%position(), &
+                    message_t( &
+                            the_state%position(), &
                             var_str(""), &
                             [varying_string::]))
         end if
-    end function
-
-    pure function merge_(message1, message2) result(merged)
-        type(message_t), intent(in) :: message1
-        type(message_t), intent(in) :: message2
-        type(message_t) :: merged
-
-        merged = message( &
-                message1%position, &
-                message1%found, &
-                [message1%expected, message2%expected])
     end function
 
     function merge_error(message1, message2) result(result_)
@@ -364,59 +329,6 @@ contains
                 remaining, &
                 position, &
                 merge_(message1, message2))
-    end function
-
-    pure function message(position, found, expected)
-        type(position_t), intent(in) :: position
-        type(varying_string), intent(in) :: found
-        type(varying_string), intent(in) :: expected(:)
-        type(message_t) :: message
-
-        message%position = position
-        message%found = found
-        allocate(message%expected, source = expected)
-    end function
-
-    pure function message_to_string(self) result(string)
-        class(message_t), intent(in) :: self
-        type(varying_string) :: string
-
-        string = "At line " // to_string(self%position%line) // " and column " // to_string(self%position%column) // NEWLINE &
-                // "    found " // self%found // " but expected " // join(self%expected, " or ")
-    end function
-
-    pure function new_position()
-        type(position_t) :: new_position
-
-        new_position%line = 1
-        new_position%column = 1
-    end function
-
-    pure function new_state(input)
-        type(varying_string), intent(in) :: input
-        type(state_t) :: new_state
-
-        new_state = state(input, new_position())
-    end function
-
-    pure function next_position(char_, position)
-        character(len=1), intent(in) :: char_
-        type(position_t), intent(in) :: position
-        type(position_t) :: next_position
-
-        character(len=1), parameter :: TAB = char(9)
-        character(len=1), parameter :: NEWLINE_ = char(10)
-
-        if (char_ == NEWLINE_) then
-            next_position%line = position%line + 1
-            next_position%column = position%column
-        else if (char_ == TAB) then
-            next_position%line = position%line
-            next_position%column = position%column + 8 - mod(position%column - 1, 8)
-        else
-            next_position%line = position%line
-            next_position%column = position%column + 1
-        end if
     end function
 
     function optionally(parser, the_state) result(the_result)
@@ -618,9 +530,9 @@ contains
                 the_string = parsed_string_t("")
                 result_ = empty_ok( &
                     the_string, &
-                    state_%input, &
-                    state_%position, &
-                    message(state_%position, var_str(""), [varying_string::]))
+                    state_%input(), &
+                    state_%position(), &
+                    message_t(state_%position(), var_str(""), [varying_string::]))
             end if
         end function
 
@@ -707,9 +619,9 @@ contains
             else
                 result_ = empty_ok( &
                         previous, &
-                        state_%input, &
-                        state_%position, &
-                        message(state_%position, var_str(""), [varying_string::]))
+                        state_%input(), &
+                        state_%position(), &
+                        message_t(state_%position(), var_str(""), [varying_string::]))
             end if
         end function
 
@@ -814,9 +726,9 @@ contains
             else
                 result_ = empty_ok( &
                         previous, &
-                        state_%input, &
-                        state_%position, &
-                        message(state_%position, var_str(""), [varying_string::]))
+                        state_%input(), &
+                        state_%position(), &
+                        message_t(state_%position(), var_str(""), [varying_string::]))
             end if
         end function
 
@@ -930,8 +842,8 @@ contains
 
             if (string == "") then
                 empty = parsed_string_t("")
-                result_ = empty_ok(empty, state_%input, state_%position, message( &
-                        state_%position, var_str(""), [varying_string::]))
+                result_ = empty_ok(empty, state_%input(), state_%position(), message_t( &
+                        state_%position(), var_str(""), [varying_string::]))
             else
                 initial = intermediate_parsed_string_t("", string)
                 result_ = sequence(return_(initial, state_), recurse)
@@ -951,9 +863,9 @@ contains
                     final_string = parsed_string_t(previous%parsed_so_far())
                     result_ = consumed_ok( &
                             final_string, &
-                            state_%input, &
-                            state_%position, &
-                            message(state_%position, var_str(""), [varying_string::]))
+                            state_%input(), &
+                            state_%position(), &
+                            message_t(state_%position(), var_str(""), [varying_string::]))
                 else
                     result_ = sequence(parse_next(previous, state_), recurse)
                 end if
@@ -1050,8 +962,8 @@ contains
 
             if (times <= 0) then
                 empty = parsed_items_t([parsed_item_t::])
-                result_ = empty_ok(empty, state_%input, state_%position, message( &
-                        state_%position, var_str(""), [varying_string::]))
+                result_ = empty_ok(empty, state_%input(), state_%position(), message_t( &
+                        state_%position(), var_str(""), [varying_string::]))
             else
                 initial = intermediate_repeat_t(parsed_items_t([parsed_item_t::]), times)
                 result_ = sequence(return_(initial, state_), recurse)
@@ -1068,9 +980,9 @@ contains
                 if (previous%remaining() <= 0) then
                     result_ = consumed_ok( &
                             previous%parsed_so_far(), &
-                            state_%input, &
-                            state_%position, &
-                            message(state_%position, var_str(""), [varying_string::]))
+                            state_%input(), &
+                            state_%position(), &
+                            message_t(state_%position(), var_str(""), [varying_string::]))
                 else
                     result_ = sequence(parse_next(previous, state_), recurse)
                 end if
@@ -1105,8 +1017,8 @@ contains
         type(parser_output_t) :: result_
 
         result_ = empty_ok( &
-                parsed, state_%input, state_%position, message( &
-                        state_%position, var_str(""), [varying_string::]))
+                parsed, state_%input(), state_%position(), message_t( &
+                        state_%position(), var_str(""), [varying_string::]))
     end function
 
     function satisfy(matches, state_) result(result_)
@@ -1118,28 +1030,30 @@ contains
         type(position_t) :: new_position
         type(parsed_character_t) :: parsed_character
 
-        if (len(state_%input) > 0) then
-            first_character_ = first_character(state_%input)
+        if (len(state_%input()) > 0) then
+            first_character_ = first_character(state_%input())
             if (matches(first_character_)) then
-                new_position = next_position(first_character_, state_%position)
+                associate(position => state_%position())
+                    new_position = position%next_position(first_character_)
+                end associate
                 parsed_character = parsed_character_t(first_character_)
                 result_ = consumed_ok( &
                         parsed_character, &
-                        without_first_character(state_%input), &
+                        without_first_character(state_%input()), &
                         new_position, &
-                        message( &
+                        message_t( &
                                 new_position, &
                                 var_str(""), &
                                 [varying_string::]))
             else
-                result_ = empty_error(message( &
-                        state_%position, &
+                result_ = empty_error(message_t( &
+                        state_%position(), &
                         var_str(first_character_), &
                         [varying_string::]))
             end if
         else
-            result_ = empty_error(message( &
-                    state_%position, &
+            result_ = empty_error(message_t( &
+                    state_%position(), &
                     var_str("end of input"), &
                     [varying_string::]))
         end if
@@ -1162,22 +1076,13 @@ contains
         if (previous%ok) then
             result_ = parser( &
                     previous%parsed, &
-                    state(previous%remaining, previous%position))
+                    state_t(previous%remaining, previous%position))
             if (.not.previous%empty) then
                 result_%empty = .false.
             end if
         else
             result_ = previous
         end if
-    end function
-
-    pure function state(input, position)
-        type(varying_string), intent(in) :: input
-        type(position_t), intent(in) :: position
-        type(state_t) :: state
-
-        state%input = input
-        state%position = position
     end function
 
     function then_drop_parser(parser1, parser2, state_) result(result_)
@@ -1196,7 +1101,7 @@ contains
 
         if (previous%ok) then
             result_ = parser( &
-                    state(previous%remaining, previous%position))
+                    state_t(previous%remaining, previous%position))
             result_%empty = previous%empty .and. result_%empty
             if (result_%ok) then
                 deallocate(result_%parsed)

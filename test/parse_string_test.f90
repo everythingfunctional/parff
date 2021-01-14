@@ -59,9 +59,11 @@ contains
 
         parse_result = parse_string("Hello", new_state(var_str("World")))
 
-        result_ = &
-                assert_not(parse_result%ok) &
-                .and.assert_equals("W", parse_result%message%found) &
-                .and.assert_equals("Hello", parse_result%message%expected(1))
+        associate(expected => parse_result%message%expected())
+            result_ = &
+                    assert_not(parse_result%ok) &
+                    .and.assert_equals("W", parse_result%message%found()) &
+                    .and.assert_equals("Hello", expected(1))
+        end associate
     end function
 end module

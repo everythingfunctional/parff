@@ -85,8 +85,8 @@ contains
 
         result_ = &
                 assert_not(parse_result%ok) &
-                .and.assert_equals("F", parse_result%message%found) &
-                .and.assert_equals(2, size(parse_result%message%expected))
+                .and.assert_equals("F", parse_result%message%found()) &
+                .and.assert_equals(2, size(parse_result%message%expected()))
     end function
 
     function parse_a(state_) result(result_)
