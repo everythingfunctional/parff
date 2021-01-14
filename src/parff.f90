@@ -1053,8 +1053,7 @@ contains
                 result_ = empty_ok(empty, state_%input, state_%position, message( &
                         state_%position, var_str(""), [varying_string::]))
             else
-                initial%remaining = times
-                initial%parsed_so_far = parsed_items_t([parsed_item_t::])
+                initial = intermediate_repeat_t(parsed_items_t([parsed_item_t::]), times)
                 result_ = sequence(return_(initial, state_), recurse)
             end if
         end function
@@ -1064,14 +1063,11 @@ contains
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
-            type(parsed_items_t) :: final_list
-
             select type (previous)
             type is (intermediate_repeat_t)
-                if (previous%remaining <= 0) then
-                    final_list = previous%parsed_so_far
+                if (previous%remaining() <= 0) then
                     result_ = consumed_ok( &
-                            final_list, &
+                            previous%parsed_so_far(), &
                             state_%input, &
                             state_%position, &
                             message(state_%position, var_str(""), [varying_string::]))
@@ -1087,13 +1083,16 @@ contains
             type(parser_output_t) :: result_
 
             type(intermediate_repeat_t) :: next
+            type(parsed_items_t) :: parsed_so_far
             type(parsed_item_t) :: this_item
 
             result_ = the_parser(state_)
             if (result_%ok) then
-                next%remaining = previous%remaining - 1
                 this_item = parsed_item_t(result_%parsed)
-                next%parsed_so_far = parsed_items_t([previous%parsed_so_far%items(), this_item])
+                parsed_so_far = previous%parsed_so_far()
+                next = intermediate_repeat_t( &
+                        parsed_items_t([parsed_so_far%items(), this_item]), &
+                        previous%remaining() - 1)
                 deallocate(result_%parsed)
                 allocate(result_%parsed, source = next)
             end if
