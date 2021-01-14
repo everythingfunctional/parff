@@ -35,7 +35,7 @@ contains
             select type (parsed => results%parsed)
             type is (parsed_character_t)
                 result_ = &
-                        assert_equals("A", parsed%value_, "parsed") &
+                        assert_equals("A", parsed%value_(), "parsed") &
                         .and.assert_equals("B", results%remaining, "remaining")
             class default
                 result_ = fail("Didn't get the character back")

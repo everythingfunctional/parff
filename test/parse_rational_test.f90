@@ -74,7 +74,7 @@ contains
                 select type (parsed => parse_result%parsed)
                 type is (parsed_rational_t)
                     result_ = assert_equals( &
-                            input%value_, parsed%value_, input%string)
+                            input%value_, parsed%value_(), input%string)
                 class default
                     result_ = fail("Didn't get an integer back")
                 end select

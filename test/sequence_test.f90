@@ -38,7 +38,7 @@ contains
         if (result_%passed()) then
             select type (string => parse_result%parsed)
             type is (parsed_string_t)
-                result_ = assert_equals("AB", string%value_)
+                result_ = assert_equals("AB", string%value_())
             class default
                 result_ = fail("Didn't get string back")
             end select
@@ -115,7 +115,7 @@ contains
             type is (parsed_character_t)
                 select type (next => result_%parsed)
                 type is (parsed_character_t)
-                    parsed%value_ = previous%value_ // next%value_
+                    parsed = parsed_string_t(previous%value_() // next%value_())
                 end select
             end select
             deallocate(result_%parsed)
