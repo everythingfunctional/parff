@@ -29,17 +29,17 @@ contains
         type(parser_output_t) :: results
 
         results = many1(parse_a, new_state(var_str("AB")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok_) then
+            select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(1, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining)
+                        .and.assert_equals("B", results%remaining_)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -53,17 +53,17 @@ contains
         type(parser_output_t) :: results
 
         results = many1(parse_a, new_state(var_str("AAB")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok_) then
+            select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(2, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining)
+                        .and.assert_equals("B", results%remaining_)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -77,7 +77,7 @@ contains
         type(parser_output_t) :: results
 
         results = many1(parse_a, new_state(var_str("BAA")))
-        result_ = assert_not(results%ok, results%message%to_string())
+        result_ = assert_not(results%ok_, results%message_%to_string())
     end function
 
     function parse_a(state_) result(result_)

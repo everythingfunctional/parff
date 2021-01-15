@@ -64,8 +64,8 @@ contains
         select type (input)
         type is (number_input_t)
             parse_result = parse_integer(new_state(input%string))
-            if (parse_result%ok) then
-                select type (parsed => parse_result%parsed)
+            if (parse_result%ok_) then
+                select type (parsed => parse_result%parsed_)
                 type is (parsed_integer_t)
                     result_ = assert_equals( &
                             input%value_, parsed%value_(), input%string)
@@ -73,7 +73,7 @@ contains
                     result_ = fail("Didn't get an integer back")
                 end select
             else
-                result_ = fail(parse_result%message%to_string())
+                result_ = fail(parse_result%message_%to_string())
             end if
         class default
             result_ = fail("Expected to get a number_input_t")
@@ -93,7 +93,7 @@ contains
         type is (invalid_input_t)
             parse_result = parse_integer(new_state(input%string))
             result_ = assert_not( &
-                    parse_result%ok, parse_result%message%to_string())
+                    parse_result%ok_, parse_result%message_%to_string())
         class default
             result_ = fail("Expected to get an invalid_input_tt")
         end select
@@ -110,6 +110,6 @@ contains
 
         parse_result = parse_integer(new_state(var_str("")))
         result_ = assert_not( &
-                parse_result%ok, parse_result%message%to_string())
+                parse_result%ok_, parse_result%message_%to_string())
     end function
 end module

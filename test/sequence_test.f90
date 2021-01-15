@@ -34,9 +34,9 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AB")))
 
-        result_ = assert_that(parse_result%ok)
+        result_ = assert_that(parse_result%ok_)
         if (result_%passed()) then
-            select type (string => parse_result%parsed)
+            select type (string => parse_result%parsed_)
             type is (parsed_string_t)
                 result_ = assert_equals("AB", string%value_())
             class default
@@ -56,11 +56,11 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("BB")))
 
-        result_ = assert_not(parse_result%ok)
+        result_ = assert_not(parse_result%ok_)
         if (result_%passed()) then
-            associate(expected => parse_result%message%expected())
+            associate(expected => parse_result%message_%expected())
                 result_ = &
-                        assert_equals("B", parse_result%message%found()) &
+                        assert_equals("B", parse_result%message_%found()) &
                         .and.assert_equals("A", expected(1))
             end associate
         end if
@@ -77,11 +77,11 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AA")))
 
-        result_ = assert_not(parse_result%ok)
+        result_ = assert_not(parse_result%ok_)
         if (result_%passed()) then
-            associate(expected => parse_result%message%expected())
+            associate(expected => parse_result%message_%expected())
                 result_ = &
-                        assert_equals("A", parse_result%message%found()) &
+                        assert_equals("A", parse_result%message_%found()) &
                         .and.assert_equals("B", expected(1))
             end associate
         end if
@@ -114,16 +114,16 @@ contains
 
         result_ = parse_char("B", state_)
 
-        if (result_%ok) then
+        if (result_%ok_) then
             select type (previous)
             type is (parsed_character_t)
-                select type (next => result_%parsed)
+                select type (next => result_%parsed_)
                 type is (parsed_character_t)
                     parsed = parsed_string_t(previous%value_() // next%value_())
                 end select
             end select
-            deallocate(result_%parsed)
-            allocate(result_%parsed, source = parsed)
+            deallocate(result_%parsed_)
+            allocate(result_%parsed_, source = parsed)
         end if
     end function
 end module

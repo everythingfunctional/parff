@@ -35,17 +35,17 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("AB")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok_) then
+            select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(1, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining)
+                        .and.assert_equals("B", results%remaining_)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -64,8 +64,8 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,B")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok_) then
+            select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 associate(items => parsed%items())
                     result_ = assert_equals(1, size(items))
@@ -74,7 +74,7 @@ contains
                         type is (parsed_character_t)
                             result_ = &
                                     assert_equals("A", the_item%value_()) &
-                                    .and.assert_equals(",B", results%remaining)
+                                    .and.assert_equals(",B", results%remaining_)
                         end select
                     end if
                 end associate
@@ -82,7 +82,7 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -97,17 +97,17 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,AB")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok_) then
+            select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
-                        .and.assert_equals("B", results%remaining)
+                        .and.assert_equals("B", results%remaining_)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -122,17 +122,17 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,A,B")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok_) then
+            select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
-                        .and.assert_equals(",B", results%remaining)
+                        .and.assert_equals(",B", results%remaining_)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -146,10 +146,10 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("B,A,A")))
-        if (results%ok) then
-            result_ = assert_that(results%empty)
+        if (results%ok_) then
+            result_ = assert_that(results%empty_)
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 

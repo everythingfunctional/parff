@@ -31,17 +31,17 @@ contains
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("AB")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok_) then
+            select type (parsed => results%parsed_)
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("A", parsed%value_(), "parsed") &
-                        .and.assert_equals("B", results%remaining, "remaining")
+                        .and.assert_equals("B", results%remaining_, "remaining")
             class default
                 result_ = fail("Didn't get the character back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -55,10 +55,10 @@ contains
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("BB")))
-        if (results%ok) then
-            result_ = assert_that(results%empty)
+        if (results%ok_) then
+            result_ = assert_that(results%empty_)
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 
@@ -72,10 +72,10 @@ contains
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("")))
-        if (results%ok) then
-            result_ = assert_that(results%empty)
+        if (results%ok_) then
+            result_ = assert_that(results%empty_)
         else
-            result_ = fail(results%message%to_string())
+            result_ = fail(results%message_%to_string())
         end if
     end function
 

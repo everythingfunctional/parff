@@ -17,6 +17,13 @@ module parff
     use parff_parsed_rational_m, only: parsed_rational_t
     use parff_parsed_string_m, only: parsed_string_t
     use parff_parsed_value_m, only: parsed_value_t
+    use parff_parser_output_m, only: &
+            parser_output_t, &
+            consumed_ok, &
+            empty_error, &
+            empty_ok, &
+            merge_error, &
+            merge_ok
     use parff_position_m, only: position_t
     use parff_state_m, only: state_t, new_state
     use strff, only: &
@@ -70,16 +77,6 @@ module parff
             sequence, &
             then_drop, &
             with_label
-
-    type :: parser_output_t
-        logical :: empty
-        logical :: ok
-        type(message_t) :: message
-        ! The following are only defined if ok
-        class(parsed_value_t), allocatable :: parsed
-        type(varying_string) :: remaining
-        type(position_t) :: position
-    end type
 
     type :: parse_result_t
         logical :: ok
@@ -137,21 +134,6 @@ module parff
         module procedure with_label_s
     end interface
 contains
-    function consumed_ok(parsed, remaining, position, message_)
-        class(parsed_value_t), intent(in) :: parsed
-        type(varying_string), intent(in) :: remaining
-        type(position_t), intent(in) :: position
-        type(message_t), intent(in) :: message_
-        type(parser_output_t) :: consumed_ok
-
-        consumed_ok%empty = .false.
-        consumed_ok%ok = .true.
-        allocate(consumed_ok%parsed, source = parsed)
-        consumed_ok%remaining = remaining
-        consumed_ok%position = position
-        consumed_ok%message = message_
-    end function
-
     recursive function drop_then_parser(parser1, parser2, state_) result(result_)
         procedure(parser_i) :: parser1
         procedure(parser_i) :: parser2
@@ -166,11 +148,11 @@ contains
         procedure(parser_i) :: parser
         type(parser_output_t) :: result_
 
-        if (previous%ok) then
+        if (previous%ok_) then
             result_ = parser( &
-                    state_t(previous%remaining, previous%position))
-            if (.not.previous%empty) then
-                result_%empty = .false.
+                    state_t(previous%remaining_, previous%position_))
+            if (.not.previous%empty_) then
+                result_%empty_ = .false.
             end if
         else
             result_ = previous
@@ -188,28 +170,28 @@ contains
 
         first_result = parse1(state_)
 
-        if (first_result%empty) then
+        if (first_result%empty_) then
             second_result = parse2(state_)
-            if (second_result%empty) then
-                if (first_result%ok) then
+            if (second_result%empty_) then
+                if (first_result%ok_) then
                     result_ = merge_ok( &
-                            first_result%parsed, &
-                            first_result%remaining, &
-                            first_result%position, &
-                            first_result%message, &
-                            second_result%message)
+                            first_result%parsed_, &
+                            first_result%remaining_, &
+                            first_result%position_, &
+                            first_result%message_, &
+                            second_result%message_)
                 else
-                    if (second_result%ok) then
+                    if (second_result%ok_) then
                         result_ = merge_ok( &
-                                second_result%parsed, &
-                                second_result%remaining, &
-                                second_result%position, &
-                                first_result%message, &
-                                second_result%message)
+                                second_result%parsed_, &
+                                second_result%remaining_, &
+                                second_result%position_, &
+                                first_result%message_, &
+                                second_result%message_)
                     else
                         result_ = merge_error( &
-                                first_result%message, &
-                                second_result%message)
+                                first_result%message_, &
+                                second_result%message_)
                     end if
                 end if
             else
@@ -218,30 +200,6 @@ contains
         else
             result_ = first_result
         end if
-    end function
-
-    function empty_error(message_)
-        type(message_t), intent(in) :: message_
-        type(parser_output_t) :: empty_error
-
-        empty_error%empty = .true.
-        empty_error%ok = .false.
-        empty_error%message = message_
-    end function
-
-    function empty_ok(parsed, remaining, position, message_)
-        class(parsed_value_t), intent(in) :: parsed
-        type(varying_string), intent(in) :: remaining
-        type(position_t), intent(in) :: position
-        type(message_t), intent(in) :: message_
-        type(parser_output_t) :: empty_ok
-
-        empty_ok%empty = .true.
-        empty_ok%ok = .true.
-        allocate(empty_ok%parsed, source = parsed)
-        empty_ok%remaining = remaining
-        empty_ok%position = position
-        empty_ok%message = message_
     end function
 
     function many(the_parser, the_state) result(the_result)
@@ -271,16 +229,16 @@ contains
         type(parser_output_t) :: next
 
         the_result = the_parser(the_state)
-        if (the_result%ok) then
-            all = parsed_items_t([parsed_item_t(the_result%parsed)])
+        if (the_result%ok_) then
+            all = parsed_items_t([parsed_item_t(the_result%parsed_)])
             do
-                next = drop_then(the_separator, the_parser, state_t(the_result%remaining, the_result%position))
-                if (.not.next%ok) exit
-                all = parsed_items_t([all%items(), parsed_item_t(next%parsed)])
+                next = drop_then(the_separator, the_parser, state_t(the_result%remaining_, the_result%position_))
+                if (.not.next%ok_) exit
+                all = parsed_items_t([all%items(), parsed_item_t(next%parsed_)])
                 the_result = next
             end do
-            deallocate(the_result%parsed)
-            allocate(the_result%parsed, source = all)
+            deallocate(the_result%parsed_)
+            allocate(the_result%parsed_, source = all)
         end if
     end function
 
@@ -294,7 +252,7 @@ contains
         type(parsed_items_t) :: all
 
         the_result = many1_with_separator(the_parser, the_separator, the_state)
-        if (.not.the_result%ok) then
+        if (.not.the_result%ok_) then
             all = parsed_items_t([parsed_item_t::])
             the_result = empty_ok( &
                     all, &
@@ -305,30 +263,6 @@ contains
                             var_str(""), &
                             [varying_string::]))
         end if
-    end function
-
-    function merge_error(message1, message2) result(result_)
-        type(message_t), intent(in) :: message1
-        type(message_t), intent(in) :: message2
-        type(parser_output_t) :: result_
-
-        result_ = empty_error(merge_(message1, message2))
-    end function
-
-    function merge_ok( &
-            parsed, remaining, position, message1, message2) result(result_)
-        class(parsed_value_t), intent(in) :: parsed
-        type(varying_string), intent(in) :: remaining
-        type(position_t), intent(in) :: position
-        type(message_t), intent(in) :: message1
-        type(message_t), intent(in) :: message2
-        type(parser_output_t) :: result_
-
-        result_ = empty_ok( &
-                parsed, &
-                remaining, &
-                position, &
-                merge_(message1, message2))
     end function
 
     function optionally(parser, the_state) result(the_result)
@@ -397,14 +331,14 @@ contains
             type(parsed_integer_t) :: the_value
 
             result_ = sequence(optionally(parse_sign, state_), then_parse_digits)
-            if (result_%ok) then
-                select type (parsed_string => result_%parsed)
+            if (result_%ok_) then
+                select type (parsed_string => result_%parsed_)
                 type is (parsed_string_t)
                     the_string = parsed_string%value_()
                     read(the_string, *) the_number
                     the_value = parsed_integer_t(the_number)
-                    deallocate(result_%parsed)
-                    allocate(result_%parsed, source = the_value)
+                    deallocate(result_%parsed_)
+                    allocate(result_%parsed_, source = the_value)
                 end select
             end if
         end function
@@ -436,10 +370,10 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_digits(state_)
-            if (result_%ok) then
+            if (result_%ok_) then
                 select type (previous)
                 type is (parsed_character_t)
-                    select type (next => result_%parsed)
+                    select type (next => result_%parsed_)
                     type is (parsed_string_t)
                         next = parsed_string_t(previous%value_() // next%value_())
                     end select
@@ -456,8 +390,8 @@ contains
             type(parsed_string_t) :: parsed_digits
 
             result_ = many1(parse_digit, state_)
-            if (result_%ok) then
-                select type (results => result_%parsed)
+            if (result_%ok_) then
+                select type (results => result_%parsed_)
                 type is (parsed_items_t)
                     associate(items => results%items())
                         allocate(digits(size(items)))
@@ -469,9 +403,9 @@ contains
                         end do
                     end associate
                 end select
-                deallocate(result_%parsed)
+                deallocate(result_%parsed_)
                 parsed_digits = parsed_string_t(join(digits, ""))
-                allocate(result_%parsed, source = parsed_digits)
+                allocate(result_%parsed_, source = parsed_digits)
             end if
         end function
     end function
@@ -500,14 +434,14 @@ contains
             result_ = sequence( &
                     sequence(parse_sign, then_parse_number, state_), &
                     then_parse_exponent)
-            if (result_%ok) then
-                select type (parsed_string => result_%parsed)
+            if (result_%ok_) then
+                select type (parsed_string => result_%parsed_)
                 type is (parsed_string_t)
                     the_string = parsed_string%value_()
                     read(the_string, *) the_number
                     the_value = parsed_rational_t(the_number)
-                    deallocate(result_%parsed)
-                    allocate(result_%parsed, source = the_value)
+                    deallocate(result_%parsed_)
+                    allocate(result_%parsed_, source = the_value)
                 end select
             end if
         end function
@@ -519,12 +453,12 @@ contains
             type(parsed_string_t) :: the_string
 
             result_ = either(parse_plus, parse_minus, state_)
-            if (result_%ok) then
-                select type (the_character => result_%parsed)
+            if (result_%ok_) then
+                select type (the_character => result_%parsed_)
                 type is (parsed_character_t)
                     the_string = parsed_string_t(the_character%value_())
-                    deallocate(result_%parsed)
-                    allocate(result_%parsed, source = the_string)
+                    deallocate(result_%parsed_)
+                    allocate(result_%parsed_, source = the_string)
                 end select
             else
                 the_string = parsed_string_t("")
@@ -556,10 +490,10 @@ contains
             type(parser_output_t) :: result_
 
             result_ = either(parse_covered_decimal, parse_uncovered_decimal, state_)
-            if (result_%ok) then
+            if (result_%ok_) then
                 select type (previous)
                 type is (parsed_string_t)
-                    select type (next => result_%parsed)
+                    select type (next => result_%parsed_)
                     type is (parsed_string_t)
                         next = parsed_string_t(previous%value_() // next%value_())
                     end select
@@ -583,8 +517,8 @@ contains
             type(parsed_string_t) :: parsed_digits
 
             result_ = many1(parse_digit, state_)
-            if (result_%ok) then
-                select type (results => result_%parsed)
+            if (result_%ok_) then
+                select type (results => result_%parsed_)
                 type is (parsed_items_t)
                     associate(items => results%items())
                         allocate(digits(size(items)))
@@ -595,9 +529,9 @@ contains
                             end select
                         end do
                     end associate
-                    deallocate(result_%parsed)
+                    deallocate(result_%parsed_)
                     parsed_digits = parsed_string_t(join(digits, ""))
-                    allocate(result_%parsed, source = parsed_digits)
+                    allocate(result_%parsed_, source = parsed_digits)
                 end select
             end if
         end function
@@ -608,10 +542,10 @@ contains
             type(parser_output_t) :: result_
 
             result_ = sequence(parse_decimal, then_parse_maybe_digits, state_)
-            if (result_%ok) then
+            if (result_%ok_) then
                 select type (previous)
                 type is (parsed_string_t)
-                    select type (next => result_%parsed)
+                    select type (next => result_%parsed_)
                     type is (parsed_string_t)
                         next = parsed_string_t(previous%value_() // next%value_())
                     end select
@@ -632,12 +566,12 @@ contains
             type(parsed_string_t) :: the_string
 
             result_ = parse_char(".", state_)
-            if (result_%ok) then
-                select type (the_character => result_%parsed)
+            if (result_%ok_) then
+                select type (the_character => result_%parsed_)
                 type is (parsed_character_t)
                     the_string = parsed_string_t(the_character%value_())
-                    deallocate(result_%parsed)
-                    allocate(result_%parsed, source = the_string)
+                    deallocate(result_%parsed_)
+                    allocate(result_%parsed_, source = the_string)
                 end select
             end if
         end function
@@ -648,10 +582,10 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_maybe_digits(state_)
-            if (result_%ok) then
+            if (result_%ok_) then
                 select type (previous)
                 type is (parsed_string_t)
-                    select type (next => result_%parsed)
+                    select type (next => result_%parsed_)
                     type is (parsed_string_t)
                         next = parsed_string_t(previous%value_() // next%value_())
                     end select
@@ -668,7 +602,7 @@ contains
             type(parsed_string_t) :: parsed_digits
 
             result_ = many(parse_digit, state_)
-            select type (results => result_%parsed)
+            select type (results => result_%parsed_)
             type is (parsed_items_t)
                 associate(items => results%items())
                     allocate(digits(size(items)))
@@ -679,9 +613,9 @@ contains
                         end select
                     end do
                 end associate
-                deallocate(result_%parsed)
+                deallocate(result_%parsed_)
                 parsed_digits = parsed_string_t(join(digits, ""))
-                allocate(result_%parsed, source = parsed_digits)
+                allocate(result_%parsed_, source = parsed_digits)
             end select
         end function
 
@@ -698,10 +632,10 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_digits(state_)
-            if (result_%ok) then
+            if (result_%ok_) then
                 select type (previous)
                 type is (parsed_string_t)
-                    select type (next => result_%parsed)
+                    select type (next => result_%parsed_)
                     type is (parsed_string_t)
                         next = parsed_string_t(previous%value_() // next%value_())
                     end select
@@ -715,10 +649,10 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_exponent(state_)
-            if (result_%ok) then
+            if (result_%ok_) then
                 select type (previous)
                 type is (parsed_string_t)
-                    select type (next => result_%parsed)
+                    select type (next => result_%parsed_)
                     type is (parsed_string_t)
                         next = parsed_string_t(previous%value_() // next%value_())
                     end select
@@ -748,12 +682,12 @@ contains
             type(parsed_string_t) :: the_string
 
             result_ = either(parse_e, parse_d, state_)
-            if (result_%ok) then
-                select type (the_character => result_%parsed)
+            if (result_%ok_) then
+                select type (the_character => result_%parsed_)
                 type is (parsed_character_t)
                     the_string = parsed_string_t(the_character%value_())
-                    deallocate(result_%parsed)
-                    allocate(result_%parsed, source = the_string)
+                    deallocate(result_%parsed_)
+                    allocate(result_%parsed_, source = the_string)
                 end select
             end if
         end function
@@ -806,10 +740,10 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_sign(state_)
-            if (result_%ok) then
+            if (result_%ok_) then
                 select type (previous)
                 type is (parsed_string_t)
-                    select type (next => result_%parsed)
+                    select type (next => result_%parsed_)
                     type is (parsed_string_t)
                         next = parsed_string_t(previous%value_() // next%value_())
                     end select
@@ -880,14 +814,14 @@ contains
             type(intermediate_parsed_string_t) :: next
 
             result_ = parse_char(first_character(previous%left_to_parse()), state_)
-            if (result_%ok) then
-                select type (the_char => result_%parsed)
+            if (result_%ok_) then
+                select type (the_char => result_%parsed_)
                 type is (parsed_character_t)
                     next = intermediate_parsed_string_t( &
                             previous%parsed_so_far() // the_char%value_(), &
                             without_first_character(previous%left_to_parse()))
-                    deallocate(result_%parsed)
-                    allocate(result_%parsed, source = next)
+                    deallocate(result_%parsed_)
+                    allocate(result_%parsed_, source = next)
                 end select
             end if
         end function
@@ -936,12 +870,12 @@ contains
         type(parser_output_t) :: the_results
 
         the_results = parser(new_state(string))
-        if (the_results%ok) then
+        if (the_results%ok_) then
             result_%ok = .true.
-            allocate(result_%parsed, source = the_results%parsed)
+            allocate(result_%parsed, source = the_results%parsed_)
         else
             result_%ok = .false.
-            result_%message = the_results%message%to_string()
+            result_%message = the_results%message_%to_string()
         end if
     end function
 
@@ -999,14 +933,14 @@ contains
             type(parsed_item_t) :: this_item
 
             result_ = the_parser(state_)
-            if (result_%ok) then
-                this_item = parsed_item_t(result_%parsed)
+            if (result_%ok_) then
+                this_item = parsed_item_t(result_%parsed_)
                 parsed_so_far = previous%parsed_so_far()
                 next = intermediate_repeat_t( &
                         parsed_items_t([parsed_so_far%items(), this_item]), &
                         previous%remaining() - 1)
-                deallocate(result_%parsed)
-                allocate(result_%parsed, source = next)
+                deallocate(result_%parsed_)
+                allocate(result_%parsed_, source = next)
             end if
         end function
     end function
@@ -1073,12 +1007,12 @@ contains
         procedure(then_parser_i) :: parser
         type(parser_output_t) :: result_
 
-        if (previous%ok) then
+        if (previous%ok_) then
             result_ = parser( &
-                    previous%parsed, &
-                    state_t(previous%remaining, previous%position))
-            if (.not.previous%empty) then
-                result_%empty = .false.
+                    previous%parsed_, &
+                    state_t(previous%remaining_, previous%position_))
+            if (.not.previous%empty_) then
+                result_%empty_ = .false.
             end if
         else
             result_ = previous
@@ -1099,13 +1033,13 @@ contains
         procedure(parser_i) :: parser
         type(parser_output_t) :: result_
 
-        if (previous%ok) then
+        if (previous%ok_) then
             result_ = parser( &
-                    state_t(previous%remaining, previous%position))
-            result_%empty = previous%empty .and. result_%empty
-            if (result_%ok) then
-                deallocate(result_%parsed)
-                allocate(result_%parsed, source = previous%parsed)
+                    state_t(previous%remaining_, previous%position_))
+            result_%empty_ = previous%empty_ .and. result_%empty_
+            if (result_%ok_) then
+                deallocate(result_%parsed_)
+                allocate(result_%parsed_, source = previous%parsed_)
             end if
         else
             result_ = previous
@@ -1131,16 +1065,16 @@ contains
         type(message_t) :: the_message
 
         the_result = parse(state_)
-        if (the_result%empty) then
-            if (the_result%ok) then
-                the_message = expect(the_result%message, label)
+        if (the_result%empty_) then
+            if (the_result%ok_) then
+                the_message = expect(the_result%message_, label)
                 result_ = empty_ok( &
-                        the_result%parsed, &
-                        the_result%remaining, &
-                        the_result%position, &
+                        the_result%parsed_, &
+                        the_result%remaining_, &
+                        the_result%position_, &
                         the_message)
             else
-                the_message = expect(the_result%message, label)
+                the_message = expect(the_result%message_, label)
                 result_ = empty_error(the_message)
             end if
         else

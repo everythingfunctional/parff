@@ -37,14 +37,14 @@ contains
         parse_result = parse_char("F", new_state(var_str("First")))
 
         result_ = &
-                assert_that(parse_result%ok, "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok_, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty_, "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_char => parse_result%parsed)
+            select type (the_char => parse_result%parsed_)
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("F", the_char%value_()) &
-                        .and.assert_equals("irst", parse_result%remaining)
+                        .and.assert_equals("irst", parse_result%remaining_)
             class default
                 result_ = fail("Didn't get a character back")
             end select
@@ -62,10 +62,10 @@ contains
 
         parse_result = parse_char("A", new_state(var_str("First")))
 
-        associate(expected => parse_result%message%expected())
+        associate(expected => parse_result%message_%expected())
             result_ = &
-                    assert_not(parse_result%ok) &
-                    .and.assert_equals("F", parse_result%message%found()) &
+                    assert_not(parse_result%ok_) &
+                    .and.assert_equals("F", parse_result%message_%found()) &
                     .and.assert_equals("A", expected(1))
         end associate
     end function
@@ -81,10 +81,10 @@ contains
 
         parse_result = parse_char("A", new_state(var_str("")))
 
-        associate(expected => parse_result%message%expected())
+        associate(expected => parse_result%message_%expected())
             result_ = &
-                    assert_not(parse_result%ok) &
-                    .and.assert_equals("end of input", parse_result%message%found()) &
+                    assert_not(parse_result%ok_) &
+                    .and.assert_equals("end of input", parse_result%message_%found()) &
                     .and.assert_equals("A", expected(1))
         end associate
     end function

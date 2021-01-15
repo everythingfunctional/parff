@@ -34,14 +34,14 @@ contains
         parse_result = parse_string("Hello", new_state(var_str("Hello World")))
 
         result_ = &
-                assert_that(parse_result%ok, "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok_, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty_, "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_string => parse_result%parsed)
+            select type (the_string => parse_result%parsed_)
             type is (parsed_string_t)
                 result_ = &
                         assert_equals("Hello", the_string%value_()) &
-                        .and.assert_equals(" World", parse_result%remaining)
+                        .and.assert_equals(" World", parse_result%remaining_)
             class default
                 result_ = fail("Didn't get a string back")
             end select
@@ -59,10 +59,10 @@ contains
 
         parse_result = parse_string("Hello", new_state(var_str("World")))
 
-        associate(expected => parse_result%message%expected())
+        associate(expected => parse_result%message_%expected())
             result_ = &
-                    assert_not(parse_result%ok) &
-                    .and.assert_equals("W", parse_result%message%found()) &
+                    assert_not(parse_result%ok_) &
+                    .and.assert_equals("W", parse_result%message_%found()) &
                     .and.assert_equals("Hello", expected(1))
         end associate
     end function
