@@ -9,6 +9,7 @@ module parff
     use parff_intermediate_parsed_string_m, only: intermediate_parsed_string_t
     use parff_intermediate_repeat_m, only: intermediate_repeat_t
     use parff_message_m, only: message_t, expect, merge_
+    use parff_parse_result_m, only: parse_result_t, parse_with
     use parff_parsed_character_m, only: parsed_character_t
     use parff_parsed_integer_m, only: parsed_integer_t
     use parff_parsed_item_m, only: parsed_item_t
@@ -17,6 +18,7 @@ module parff
     use parff_parsed_rational_m, only: parsed_rational_t
     use parff_parsed_string_m, only: parsed_string_t
     use parff_parsed_value_m, only: parsed_value_t
+    use parff_parser_interfaces_m, only: match_i, parser_i, then_parser_i
     use parff_parser_output_m, only: &
             parser_output_t, &
             consumed_ok, &
@@ -78,32 +80,6 @@ module parff
             then_drop, &
             with_label
 
-    type :: parse_result_t
-        logical :: ok
-        class(parsed_value_t), allocatable :: parsed
-        type(varying_string) :: message
-    end type
-
-    abstract interface
-        pure function match_i(char_) result(matches)
-            character(len=1), intent(in) :: char_
-            logical :: matches
-        end function
-
-        function parser_i(state_) result(result_)
-            import parser_output_t, state_t
-            type(state_t), intent(in) :: state_
-            type(parser_output_t) :: result_
-        end function
-
-        function then_parser_i(previous, state_) result(result_)
-            import parser_output_t, parsed_value_t, state_t
-            class(parsed_value_t), intent(in) :: previous
-            type(state_t), intent(in) :: state_
-            type(parser_output_t) :: result_
-        end function
-    end interface
-
     interface drop_then
         module procedure drop_then_parser
         module procedure drop_then_result
@@ -112,11 +88,6 @@ module parff
     interface parse_string
         module procedure parse_string_c
         module procedure parse_string_s
-    end interface
-
-    interface parse_with
-        module procedure parse_with_c
-        module procedure parse_with_s
     end interface
 
     interface sequence
@@ -844,33 +815,6 @@ contains
 
             matches = WHITESPACE.includes.char_
         end function
-    end function
-
-    function parse_with_c(parser, string) result(result_)
-        procedure(parser_i) :: parser
-        character(len=*), intent(in) :: string
-        type(parse_result_t) :: result_
-
-        result_ = parse_with(parser, var_str(string))
-    end function
-
-    function parse_with_s(parser, string) result(result_)
-        procedure(parser_i) :: parser
-        type(varying_string), intent(in) :: string
-        type(parse_result_t) :: result_
-
-        type(message_t) :: message
-        type(parser_output_t) :: the_results
-
-        the_results = parser(new_state(string))
-        if (the_results%ok()) then
-            result_%ok = .true.
-            allocate(result_%parsed, source = the_results%parsed())
-        else
-            result_%ok = .false.
-            message = the_results%message()
-            result_%message = message%to_string()
-        end if
     end function
 
     function repeat_(the_parser, times, the_state) result(the_result)
