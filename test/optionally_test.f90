@@ -32,7 +32,7 @@ contains
 
         results = optionally(parse_a, new_state(var_str("AB")))
         if (results%ok()) then
-            select type (parsed => results%parsed_)
+            select type (parsed => results%parsed())
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("A", parsed%value_(), "parsed") &

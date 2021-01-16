@@ -19,7 +19,7 @@ module parff_parser_output_m
         logical, private :: ok_
         type(message_t), private :: message_
         ! The following are only defined if ok
-        class(parsed_value_t), allocatable :: parsed_
+        class(parsed_value_t), allocatable, private :: parsed_
         type(varying_string) :: remaining_
         type(position_t) :: position_
     contains

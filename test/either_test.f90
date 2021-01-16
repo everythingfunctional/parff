@@ -35,7 +35,7 @@ contains
                 assert_that(parse_result%ok(), "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_char => parse_result%parsed_)
+            select type (the_char => parse_result%parsed())
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("F", the_char%value_()) &
@@ -61,7 +61,7 @@ contains
                 assert_that(parse_result%ok(), "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_char => parse_result%parsed_)
+            select type (the_char => parse_result%parsed())
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("F", the_char%value_()) &

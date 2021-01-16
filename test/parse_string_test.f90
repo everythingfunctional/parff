@@ -37,7 +37,7 @@ contains
                 assert_that(parse_result%ok(), "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_string => parse_result%parsed_)
+            select type (the_string => parse_result%parsed())
             type is (parsed_string_t)
                 result_ = &
                         assert_equals("Hello", the_string%value_()) &

@@ -71,7 +71,7 @@ contains
         type is (number_input_t)
             parse_result = parse_rational(new_state(input%string))
             if (parse_result%ok()) then
-                select type (parsed => parse_result%parsed_)
+                select type (parsed => parse_result%parsed())
                 type is (parsed_rational_t)
                     result_ = assert_equals( &
                             input%value_, parsed%value_(), input%string)

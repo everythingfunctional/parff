@@ -36,7 +36,7 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("AB")))
         if (results%ok()) then
-            select type (parsed => results%parsed_)
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(1, size(parsed%items())) &
@@ -67,7 +67,7 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,B")))
         if (results%ok()) then
-            select type (parsed => results%parsed_)
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
                 associate(items => parsed%items())
                     result_ = assert_equals(1, size(items))
@@ -102,7 +102,7 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,AB")))
         if (results%ok()) then
-            select type (parsed => results%parsed_)
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
@@ -129,7 +129,7 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,A,B")))
         if (results%ok()) then
-            select type (parsed => results%parsed_)
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
