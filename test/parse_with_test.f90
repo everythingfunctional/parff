@@ -30,15 +30,15 @@ contains
 
         the_result = parse_with(the_parser, "A")
 
-        if (the_result%ok) then
-            select type (parsed => the_result%parsed)
+        if (the_result%ok()) then
+            select type (parsed => the_result%parsed())
             type is (parsed_character_t)
                 result_ = assert_equals("A", parsed%value_())
             class default
                 result_ = fail("Didn't get a character back")
             end select
         else
-            result_ = fail(the_result%message)
+            result_ = fail(the_result%message())
         end if
     end function
 
@@ -52,7 +52,7 @@ contains
 
         the_result = parse_with(the_parser, "B")
 
-        result_ = assert_not(the_result%ok, the_result%message)
+        result_ = assert_not(the_result%ok(), the_result%message())
     end function
 
     function the_parser(state) result(result_)

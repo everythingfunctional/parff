@@ -11,9 +11,15 @@ module parff_parse_result_m
     public :: parse_result_t, parse_with
 
     type :: parse_result_t
-        logical :: ok
-        class(parsed_value_t), allocatable :: parsed
-        type(varying_string) :: message
+        private
+        logical :: ok_
+        class(parsed_value_t), allocatable :: parsed_
+        type(varying_string) :: message_
+    contains
+        private
+        procedure, public :: ok
+        procedure, public :: parsed
+        procedure, public :: message
     end type
 
     interface parse_with
@@ -39,12 +45,33 @@ contains
 
         the_results = parser(new_state(string))
         if (the_results%ok()) then
-            result_%ok = .true.
-            allocate(result_%parsed, source = the_results%parsed())
+            result_%ok_ = .true.
+            allocate(result_%parsed_, source = the_results%parsed())
         else
-            result_%ok = .false.
+            result_%ok_ = .false.
             message = the_results%message()
-            result_%message = message%to_string()
+            result_%message_ = message%to_string()
         end if
+    end function
+
+    pure function ok(self)
+        class(parse_result_t), intent(in) :: self
+        logical :: ok
+
+        ok = self%ok_
+    end function
+
+    function parsed(self)
+        class(parse_result_t), intent(in) :: self
+        class(parsed_value_t), allocatable :: parsed
+
+        allocate(parsed, source = self%parsed_)
+    end function
+
+    pure function message(self)
+        class(parse_result_t), intent(in) :: self
+        type(varying_string) :: message
+
+        message = self%message_
     end function
 end module
