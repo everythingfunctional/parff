@@ -147,7 +147,7 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("B,A,A")))
         if (results%ok_) then
-            result_ = assert_that(results%empty_)
+            result_ = assert_that(results%empty())
         else
             result_ = fail(results%message_%to_string())
         end if

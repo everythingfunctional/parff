@@ -78,7 +78,7 @@ contains
 
         results = many(parse_a, new_state(var_str("BAA")))
         if (results%ok_) then
-            result_ = assert_that(results%empty_)
+            result_ = assert_that(results%empty())
         else
             result_ = fail(results%message_%to_string())
         end if

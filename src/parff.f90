@@ -151,8 +151,8 @@ contains
         if (previous%ok_) then
             result_ = parser( &
                     state_t(previous%remaining_, previous%position_))
-            if (.not.previous%empty_) then
-                result_%empty_ = .false.
+            if (.not.previous%empty()) then
+                result_ = result_%but_not_empty()
             end if
         else
             result_ = previous
@@ -170,9 +170,9 @@ contains
 
         first_result = parse1(state_)
 
-        if (first_result%empty_) then
+        if (first_result%empty()) then
             second_result = parse2(state_)
-            if (second_result%empty_) then
+            if (second_result%empty()) then
                 if (first_result%ok_) then
                     result_ = merge_ok( &
                             first_result%parsed_, &
@@ -1011,8 +1011,8 @@ contains
             result_ = parser( &
                     previous%parsed_, &
                     state_t(previous%remaining_, previous%position_))
-            if (.not.previous%empty_) then
-                result_%empty_ = .false.
+            if (.not.previous%empty()) then
+                result_ = result_%but_not_empty()
             end if
         else
             result_ = previous
@@ -1036,7 +1036,9 @@ contains
         if (previous%ok_) then
             result_ = parser( &
                     state_t(previous%remaining_, previous%position_))
-            result_%empty_ = previous%empty_ .and. result_%empty_
+            if (.not. previous%empty()) then
+                result_ = result_%but_not_empty()
+            end if
             if (result_%ok_) then
                 deallocate(result_%parsed_)
                 allocate(result_%parsed_, source = previous%parsed_)
@@ -1065,7 +1067,7 @@ contains
         type(message_t) :: the_message
 
         the_result = parse(state_)
-        if (the_result%empty_) then
+        if (the_result%empty()) then
             if (the_result%ok_) then
                 the_message = expect(the_result%message_, label)
                 result_ = empty_ok( &

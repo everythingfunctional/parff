@@ -33,7 +33,7 @@ contains
 
         result_ = &
                 assert_that(parse_result%ok_, "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty_, "Wasn't empty", "Was empty")
+                .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed_)
             type is (parsed_character_t)
@@ -59,7 +59,7 @@ contains
 
         result_ = &
                 assert_that(parse_result%ok_, "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty_, "Wasn't empty", "Was empty")
+                .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed_)
             type is (parsed_character_t)

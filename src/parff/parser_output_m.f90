@@ -15,7 +15,7 @@ module parff_parser_output_m
             merge_ok
 
     type :: parser_output_t
-        logical :: empty_
+        logical, private :: empty_
         logical :: ok_
         type(message_t) :: message_
         ! The following are only defined if ok

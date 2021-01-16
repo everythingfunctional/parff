@@ -56,7 +56,7 @@ contains
 
         results = optionally(parse_a, new_state(var_str("BB")))
         if (results%ok_) then
-            result_ = assert_that(results%empty_)
+            result_ = assert_that(results%empty())
         else
             result_ = fail(results%message_%to_string())
         end if
@@ -73,7 +73,7 @@ contains
 
         results = optionally(parse_a, new_state(var_str("")))
         if (results%ok_) then
-            result_ = assert_that(results%empty_)
+            result_ = assert_that(results%empty())
         else
             result_ = fail(results%message_%to_string())
         end if
