@@ -40,7 +40,7 @@ contains
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(1, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining_)
+                        .and.assert_equals("B", results%remaining())
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -76,7 +76,7 @@ contains
                         type is (parsed_character_t)
                             result_ = &
                                     assert_equals("A", the_item%value_()) &
-                                    .and.assert_equals(",B", results%remaining_)
+                                    .and.assert_equals(",B", results%remaining())
                         end select
                     end if
                 end associate
@@ -106,7 +106,7 @@ contains
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
-                        .and.assert_equals("B", results%remaining_)
+                        .and.assert_equals("B", results%remaining())
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -133,7 +133,7 @@ contains
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
-                        .and.assert_equals(",B", results%remaining_)
+                        .and.assert_equals(",B", results%remaining())
             class default
                 result_ = fail("Didn't get list back")
             end select

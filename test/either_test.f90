@@ -39,7 +39,7 @@ contains
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("F", the_char%value_()) &
-                        .and.assert_equals("irst", parse_result%remaining_)
+                        .and.assert_equals("irst", parse_result%remaining())
             class default
                 result_ = fail("Didn't get a character back")
             end select
@@ -65,7 +65,7 @@ contains
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("F", the_char%value_()) &
-                        .and.assert_equals("irst", parse_result%remaining_)
+                        .and.assert_equals("irst", parse_result%remaining())
             class default
                 result_ = fail("Didn't get a character back")
             end select

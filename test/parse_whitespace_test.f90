@@ -44,7 +44,7 @@ contains
             type is (parsed_character_t)
                 result_ = &
                         assert_equals(" ", the_char%value_()) &
-                        .and.assert_equals("First", parse_result%remaining_)
+                        .and.assert_equals("First", parse_result%remaining())
             class default
                 result_ = fail("Didn't get a character back")
             end select

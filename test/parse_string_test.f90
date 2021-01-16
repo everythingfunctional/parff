@@ -41,7 +41,7 @@ contains
             type is (parsed_string_t)
                 result_ = &
                         assert_equals("Hello", the_string%value_()) &
-                        .and.assert_equals(" World", parse_result%remaining_)
+                        .and.assert_equals(" World", parse_result%remaining())
             class default
                 result_ = fail("Didn't get a string back")
             end select

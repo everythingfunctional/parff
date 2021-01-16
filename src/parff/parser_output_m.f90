@@ -20,7 +20,7 @@ module parff_parser_output_m
         type(message_t), private :: message_
         ! The following are only defined if ok
         class(parsed_value_t), allocatable, private :: parsed_
-        type(varying_string) :: remaining_
+        type(varying_string), private :: remaining_
         type(position_t) :: position_
     contains
         private
