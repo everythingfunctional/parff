@@ -15,12 +15,13 @@ module parff_parser_output_m
             merge_ok
 
     type :: parser_output_t
-        logical, private :: empty_
-        logical, private :: ok_
-        type(message_t), private :: message_
+        private
+        logical :: empty_
+        logical :: ok_
+        type(message_t) :: message_
         ! The following are only defined if ok
-        class(parsed_value_t), allocatable, private :: parsed_
-        type(varying_string), private :: remaining_
+        class(parsed_value_t), allocatable :: parsed_
+        type(varying_string) :: remaining_
         type(position_t) :: position_
     contains
         private

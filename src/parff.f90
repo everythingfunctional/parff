@@ -150,7 +150,7 @@ contains
 
         if (previous%ok()) then
             result_ = parser( &
-                    state_t(previous%remaining(), previous%position_))
+                    state_t(previous%remaining(), previous%position()))
             if (.not.previous%empty()) then
                 result_ = result_%but_not_empty()
             end if
@@ -177,7 +177,7 @@ contains
                     result_ = merge_ok( &
                             first_result%parsed(), &
                             first_result%remaining(), &
-                            first_result%position_, &
+                            first_result%position(), &
                             first_result%message(), &
                             second_result%message())
                 else
@@ -185,7 +185,7 @@ contains
                         result_ = merge_ok( &
                                 second_result%parsed(), &
                                 second_result%remaining(), &
-                                second_result%position_, &
+                                second_result%position(), &
                                 first_result%message(), &
                                 second_result%message())
                     else
@@ -232,7 +232,7 @@ contains
         if (the_result%ok()) then
             all = parsed_items_t([parsed_item_t(the_result%parsed())])
             do
-                next = drop_then(the_separator, the_parser, state_t(the_result%remaining(), the_result%position_))
+                next = drop_then(the_separator, the_parser, state_t(the_result%remaining(), the_result%position()))
                 if (.not.next%ok()) exit
                 all = parsed_items_t([all%items(), parsed_item_t(next%parsed())])
                 the_result = next
@@ -1003,7 +1003,7 @@ contains
         if (previous%ok()) then
             result_ = parser( &
                     previous%parsed(), &
-                    state_t(previous%remaining(), previous%position_))
+                    state_t(previous%remaining(), previous%position()))
             if (.not.previous%empty()) then
                 result_ = result_%but_not_empty()
             end if
@@ -1028,7 +1028,7 @@ contains
 
         if (previous%ok()) then
             result_ = parser( &
-                    state_t(previous%remaining(), previous%position_))
+                    state_t(previous%remaining(), previous%position()))
             if (.not. previous%empty()) then
                 result_ = result_%but_not_empty()
             end if
@@ -1065,7 +1065,7 @@ contains
                 result_ = empty_ok( &
                         the_result%parsed(), &
                         the_result%remaining(), &
-                        the_result%position_, &
+                        the_result%position(), &
                         the_message)
             else
                 the_message = expect(the_result%message(), label)
