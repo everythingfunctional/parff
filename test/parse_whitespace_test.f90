@@ -37,7 +37,7 @@ contains
         parse_result = parse_whitespace(new_state(var_str(" First")))
 
         result_ = &
-                assert_that(parse_result%ok_, "Got result", "Didn't get result") &
+                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed_)
@@ -64,7 +64,7 @@ contains
 
         associate(expected => parse_result%message_%expected())
             result_ = &
-                    assert_not(parse_result%ok_) &
+                    assert_not(parse_result%ok()) &
                     .and.assert_equals("F", parse_result%message_%found()) &
                     .and.assert_equals("whitespace", expected(1))
         end associate
@@ -83,7 +83,7 @@ contains
 
         associate(expected => parse_result%message_%expected())
             result_ = &
-                    assert_not(parse_result%ok_) &
+                    assert_not(parse_result%ok()) &
                     .and.assert_equals("end of input", parse_result%message_%found()) &
                     .and.assert_equals("whitespace", expected(1))
         end associate

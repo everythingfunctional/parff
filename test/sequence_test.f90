@@ -34,7 +34,7 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AB")))
 
-        result_ = assert_that(parse_result%ok_)
+        result_ = assert_that(parse_result%ok())
         if (result_%passed()) then
             select type (string => parse_result%parsed_)
             type is (parsed_string_t)
@@ -56,7 +56,7 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("BB")))
 
-        result_ = assert_not(parse_result%ok_)
+        result_ = assert_not(parse_result%ok())
         if (result_%passed()) then
             associate(expected => parse_result%message_%expected())
                 result_ = &
@@ -77,7 +77,7 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AA")))
 
-        result_ = assert_not(parse_result%ok_)
+        result_ = assert_not(parse_result%ok())
         if (result_%passed()) then
             associate(expected => parse_result%message_%expected())
                 result_ = &
@@ -114,7 +114,7 @@ contains
 
         result_ = parse_char("B", state_)
 
-        if (result_%ok_) then
+        if (result_%ok()) then
             select type (previous)
             type is (parsed_character_t)
                 select type (next => result_%parsed_)

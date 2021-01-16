@@ -35,7 +35,7 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("AB")))
-        if (results%ok_) then
+        if (results%ok()) then
             select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
@@ -64,7 +64,7 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,B")))
-        if (results%ok_) then
+        if (results%ok()) then
             select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 associate(items => parsed%items())
@@ -97,7 +97,7 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,AB")))
-        if (results%ok_) then
+        if (results%ok()) then
             select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
@@ -122,7 +122,7 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,A,B")))
-        if (results%ok_) then
+        if (results%ok()) then
             select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
@@ -146,7 +146,7 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("B,A,A")))
-        if (results%ok_) then
+        if (results%ok()) then
             result_ = assert_that(results%empty())
         else
             result_ = fail(results%message_%to_string())

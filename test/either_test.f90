@@ -32,7 +32,7 @@ contains
         parse_result = either(parse_f, parse_a, new_state(var_str("First")))
 
         result_ = &
-                assert_that(parse_result%ok_, "Got result", "Didn't get result") &
+                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed_)
@@ -58,7 +58,7 @@ contains
         parse_result = either(parse_a, parse_f, new_state(var_str("First")))
 
         result_ = &
-                assert_that(parse_result%ok_, "Got result", "Didn't get result") &
+                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed_)
@@ -84,7 +84,7 @@ contains
         parse_result = either(parse_a, parse_a, new_state(var_str("First")))
 
         result_ = &
-                assert_not(parse_result%ok_) &
+                assert_not(parse_result%ok()) &
                 .and.assert_equals("F", parse_result%message_%found()) &
                 .and.assert_equals(2, size(parse_result%message_%expected()))
     end function

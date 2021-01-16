@@ -34,7 +34,7 @@ contains
 
         parse_result = drop_then(parse_a, parse_b, new_state(var_str("AB")))
 
-        result_ = assert_that(parse_result%ok_)
+        result_ = assert_that(parse_result%ok())
         if (result_%passed()) then
             select type (string => parse_result%parsed_)
             type is (parsed_character_t)
@@ -56,7 +56,7 @@ contains
 
         parse_result = drop_then(parse_a, parse_b, new_state(var_str("BB")))
 
-        result_ = assert_not(parse_result%ok_)
+        result_ = assert_not(parse_result%ok())
         if (result_%passed()) then
             associate(expected => parse_result%message_%expected())
                 result_ = &
@@ -77,7 +77,7 @@ contains
 
         parse_result = drop_then(parse_a, parse_b, new_state(var_str("AA")))
 
-        result_ = assert_not(parse_result%ok_)
+        result_ = assert_not(parse_result%ok())
         if (result_%passed()) then
             associate(expected => parse_result%message_%expected())
                 result_ = &

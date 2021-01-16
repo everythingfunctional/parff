@@ -29,7 +29,7 @@ contains
         type(parser_output_t) :: results
 
         results = many(parse_a, new_state(var_str("AB")))
-        if (results%ok_) then
+        if (results%ok()) then
             select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
@@ -53,7 +53,7 @@ contains
         type(parser_output_t) :: results
 
         results = many(parse_a, new_state(var_str("AAAB")))
-        if (results%ok_) then
+        if (results%ok()) then
             select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = &
@@ -77,7 +77,7 @@ contains
         type(parser_output_t) :: results
 
         results = many(parse_a, new_state(var_str("BAA")))
-        if (results%ok_) then
+        if (results%ok()) then
             result_ = assert_that(results%empty())
         else
             result_ = fail(results%message_%to_string())

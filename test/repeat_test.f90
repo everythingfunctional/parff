@@ -28,7 +28,7 @@ contains
         type(parser_output_t) :: results
 
         results = repeat_(parse_a, 2, new_state(var_str("AA")))
-        if (results%ok_) then
+        if (results%ok()) then
             select type (parsed => results%parsed_)
             type is (parsed_items_t)
                 result_ = assert_equals(2, size(parsed%items()))
@@ -51,7 +51,7 @@ contains
 
         results = repeat_(parse_a, 3, new_state(var_str("AAB")))
 
-        result_ = assert_not(results%ok_)
+        result_ = assert_not(results%ok())
         if (result_%passed()) then
             associate(expected => results%message_%expected())
                 result_ = &

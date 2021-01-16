@@ -70,7 +70,7 @@ contains
         select type (input)
         type is (number_input_t)
             parse_result = parse_rational(new_state(input%string))
-            if (parse_result%ok_) then
+            if (parse_result%ok()) then
                 select type (parsed => parse_result%parsed_)
                 type is (parsed_rational_t)
                     result_ = assert_equals( &
@@ -99,7 +99,7 @@ contains
         type is (invalid_input_t)
             parse_result = parse_rational(new_state(input%string))
             result_ = assert_not( &
-                    parse_result%ok_, parse_result%message_%to_string())
+                    parse_result%ok(), parse_result%message_%to_string())
         class default
             result_ = fail("Expected to get an invalid_input_tt")
         end select
@@ -116,6 +116,6 @@ contains
 
         parse_result = parse_rational(new_state(var_str("")))
         result_ = assert_not( &
-                parse_result%ok_, parse_result%message_%to_string())
+                parse_result%ok(), parse_result%message_%to_string())
     end function
 end module
