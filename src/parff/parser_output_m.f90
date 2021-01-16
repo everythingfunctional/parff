@@ -17,7 +17,7 @@ module parff_parser_output_m
     type :: parser_output_t
         logical, private :: empty_
         logical, private :: ok_
-        type(message_t) :: message_
+        type(message_t), private :: message_
         ! The following are only defined if ok
         class(parsed_value_t), allocatable :: parsed_
         type(varying_string) :: remaining_

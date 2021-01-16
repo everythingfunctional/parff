@@ -36,26 +36,30 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message_%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
     function check_not_enough() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, repeat_
+        use parff, only: message_t, parser_output_t, new_state, repeat_
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: results
 
         results = repeat_(parse_a, 3, new_state(var_str("AAB")))
 
         result_ = assert_not(results%ok())
         if (result_%passed()) then
-            associate(expected => results%message_%expected())
+            message = results%message()
+            associate(expected => message%expected())
                 result_ = &
-                        assert_equals("B", results%message_%found()) &
+                        assert_equals("B", message%found()) &
                         .and.assert_equals("A", expected(1))
             end associate
         end if

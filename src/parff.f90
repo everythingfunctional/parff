@@ -178,20 +178,20 @@ contains
                             first_result%parsed_, &
                             first_result%remaining_, &
                             first_result%position_, &
-                            first_result%message_, &
-                            second_result%message_)
+                            first_result%message(), &
+                            second_result%message())
                 else
                     if (second_result%ok()) then
                         result_ = merge_ok( &
                                 second_result%parsed_, &
                                 second_result%remaining_, &
                                 second_result%position_, &
-                                first_result%message_, &
-                                second_result%message_)
+                                first_result%message(), &
+                                second_result%message())
                     else
                         result_ = merge_error( &
-                                first_result%message_, &
-                                second_result%message_)
+                                first_result%message(), &
+                                second_result%message())
                     end if
                 end if
             else
@@ -867,6 +867,7 @@ contains
         type(varying_string), intent(in) :: string
         type(parse_result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: the_results
 
         the_results = parser(new_state(string))
@@ -875,7 +876,8 @@ contains
             allocate(result_%parsed, source = the_results%parsed_)
         else
             result_%ok = .false.
-            result_%message = the_results%message_%to_string()
+            message = the_results%message()
+            result_%message = message%to_string()
         end if
     end function
 
@@ -1069,14 +1071,14 @@ contains
         the_result = parse(state_)
         if (the_result%empty()) then
             if (the_result%ok()) then
-                the_message = expect(the_result%message_, label)
+                the_message = expect(the_result%message(), label)
                 result_ = empty_ok( &
                         the_result%parsed_, &
                         the_result%remaining_, &
                         the_result%position_, &
                         the_message)
             else
-                the_message = expect(the_result%message_, label)
+                the_message = expect(the_result%message(), label)
                 result_ = empty_error(the_message)
             end if
         else

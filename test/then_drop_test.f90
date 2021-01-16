@@ -48,20 +48,22 @@ contains
 
     function check_first_fail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, then_drop
+        use parff, only: message_t, parser_output_t, new_state, then_drop
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = then_drop(parse_a, parse_b, new_state(var_str("BB")))
 
         result_ = assert_not(parse_result%ok())
         if (result_%passed()) then
-            associate(expected => parse_result%message_%expected())
+            message = parse_result%message()
+            associate(expected => message%expected())
                 result_ = &
-                        assert_equals("B", parse_result%message_%found()) &
+                        assert_equals("B", message%found()) &
                         .and.assert_equals("A", expected(1))
             end associate
         end if
@@ -69,20 +71,22 @@ contains
 
     function check_second_fail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, then_drop
+        use parff, only: message_t, parser_output_t, new_state, then_drop
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = then_drop(parse_a, parse_b, new_state(var_str("AA")))
 
         result_ = assert_not(parse_result%ok())
         if (result_%passed()) then
-            associate(expected => parse_result%message_%expected())
+            message = parse_result%message()
+            associate(expected => message%expected())
                 result_ = &
-                        assert_equals("A", parse_result%message_%found()) &
+                        assert_equals("A", message%found()) &
                         .and.assert_equals("B", expected(1))
             end associate
         end if

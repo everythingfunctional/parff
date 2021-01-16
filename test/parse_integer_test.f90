@@ -73,7 +73,9 @@ contains
                     result_ = fail("Didn't get an integer back")
                 end select
             else
-                result_ = fail(parse_result%message_%to_string())
+                associate(message => parse_result%message())
+                    result_ = fail(message%to_string())
+                end associate
             end if
         class default
             result_ = fail("Expected to get a number_input_t")
@@ -81,19 +83,21 @@ contains
     end function
 
     function check_parse_invalid(input) result(result_)
-        use parff, only: parser_output_t, new_state, parse_integer
+        use parff, only: message_t, parser_output_t, new_state, parse_integer
         use vegetables, only: Input_t, result_t, assert_not, fail
 
         class(Input_t), intent(in) :: input
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         select type (input)
         type is (invalid_input_t)
             parse_result = parse_integer(new_state(input%string))
+            message = parse_result%message()
             result_ = assert_not( &
-                    parse_result%ok(), parse_result%message_%to_string())
+                    parse_result%ok(), message%to_string())
         class default
             result_ = fail("Expected to get an invalid_input_tt")
         end select
@@ -101,15 +105,17 @@ contains
 
     function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, parse_integer
+        use parff, only: message_t, parser_output_t, new_state, parse_integer
         use vegetables, only: result_t, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_integer(new_state(var_str("")))
+        message = parse_result%message()
         result_ = assert_not( &
-                parse_result%ok(), parse_result%message_%to_string())
+                parse_result%ok(), message%to_string())
     end function
 end module

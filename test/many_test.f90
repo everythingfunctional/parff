@@ -39,7 +39,9 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message_%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
@@ -63,7 +65,9 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message_%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
@@ -80,7 +84,9 @@ contains
         if (results%ok()) then
             result_ = assert_that(results%empty())
         else
-            result_ = fail(results%message_%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 

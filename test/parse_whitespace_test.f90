@@ -53,38 +53,42 @@ contains
 
     function check_parse_different_character() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, parse_whitespace
+        use parff, only: message_t, parser_output_t, new_state, parse_whitespace
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_whitespace(new_state(var_str("First")))
 
-        associate(expected => parse_result%message_%expected())
+        message = parse_result%message()
+        associate(expected => message%expected())
             result_ = &
                     assert_not(parse_result%ok()) &
-                    .and.assert_equals("F", parse_result%message_%found()) &
+                    .and.assert_equals("F", message%found()) &
                     .and.assert_equals("whitespace", expected(1))
         end associate
     end function
 
     function check_parse_empty_string() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, parse_whitespace
+        use parff, only: message_t, parser_output_t, new_state, parse_whitespace
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_whitespace(new_state(var_str("")))
 
-        associate(expected => parse_result%message_%expected())
+        message = parse_result%message()
+        associate(expected => message%expected())
             result_ = &
                     assert_not(parse_result%ok()) &
-                    .and.assert_equals("end of input", parse_result%message_%found()) &
+                    .and.assert_equals("end of input", message%found()) &
                     .and.assert_equals("whitespace", expected(1))
         end associate
     end function

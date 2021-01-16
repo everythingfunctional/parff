@@ -39,7 +39,9 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message_%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
@@ -63,21 +65,25 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message_%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
     function check_none() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, many1, new_state
+        use parff, only: message_t, parser_output_t, many1, new_state
         use vegetables, only: result_t, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: results
 
         results = many1(parse_a, new_state(var_str("BAA")))
-        result_ = assert_not(results%ok(), results%message_%to_string())
+        message = results%message()
+        result_ = assert_not(results%ok(), message%to_string())
     end function
 
     function parse_a(state_) result(result_)
