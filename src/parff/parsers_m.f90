@@ -151,7 +151,7 @@ contains
         end if
     end function
 
-    function many(the_parser, the_state) result(the_result)
+    recursive function many(the_parser, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -159,7 +159,7 @@ contains
         the_result = many_with_separator(the_parser, parse_nothing, the_state)
     end function
 
-    function many1(the_parser, the_state) result(the_result)
+    recursive function many1(the_parser, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -167,7 +167,7 @@ contains
         the_result = many1_with_separator(the_parser, parse_nothing, the_state)
     end function
 
-    function many1_with_separator( &
+    recursive function many1_with_separator( &
             the_parser, the_separator, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         procedure(parser_i) :: the_separator
@@ -190,7 +190,7 @@ contains
         end if
     end function
 
-    function many_with_separator( &
+    recursive function many_with_separator( &
             the_parser, the_separator, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         procedure(parser_i) :: the_separator
@@ -213,7 +213,7 @@ contains
         end if
     end function
 
-    function optionally(parser, the_state) result(the_result)
+    recursive function optionally(parser, the_state) result(the_result)
         procedure(parser_i) :: parser
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
@@ -795,7 +795,7 @@ contains
         end function
     end function
 
-    function repeat_(the_parser, times, the_state) result(the_result)
+    recursive function repeat_(the_parser, times, the_state) result(the_result)
         procedure(parser_i) :: the_parser
         integer, intent(in) :: times
         type(state_t), intent(in) :: the_state
@@ -803,7 +803,7 @@ contains
 
         the_result = start(the_state)
     contains
-        function start(state_) result(result_)
+        recursive function start(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
@@ -839,7 +839,7 @@ contains
             end select
         end function
 
-        function parse_next(previous, state_) result(result_)
+        recursive function parse_next(previous, state_) result(result_)
             type(intermediate_repeat_t), intent(in) :: previous
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
@@ -934,7 +934,7 @@ contains
         end if
     end function
 
-    function then_drop_parser(parser1, parser2, state_) result(result_)
+    recursive function then_drop_parser(parser1, parser2, state_) result(result_)
         procedure(parser_i) :: parser1
         procedure(parser_i) :: parser2
         type(state_t), intent(in) :: state_
@@ -943,7 +943,7 @@ contains
         result_ = then_drop(parser1(state_), parser2)
     end function
 
-    function then_drop_result(previous, parser) result(result_)
+    recursive function then_drop_result(previous, parser) result(result_)
         type(parser_output_t), intent(in) :: previous
         procedure(parser_i) :: parser
         type(parser_output_t) :: result_
