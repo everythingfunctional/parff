@@ -18,7 +18,7 @@ contains
         tests = describe("repeat", individual_tests)
     end function
 
-    pure function check_repeat() result(result_)
+    function check_repeat() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, new_state, repeat_
         use vegetables, only: result_t, assert_equals, fail
@@ -28,38 +28,44 @@ contains
         type(parser_output_t) :: results
 
         results = repeat_(parse_a, 2, new_state(var_str("AA")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok()) then
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
-                result_ = assert_equals(2, size(parsed%items))
+                result_ = assert_equals(2, size(parsed%items()))
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
-    pure function check_not_enough() result(result_)
+    function check_not_enough() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, repeat_
+        use parff, only: message_t, parser_output_t, new_state, repeat_
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: results
 
         results = repeat_(parse_a, 3, new_state(var_str("AAB")))
 
-        result_ = assert_not(results%ok)
+        result_ = assert_not(results%ok())
         if (result_%passed()) then
-            result_ = &
-                    assert_equals("B", results%message%found) &
-                    .and.assert_equals("A", results%message%expected(1))
+            message = results%message()
+            associate(expected => message%expected())
+                result_ = &
+                        assert_equals("B", message%found()) &
+                        .and.assert_equals("A", expected(1))
+            end associate
         end if
     end function
 
-    pure function parse_a(state_) result(result_)
+    function parse_a(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_

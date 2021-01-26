@@ -24,7 +24,7 @@ contains
         tests = describe("many_with_separator", individual_tests)
     end function
 
-    pure function check_one() result(result_)
+    function check_one() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_items_t, parser_output_t, many_with_separator, new_state
@@ -35,21 +35,23 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("AB")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok()) then
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
-                        assert_equals(1, size(parsed%items)) &
-                        .and.assert_equals("B", results%remaining)
+                        assert_equals(1, size(parsed%items())) &
+                        .and.assert_equals("B", results%remaining())
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
-    pure function check_one_with_separator() result(result_)
+    function check_one_with_separator() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_character_t, &
@@ -64,27 +66,31 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,B")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok()) then
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
-                result_ = assert_equals(1, size(parsed%items))
-                if (result_%passed()) then
-                    select type (the_item => parsed%items(1)%item)
-                    type is (parsed_character_t)
-                        result_ = &
-                                assert_equals("A", the_item%value_) &
-                                .and.assert_equals(",B", results%remaining)
-                    end select
-                end if
+                associate(items => parsed%items())
+                    result_ = assert_equals(1, size(items))
+                    if (result_%passed()) then
+                        select type (the_item => items(1)%item())
+                        type is (parsed_character_t)
+                            result_ = &
+                                    assert_equals("A", the_item%value_()) &
+                                    .and.assert_equals(",B", results%remaining())
+                        end select
+                    end if
+                end associate
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
-    pure function check_many() result(result_)
+    function check_many() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_items_t, parser_output_t, many_with_separator, new_state
@@ -95,21 +101,23 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,AB")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok()) then
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
-                        assert_equals(3, size(parsed%items))&
-                        .and.assert_equals("B", results%remaining)
+                        assert_equals(3, size(parsed%items()))&
+                        .and.assert_equals("B", results%remaining())
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
-    pure function check_many_with_separator() result(result_)
+    function check_many_with_separator() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_items_t, parser_output_t, many_with_separator, new_state
@@ -120,21 +128,23 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,A,B")))
-        if (results%ok) then
-            select type (parsed => results%parsed)
+        if (results%ok()) then
+            select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
-                        assert_equals(3, size(parsed%items))&
-                        .and.assert_equals(",B", results%remaining)
+                        assert_equals(3, size(parsed%items()))&
+                        .and.assert_equals(",B", results%remaining())
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            result_ = fail(results%message%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
-    pure function check_none() result(result_)
+    function check_none() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, many_with_separator, new_state
         use vegetables, only: result_t, assert_that, fail
@@ -144,14 +154,16 @@ contains
         type(parser_output_t) :: results
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("B,A,A")))
-        if (results%ok) then
-            result_ = assert_that(results%empty)
+        if (results%ok()) then
+            result_ = assert_that(results%empty())
         else
-            result_ = fail(results%message%to_string())
+            associate(message => results%message())
+                result_ = fail(message%to_string())
+            end associate
         end if
     end function
 
-    pure function parse_a(state_) result(result_)
+    function parse_a(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_
@@ -160,7 +172,7 @@ contains
         result_ = parse_char("A", state_)
     end function
 
-    pure function parse_comma(state_) result(result_)
+    function parse_comma(state_) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state_

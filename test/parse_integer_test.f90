@@ -1,6 +1,6 @@
 module parse_integer_test
     use iso_varying_string, only: varying_string
-    use vegetables, only: Input_t
+    use vegetables, only: input_t
 
     implicit none
     private
@@ -18,7 +18,7 @@ module parse_integer_test
 contains
     function test_parse_integer() result(tests)
         use iso_varying_string, only: var_str
-        use vegetables, only: Example_t, test_item_t, describe, Example, it
+        use vegetables, only: example_t, test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -26,17 +26,17 @@ contains
         type(Example_t) :: invalid_examples(3)
         type(Example_t) :: number_examples(7)
 
-        number_examples(1) = Example(number_input_t(var_str("0"), 0))
-        number_examples(2) = Example(number_input_t(var_str("-0"), 0))
-        number_examples(3) = Example(number_input_t(var_str("+0"), 0))
-        number_examples(4) = Example(number_input_t(var_str("1"), 1))
-        number_examples(5) = Example(number_input_t(var_str("-1"), -1))
-        number_examples(6) = Example(number_input_t(var_str("+1"), 1))
-        number_examples(7) = Example(number_input_t(var_str("-321"), -321))
+        number_examples(1) = example_t(number_input_t(var_str("0"), 0))
+        number_examples(2) = example_t(number_input_t(var_str("-0"), 0))
+        number_examples(3) = example_t(number_input_t(var_str("+0"), 0))
+        number_examples(4) = example_t(number_input_t(var_str("1"), 1))
+        number_examples(5) = example_t(number_input_t(var_str("-1"), -1))
+        number_examples(6) = example_t(number_input_t(var_str("+1"), 1))
+        number_examples(7) = example_t(number_input_t(var_str("-321"), -321))
 
-        invalid_examples(1) = Example(invalid_input_t(var_str("a")))
-        invalid_examples(2) = Example(invalid_input_t(var_str("-b")))
-        invalid_examples(3) = Example(invalid_input_t(var_str("+c")))
+        invalid_examples(1) = example_t(invalid_input_t(var_str("a")))
+        invalid_examples(2) = example_t(invalid_input_t(var_str("-b")))
+        invalid_examples(3) = example_t(invalid_input_t(var_str("+c")))
 
         individual_tests(1) = it( &
                 "Can parse various integers", &
@@ -51,7 +51,7 @@ contains
         tests = describe("parse_integer", individual_tests)
     end function
 
-    pure function check_parse_integer(input) result(result_)
+    function check_parse_integer(input) result(result_)
         use parff, only: &
                 parsed_integer_t, parser_output_t, new_state, parse_integer
         use vegetables, only: Input_t, result_t, assert_equals, fail
@@ -64,52 +64,58 @@ contains
         select type (input)
         type is (number_input_t)
             parse_result = parse_integer(new_state(input%string))
-            if (parse_result%ok) then
-                select type (parsed => parse_result%parsed)
+            if (parse_result%ok()) then
+                select type (parsed => parse_result%parsed())
                 type is (parsed_integer_t)
                     result_ = assert_equals( &
-                            input%value_, parsed%value_, input%string)
+                            input%value_, parsed%value_(), input%string)
                 class default
                     result_ = fail("Didn't get an integer back")
                 end select
             else
-                result_ = fail(parse_result%message%to_string())
+                associate(message => parse_result%message())
+                    result_ = fail(message%to_string())
+                end associate
             end if
         class default
             result_ = fail("Expected to get a number_input_t")
         end select
     end function
 
-    pure function check_parse_invalid(input) result(result_)
-        use parff, only: parser_output_t, new_state, parse_integer
+    function check_parse_invalid(input) result(result_)
+        use parff, only: message_t, parser_output_t, new_state, parse_integer
         use vegetables, only: Input_t, result_t, assert_not, fail
 
         class(Input_t), intent(in) :: input
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         select type (input)
         type is (invalid_input_t)
             parse_result = parse_integer(new_state(input%string))
+            message = parse_result%message()
             result_ = assert_not( &
-                    parse_result%ok, parse_result%message%to_string())
+                    parse_result%ok(), message%to_string())
         class default
             result_ = fail("Expected to get an invalid_input_tt")
         end select
     end function
 
-    pure function check_parse_empty() result(result_)
+    function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, parse_integer
+        use parff, only: message_t, parser_output_t, new_state, parse_integer
         use vegetables, only: result_t, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_integer(new_state(var_str("")))
+        message = parse_result%message()
         result_ = assert_not( &
-                parse_result%ok, parse_result%message%to_string())
+                parse_result%ok(), message%to_string())
     end function
 end module

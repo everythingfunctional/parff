@@ -20,7 +20,7 @@ contains
         tests = describe("parse_with", individual_tests)
     end function
 
-    pure function check_successful() result(result_)
+    function check_successful() result(result_)
         use parff, only: parse_result_t, parsed_character_t, parse_with
         use vegetables, only: result_t, assert_equals, fail
 
@@ -30,19 +30,19 @@ contains
 
         the_result = parse_with(the_parser, "A")
 
-        if (the_result%ok) then
-            select type (parsed => the_result%parsed)
+        if (the_result%ok()) then
+            select type (parsed => the_result%parsed())
             type is (parsed_character_t)
-                result_ = assert_equals("A", parsed%value_)
+                result_ = assert_equals("A", parsed%value_())
             class default
                 result_ = fail("Didn't get a character back")
             end select
         else
-            result_ = fail(the_result%message)
+            result_ = fail(the_result%message())
         end if
     end function
 
-    pure function check_failure() result(result_)
+    function check_failure() result(result_)
         use parff, only: parse_result_t, parse_with
         use vegetables, only: result_t, assert_not
 
@@ -52,10 +52,10 @@ contains
 
         the_result = parse_with(the_parser, "B")
 
-        result_ = assert_not(the_result%ok, the_result%message)
+        result_ = assert_not(the_result%ok(), the_result%message())
     end function
 
-    pure function the_parser(state) result(result_)
+    function the_parser(state) result(result_)
         use parff, only: parser_output_t, state_t, parse_char
 
         type(state_t), intent(in) :: state

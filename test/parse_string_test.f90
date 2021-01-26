@@ -20,7 +20,7 @@ contains
         tests = describe("parse_string", individual_tests)
     end function
 
-    pure function check_pass() result(result_)
+    function check_pass() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_string_t, parser_output_t, new_state, parse_string
@@ -34,34 +34,38 @@ contains
         parse_result = parse_string("Hello", new_state(var_str("Hello World")))
 
         result_ = &
-                assert_that(parse_result%ok, "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_string => parse_result%parsed)
+            select type (the_string => parse_result%parsed())
             type is (parsed_string_t)
                 result_ = &
-                        assert_equals("Hello", the_string%value_) &
-                        .and.assert_equals(" World", parse_result%remaining)
+                        assert_equals("Hello", the_string%value_()) &
+                        .and.assert_equals(" World", parse_result%remaining())
             class default
                 result_ = fail("Didn't get a string back")
             end select
         end if
     end function
 
-    pure function check_fail() result(result_)
+    function check_fail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: parser_output_t, new_state, parse_string
+        use parff, only: message_t, parser_output_t, new_state, parse_string
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
+        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_string("Hello", new_state(var_str("World")))
 
-        result_ = &
-                assert_not(parse_result%ok) &
-                .and.assert_equals("W", parse_result%message%found) &
-                .and.assert_equals("Hello", parse_result%message%expected(1))
+        message = parse_result%message()
+        associate(expected => message%expected())
+            result_ = &
+                    assert_not(parse_result%ok()) &
+                    .and.assert_equals("W", message%found()) &
+                    .and.assert_equals("Hello", expected(1))
+        end associate
     end function
 end module
