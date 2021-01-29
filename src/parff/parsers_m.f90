@@ -926,7 +926,7 @@ contains
             result_ = parser( &
                     previous%parsed(), &
                     state_t(previous%remaining(), previous%position()))
-            if (.not.previous%empty()) then
+            if (.not.previous%empty().and.result_%ok()) then
                 result_ = result_%but_not_empty()
             end if
         else
