@@ -23,6 +23,8 @@ contains
                 parse_character_parse_character => test_parse_character
         use parse_digit_test, only: &
                 parse_digit_parse_digit => test_parse_digit
+        use parse_end_of_input_test, only: &
+                parse_end_of_input_parse_end_of_input => test_parse_end_of_input
         use parse_integer_test, only: &
                 parse_integer_parse_integer => test_parse_integer
         use parse_rational_test, only: &
@@ -42,7 +44,7 @@ contains
         use vegetables, only: test_item_t, test_that, run_tests
 
         type(test_item_t) :: tests
-        type(test_item_t) :: individual_tests(17)
+        type(test_item_t) :: individual_tests(18)
 
         individual_tests(1) = drop_then_drop_then()
         individual_tests(2) = either_either()
@@ -53,14 +55,15 @@ contains
         individual_tests(7) = optionally_optionally()
         individual_tests(8) = parse_character_parse_character()
         individual_tests(9) = parse_digit_parse_digit()
-        individual_tests(10) = parse_integer_parse_integer()
-        individual_tests(11) = parse_rational_parse_rational()
-        individual_tests(12) = parse_string_parse_string()
-        individual_tests(13) = parse_whitespace_parse_whitespace()
-        individual_tests(14) = parse_with_parse_with()
-        individual_tests(15) = repeat_repeat()
-        individual_tests(16) = sequence_sequence()
-        individual_tests(17) = then_drop_then_drop()
+        individual_tests(10) = parse_end_of_input_parse_end_of_input()
+        individual_tests(11) = parse_integer_parse_integer()
+        individual_tests(12) = parse_rational_parse_rational()
+        individual_tests(13) = parse_string_parse_string()
+        individual_tests(14) = parse_whitespace_parse_whitespace()
+        individual_tests(15) = parse_with_parse_with()
+        individual_tests(16) = repeat_repeat()
+        individual_tests(17) = sequence_sequence()
+        individual_tests(18) = then_drop_then_drop()
         tests = test_that(individual_tests)
 
         call run_tests(tests)
