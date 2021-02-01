@@ -46,6 +46,7 @@ module parff_parsers_m
             optionally, &
             parse_char, &
             parse_digit, &
+            parse_end_of_input, &
             parse_integer, &
             parse_nothing, &
             parse_rational, &
@@ -82,6 +83,8 @@ module parff_parsers_m
         module procedure with_label_c
         module procedure with_label_s
     end interface
+
+    character(len=*), parameter :: END_OF_INPUT = "end of input"
 contains
     recursive function drop_then_parser(parser1, parser2, state_) result(result_)
         procedure(parser_i) :: parser1
@@ -353,6 +356,27 @@ contains
                 result_ = result_%with_parsed_value(parsed_string_t(join(digits, "")))
             end if
         end function
+    end function
+
+    function parse_end_of_input(the_state) result(the_result)
+        type(state_t), intent(in) :: the_state
+        type(parser_output_t) :: the_result
+
+        if (len(the_state%input()) > 0) then
+            the_result = empty_error(message_t( &
+                    the_state%position(), &
+                    var_str(first_character(the_state%input())), &
+                    [var_str(END_OF_INPUT)]))
+        else
+            the_result = empty_ok( &
+                    PARSED_NOTHING, &
+                    the_state%input(), &
+                    the_state%position(), &
+                    message_t( &
+                            the_state%position(), &
+                            var_str(END_OF_INPUT), &
+                            [var_str(END_OF_INPUT)]))
+        end if
     end function
 
     function parse_nothing(the_state) result(the_result)
@@ -903,7 +927,7 @@ contains
         else
             result_ = empty_error(message_t( &
                     state_%position(), &
-                    var_str("end of input"), &
+                    var_str(END_OF_INPUT), &
                     [varying_string::]))
         end if
     end function

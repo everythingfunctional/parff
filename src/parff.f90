@@ -24,6 +24,7 @@ module parff
             optionally, &
             parse_char, &
             parse_digit, &
+            parse_end_of_input, &
             parse_integer, &
             parse_nothing, &
             parse_rational, &
