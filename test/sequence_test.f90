@@ -68,7 +68,9 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("BB")))
 
-        result_ = assert_not(parse_result%ok())
+        result_ = &
+                assert_not(parse_result%ok(), "parse_result%ok()") &
+                .and.assert_that(parse_result%empty(), "parse_result%empty()")
         if (result_%passed()) then
             message = parse_result%message()
             associate(expected => message%expected())
@@ -87,7 +89,9 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AA")))
 
-        result_ = assert_not(parse_result%ok())
+        result_ = &
+                assert_not(parse_result%ok(), "parse_result%ok()") &
+                .and.assert_that(parse_result%empty(), "parse_result%empty()")
         if (result_%passed()) then
             message = parse_result%message()
             associate(expected => message%expected())
