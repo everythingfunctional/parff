@@ -35,6 +35,8 @@ contains
                 parse_whitespace_parse_whitespace => test_parse_whitespace
         use parse_with_test, only: &
                 parse_with_parse_with => test_parse_with
+        use position_test, only: &
+                position_position => test_position
         use repeat_test, only: &
                 repeat_repeat => test_repeat
         use sequence_test, only: &
@@ -44,7 +46,7 @@ contains
         use vegetables, only: test_item_t, test_that, run_tests
 
         type(test_item_t) :: tests
-        type(test_item_t) :: individual_tests(18)
+        type(test_item_t) :: individual_tests(19)
 
         individual_tests(1) = drop_then_drop_then()
         individual_tests(2) = either_either()
@@ -61,9 +63,10 @@ contains
         individual_tests(13) = parse_string_parse_string()
         individual_tests(14) = parse_whitespace_parse_whitespace()
         individual_tests(15) = parse_with_parse_with()
-        individual_tests(16) = repeat_repeat()
-        individual_tests(17) = sequence_sequence()
-        individual_tests(18) = then_drop_then_drop()
+        individual_tests(16) = position_position()
+        individual_tests(17) = repeat_repeat()
+        individual_tests(18) = sequence_sequence()
+        individual_tests(19) = then_drop_then_drop()
         tests = test_that(individual_tests)
 
         call run_tests(tests)

@@ -45,7 +45,7 @@ contains
 
         if (char_ == NEWLINE_) then
             next_position%line_ = self%line_ + 1
-            next_position%column_ = self%column_
+            next_position%column_ = 1
         else if (char_ == TAB) then
             next_position%line_ = self%line_
             next_position%column_ = self%column_ + 8 - mod(self%column_ - 1, 8)
