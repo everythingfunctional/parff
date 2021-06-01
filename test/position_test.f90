@@ -24,13 +24,13 @@ contains
         tests = describe( &
                 "position_t", &
                 [ it( &
-                        "handels simple characters correctly", &
+                        "normal characters only increment the column", &
                         check_simple_char) &
                 , it( &
-                        "handels tabs correctly", &
+                        "tab characters increment the column to the next multiple of 8", &
                         check_tab) &
                 , it( &
-                        "handels newlines correctly", &
+                        "newlines increment the line and reset the column", &
                         check_newline) &
                 ])
     end function
