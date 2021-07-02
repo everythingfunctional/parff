@@ -200,11 +200,13 @@ contains
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
+        type(parsed_item_t) :: EMPTY_PARSED_ITEM(0)
+        type(varying_string) :: EMPTY_VARYING_STRING(0)
         type(parsed_items_t) :: all
 
         the_result = many1_with_separator(the_parser, the_separator, the_state)
         if (.not.the_result%ok()) then
-            all = parsed_items_t([parsed_item_t::])
+            all = parsed_items_t(EMPTY_PARSED_ITEM)
             the_result = empty_ok( &
                     all, &
                     the_state%input(), &
@@ -212,7 +214,7 @@ contains
                     message_t( &
                             the_state%position(), &
                             var_str(""), &
-                            [varying_string::]))
+                            EMPTY_VARYING_STRING))
         end if
     end function
 
@@ -417,7 +419,8 @@ contains
         function parse_sign(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
-
+            
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
             type(parsed_string_t) :: the_string
 
             result_ = either(parse_plus, parse_minus, state_)
@@ -433,7 +436,7 @@ contains
                     the_string, &
                     state_%input(), &
                     state_%position(), &
-                    message_t(state_%position(), var_str(""), [varying_string::]))
+                    message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
             end if
         end function
 
@@ -507,6 +510,8 @@ contains
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
+            
             result_ = sequence(parse_decimal, then_parse_maybe_digits, state_)
             if (result_%ok()) then
                 select type (previous)
@@ -522,7 +527,7 @@ contains
                         previous, &
                         state_%input(), &
                         state_%position(), &
-                        message_t(state_%position(), var_str(""), [varying_string::]))
+                        message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
             end if
         end function
 
@@ -613,6 +618,8 @@ contains
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
+            
             result_ = parse_exponent(state_)
             if (result_%ok()) then
                 select type (previous)
@@ -628,7 +635,7 @@ contains
                         previous, &
                         state_%input(), &
                         state_%position(), &
-                        message_t(state_%position(), var_str(""), [varying_string::]))
+                        message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
             end if
         end function
 
@@ -731,6 +738,8 @@ contains
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
+        type(varying_string) :: EMPTY_VARYING_STRING(0)
+        
         the_result = with_label(string, start, the_state)
     contains
         function start(state_) result(result_)
@@ -743,7 +752,7 @@ contains
             if (string == "") then
                 empty = parsed_string_t("")
                 result_ = empty_ok(empty, state_%input(), state_%position(), message_t( &
-                        state_%position(), var_str(""), [varying_string::]))
+                        state_%position(), var_str(""), EMPTY_VARYING_STRING))
             else
                 initial = intermediate_parsed_string_t("", string)
                 result_ = sequence(return_(initial, state_), recurse)
@@ -755,6 +764,7 @@ contains
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
             type(parsed_string_t) :: final_string
 
             select type (previous)
@@ -765,7 +775,7 @@ contains
                             final_string, &
                             state_%input(), &
                             state_%position(), &
-                            message_t(state_%position(), var_str(""), [varying_string::]))
+                            message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
                 else
                     result_ = sequence(parse_next(previous, state_), recurse)
                 end if
@@ -831,15 +841,17 @@ contains
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
+            type(parsed_item_t) :: EMPTY_PARSED_ITEM(0)
             type(parsed_items_t) :: empty
             type(intermediate_repeat_t) :: initial
 
             if (times <= 0) then
-                empty = parsed_items_t([parsed_item_t::])
+                empty = parsed_items_t(EMPTY_PARSED_ITEM)
                 result_ = empty_ok(empty, state_%input(), state_%position(), message_t( &
-                        state_%position(), var_str(""), [varying_string::]))
+                        state_%position(), var_str(""), EMPTY_VARYING_STRING))
             else
-                initial = intermediate_repeat_t(parsed_items_t([parsed_item_t::]), times)
+                initial = intermediate_repeat_t(parsed_items_t(EMPTY_PARSED_ITEM), times)
                 result_ = sequence(return_(initial, state_), recurse)
             end if
         end function
@@ -849,6 +861,8 @@ contains
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
+            
             select type (previous)
             type is (intermediate_repeat_t)
                 if (previous%remaining() <= 0) then
@@ -856,7 +870,7 @@ contains
                             previous%parsed_so_far(), &
                             state_%input(), &
                             state_%position(), &
-                            message_t(state_%position(), var_str(""), [varying_string::]))
+                            message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
                 else
                     result_ = sequence(parse_next(previous, state_), recurse)
                 end if
@@ -889,15 +903,19 @@ contains
         type(state_t), intent(in) :: state_
         type(parser_output_t) :: result_
 
+        type(varying_string) :: EMPTY_VARYING_STRING(0)
+
         result_ = empty_ok( &
                 parsed, state_%input(), state_%position(), message_t( &
-                        state_%position(), var_str(""), [varying_string::]))
+                        state_%position(), var_str(""), EMPTY_VARYING_STRING))
     end function
 
     function satisfy(matches, state_) result(result_)
         procedure(match_i) :: matches
         type(state_t), intent(in) :: state_
         type(parser_output_t) :: result_
+
+        type(varying_string) :: EMPTY_VARYING_STRING(0)
 
         character(len=1) :: first_character_
         type(position_t) :: new_position
@@ -917,18 +935,18 @@ contains
                         message_t( &
                                 new_position, &
                                 var_str(""), &
-                                [varying_string::]))
+                                EMPTY_VARYING_STRING))
             else
                 result_ = empty_error(message_t( &
                         state_%position(), &
                         var_str(first_character_), &
-                        [varying_string::]))
+                        EMPTY_VARYING_STRING))
             end if
         else
             result_ = empty_error(message_t( &
                     state_%position(), &
                     var_str(END_OF_INPUT), &
-                    [varying_string::]))
+                    EMPTY_VARYING_STRING))
         end if
     end function
 
