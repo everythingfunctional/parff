@@ -835,14 +835,13 @@ contains
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
-        type(varying_string) :: EMPTY_VARYING_STRING(0)
-        
         the_result = start(the_state)
     contains
         recursive function start(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
             type(parsed_item_t) :: EMPTY_PARSED_ITEM(0)
             type(parsed_items_t) :: empty
             type(intermediate_repeat_t) :: initial
