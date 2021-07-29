@@ -9,15 +9,18 @@ contains
 
         type(test_item_t) :: tests
 
-        type(test_item_t) :: individual_tests(2)
-
-        individual_tests(1) = it( &
-                "Parsing the first part of a string consumes that string", &
-                check_pass)
-        individual_tests(2) = it( &
-                "Parsing something else produces an error", &
-                check_fail)
-        tests = describe("parse_string", individual_tests)
+        tests = describe( &
+                "parse_string", &
+                [ it( &
+                        "Parsing the first part of a string consumes that string", &
+                        check_pass) &
+                , it( &
+                        "Parsing something else produces an error", &
+                        check_fail) &
+                , it( &
+                        "Can try to parse an empty string without crashing", &
+                        check_parse_empty) &
+                ])
     end function
 
     function check_pass() result(result_)
@@ -70,6 +73,31 @@ contains
                     .and.assert_equals("Help", message%found()) &
                     .and.assert_equals("Hello", expected(1)) &
                     .and.assert_equals(4, position%column())
+        end associate
+    end function
+
+    function check_parse_empty() result(result_)
+        use iso_varying_string, only: var_str
+        use parff, only: &
+                message_t, parser_output_t, position_t, new_state, parse_string
+        use vegetables, only: result_t, assert_equals, assert_not
+
+        type(result_t) :: result_
+
+        type(message_t) :: message
+        type(parser_output_t) :: parse_result
+        type(position_t) :: position
+
+        parse_result = parse_string("Anything", new_state(var_str("")))
+
+        message = parse_result%message()
+        position = message%position()
+        associate(expected => message%expected())
+            result_ = &
+                    assert_not(parse_result%ok()) &
+                    .and.assert_equals("<nothing>", message%found()) &
+                    .and.assert_equals("Anything", expected(1)) &
+                    .and.assert_equals(1, position%column())
         end associate
     end function
 end module

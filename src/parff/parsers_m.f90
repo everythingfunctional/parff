@@ -787,6 +787,7 @@ contains
             type(parser_output_t) :: result_
 
             type(intermediate_parsed_string_t) :: next
+            type(varying_string) :: was_parsed
 
             result_ = parse_char(first_character(previous%left_to_parse()), state_)
             if (result_%ok()) then
@@ -798,9 +799,22 @@ contains
                     result_ = result_%with_parsed_value(next)
                 end select
             else
+                if (len(state_%input()) == 0) then
+                    if (len(previous%parsed_so_far()) == 0) then
+                        was_parsed = "<nothing>"
+                    else
+                        was_parsed = previous%parsed_so_far()
+                    end if
+                else
+                    if (len(previous%parsed_so_far()) == 0) then
+                        was_parsed = first_character(state_%input())
+                    else
+                        was_parsed = previous%parsed_so_far() // first_character(state_%input())
+                    end if
+                end if
                 result_ = empty_error(message_t( &
                         state_%position(), &
-                        previous%parsed_so_far() // first_character(state_%input()), &
+                        was_parsed, &
                         [string]))
             end if
         end function
