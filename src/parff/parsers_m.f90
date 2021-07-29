@@ -419,7 +419,7 @@ contains
         function parse_sign(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
-            
+
             type(varying_string) :: EMPTY_VARYING_STRING(0)
             type(parsed_string_t) :: the_string
 
@@ -511,7 +511,7 @@ contains
             type(parser_output_t) :: result_
 
             type(varying_string) :: EMPTY_VARYING_STRING(0)
-            
+
             result_ = sequence(parse_decimal, then_parse_maybe_digits, state_)
             if (result_%ok()) then
                 select type (previous)
@@ -619,7 +619,7 @@ contains
             type(parser_output_t) :: result_
 
             type(varying_string) :: EMPTY_VARYING_STRING(0)
-            
+
             result_ = parse_exponent(state_)
             if (result_%ok()) then
                 select type (previous)
@@ -738,14 +738,13 @@ contains
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
-        type(varying_string) :: EMPTY_VARYING_STRING(0)
-        
         the_result = with_label(string, start, the_state)
     contains
         function start(state_) result(result_)
             type(state_t), intent(in) :: state_
             type(parser_output_t) :: result_
 
+            type(varying_string) :: EMPTY_VARYING_STRING(0)
             type(parsed_string_t) :: empty
             type(intermediate_parsed_string_t) :: initial
 
@@ -798,6 +797,11 @@ contains
                             without_first_character(previous%left_to_parse()))
                     result_ = result_%with_parsed_value(next)
                 end select
+            else
+                result_ = empty_error(message_t( &
+                        state_%position(), &
+                        previous%parsed_so_far() // first_character(state_%input()), &
+                        [string]))
             end if
         end function
     end function
@@ -862,7 +866,7 @@ contains
             type(parser_output_t) :: result_
 
             type(varying_string) :: EMPTY_VARYING_STRING(0)
-            
+
             select type (previous)
             type is (intermediate_repeat_t)
                 if (previous%remaining() <= 0) then

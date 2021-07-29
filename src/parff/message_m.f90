@@ -17,6 +17,7 @@ module parff_message_m
         procedure, public :: to_string => message_to_string
         procedure, public :: found
         procedure, public :: expected
+        procedure, public :: position
     end type
 
     interface message_t
@@ -73,5 +74,12 @@ contains
         type(varying_string), allocatable :: expected(:)
 
         allocate(expected, source = self%expected_)
+    end function
+
+    pure function position(self)
+        class(message_t), intent(in) :: self
+        type(position_t) :: position
+
+        position = self%position_
     end function
 end module
