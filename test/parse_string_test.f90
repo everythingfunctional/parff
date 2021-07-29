@@ -50,22 +50,26 @@ contains
 
     function check_fail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, new_state, parse_string
+        use parff, only: &
+                message_t, parser_output_t, position_t, new_state, parse_string
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
         type(message_t) :: message
         type(parser_output_t) :: parse_result
+        type(position_t) :: position
 
-        parse_result = parse_string("Hello", new_state(var_str("World")))
+        parse_result = parse_string("Hello", new_state(var_str("Help")))
 
         message = parse_result%message()
+        position = message%position()
         associate(expected => message%expected())
             result_ = &
                     assert_not(parse_result%ok()) &
-                    .and.assert_equals("W", message%found()) &
-                    .and.assert_equals("Hello", expected(1))
+                    .and.assert_equals("Help", message%found()) &
+                    .and.assert_equals("Hello", expected(1)) &
+                    .and.assert_equals(4, position%column())
         end associate
     end function
 end module
