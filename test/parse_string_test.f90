@@ -72,7 +72,7 @@ contains
                     assert_not(parse_result%ok()) &
                     .and.assert_equals("Help", message%found()) &
                     .and.assert_equals("Hello", expected(1)) &
-                    .and.assert_equals(4, position%column())
+                    .and.assert_equals(4, position%column)
         end associate
     end function
 
@@ -97,7 +97,7 @@ contains
                     assert_not(parse_result%ok()) &
                     .and.assert_equals("<nothing>", message%found()) &
                     .and.assert_equals("Anything", expected(1)) &
-                    .and.assert_equals(1, position%column())
+                    .and.assert_equals(1, position%column)
         end associate
     end function
 end module

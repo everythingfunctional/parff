@@ -39,7 +39,7 @@ contains
         class(message_t), intent(in) :: self
         type(varying_string) :: string
 
-        string = "At line " // to_string(self%position_%line()) // " and column " // to_string(self%position_%column()) // NEWLINE &
+        string = "At line " // to_string(self%position_%line) // " and column " // to_string(self%position_%column) // NEWLINE &
                 // "    found " // self%found_ // " but expected " // join(self%expected_, " or ")
     end function
 

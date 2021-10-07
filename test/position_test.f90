@@ -43,10 +43,10 @@ contains
         parse_result = parse_everything(new_state(var_str("A")))
 
         associate(position => parse_result%position())
-            result_ = assert_equals(1, position%line(), &
+            result_ = assert_equals(1, position%line, &
                             var_str("don't change line")) &
                     .and. &
-                    assert_equals(2, position%column(), &
+                    assert_equals(2, position%column, &
                             var_str("increment column"))
         end associate
     end function
@@ -60,10 +60,10 @@ contains
                 new_state(var_str("A" // char(9))))
 
         associate(position => parse_result%position())
-            result_ = assert_equals(1, position%line(), &
+            result_ = assert_equals(1, position%line, &
                             var_str("don't change line")) &
                     .and. &
-                    assert_equals(9, position%column(), &
+                    assert_equals(9, position%column, &
                             var_str("increment column"))
         end associate
     end function
@@ -77,10 +77,10 @@ contains
                 new_state(var_str('A' // new_line('A'))))
 
         associate(position => parse_result%position())
-            result_ = assert_equals(2, position%line(), &
+            result_ = assert_equals(2, position%line, &
                                 var_str("increment line")) &
                         .and. &
-                        assert_equals(1, position%column(), &
+                        assert_equals(1, position%column, &
                                 var_str("reset column"))
         end associate
     end function

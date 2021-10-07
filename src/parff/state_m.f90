@@ -1,6 +1,6 @@
 module parff_state_m
     use iso_varying_string, only: varying_string
-    use parff_position_m, only: position_t, new_position
+    use parff_position_m, only: position_t
 
     implicit none
     private
@@ -24,7 +24,7 @@ contains
         type(varying_string), intent(in) :: input
         type(state_t) :: new_state
 
-        new_state = state_t(input, new_position())
+        new_state%input_ = input
     end function
 
     pure function constructor(input, position) result(state)
