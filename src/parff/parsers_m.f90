@@ -209,10 +209,10 @@ contains
             all = parsed_items_t(EMPTY_PARSED_ITEM)
             the_result = empty_ok( &
                     all, &
-                    the_state%input(), &
-                    the_state%position(), &
+                    the_state%input, &
+                    the_state%position, &
                     message_t( &
-                            the_state%position(), &
+                            the_state%position, &
                             var_str(""), &
                             EMPTY_VARYING_STRING))
         end if
@@ -364,18 +364,18 @@ contains
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
-        if (len(the_state%input()) > 0) then
+        if (len(the_state%input) > 0) then
             the_result = empty_error(message_t( &
-                    the_state%position(), &
-                    var_str(first_character(the_state%input())), &
+                    the_state%position, &
+                    var_str(first_character(the_state%input)), &
                     [var_str(END_OF_INPUT)]))
         else
             the_result = empty_ok( &
                     PARSED_NOTHING, &
-                    the_state%input(), &
-                    the_state%position(), &
+                    the_state%input, &
+                    the_state%position, &
                     message_t( &
-                            the_state%position(), &
+                            the_state%position, &
                             var_str(END_OF_INPUT), &
                             [var_str(END_OF_INPUT)]))
         end if
@@ -434,9 +434,9 @@ contains
                 the_string = parsed_string_t("")
                 result_ = empty_ok( &
                     the_string, &
-                    state_%input(), &
-                    state_%position(), &
-                    message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                    state_%input, &
+                    state_%position, &
+                    message_t(state_%position, var_str(""), EMPTY_VARYING_STRING))
             end if
         end function
 
@@ -525,9 +525,9 @@ contains
             else
                 result_ = empty_ok( &
                         previous, &
-                        state_%input(), &
-                        state_%position(), &
-                        message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                        state_%input, &
+                        state_%position, &
+                        message_t(state_%position, var_str(""), EMPTY_VARYING_STRING))
             end if
         end function
 
@@ -633,9 +633,9 @@ contains
             else
                 result_ = empty_ok( &
                         previous, &
-                        state_%input(), &
-                        state_%position(), &
-                        message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                        state_%input, &
+                        state_%position, &
+                        message_t(state_%position, var_str(""), EMPTY_VARYING_STRING))
             end if
         end function
 
@@ -750,8 +750,8 @@ contains
 
             if (string == "") then
                 empty = parsed_string_t("")
-                result_ = empty_ok(empty, state_%input(), state_%position(), message_t( &
-                        state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                result_ = empty_ok(empty, state_%input, state_%position, message_t( &
+                        state_%position, var_str(""), EMPTY_VARYING_STRING))
             else
                 initial = intermediate_parsed_string_t("", string)
                 result_ = sequence(return_(initial, state_), recurse)
@@ -772,9 +772,9 @@ contains
                     final_string = parsed_string_t(previous%parsed_so_far())
                     result_ = consumed_ok( &
                             final_string, &
-                            state_%input(), &
-                            state_%position(), &
-                            message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                            state_%input, &
+                            state_%position, &
+                            message_t(state_%position, var_str(""), EMPTY_VARYING_STRING))
                 else
                     result_ = sequence(parse_next(previous, state_), recurse)
                 end if
@@ -799,7 +799,7 @@ contains
                     result_ = result_%with_parsed_value(next)
                 end select
             else
-                if (len(state_%input()) == 0) then
+                if (len(state_%input) == 0) then
                     if (len(previous%parsed_so_far()) == 0) then
                         was_parsed = "<nothing>"
                     else
@@ -807,13 +807,13 @@ contains
                     end if
                 else
                     if (len(previous%parsed_so_far()) == 0) then
-                        was_parsed = first_character(state_%input())
+                        was_parsed = first_character(state_%input)
                     else
-                        was_parsed = previous%parsed_so_far() // first_character(state_%input())
+                        was_parsed = previous%parsed_so_far() // first_character(state_%input)
                     end if
                 end if
                 result_ = empty_error(message_t( &
-                        state_%position(), &
+                        state_%position, &
                         was_parsed, &
                         [string]))
             end if
@@ -866,8 +866,8 @@ contains
 
             if (times <= 0) then
                 empty = parsed_items_t(EMPTY_PARSED_ITEM)
-                result_ = empty_ok(empty, state_%input(), state_%position(), message_t( &
-                        state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                result_ = empty_ok(empty, state_%input, state_%position, message_t( &
+                        state_%position, var_str(""), EMPTY_VARYING_STRING))
             else
                 initial = intermediate_repeat_t(parsed_items_t(EMPTY_PARSED_ITEM), times)
                 result_ = sequence(return_(initial, state_), recurse)
@@ -886,9 +886,9 @@ contains
                 if (previous%remaining() <= 0) then
                     result_ = consumed_ok( &
                             previous%parsed_so_far(), &
-                            state_%input(), &
-                            state_%position(), &
-                            message_t(state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                            state_%input, &
+                            state_%position, &
+                            message_t(state_%position, var_str(""), EMPTY_VARYING_STRING))
                 else
                     result_ = sequence(parse_next(previous, state_), recurse)
                 end if
@@ -924,8 +924,8 @@ contains
         type(varying_string) :: EMPTY_VARYING_STRING(0)
 
         result_ = empty_ok( &
-                parsed, state_%input(), state_%position(), message_t( &
-                        state_%position(), var_str(""), EMPTY_VARYING_STRING))
+                parsed, state_%input, state_%position, message_t( &
+                        state_%position, var_str(""), EMPTY_VARYING_STRING))
     end function
 
     function satisfy(matches, state_) result(result_)
@@ -939,16 +939,14 @@ contains
         type(position_t) :: new_position
         type(parsed_character_t) :: parsed_character
 
-        if (len(state_%input()) > 0) then
-            first_character_ = first_character(state_%input())
+        if (len(state_%input) > 0) then
+            first_character_ = first_character(state_%input)
             if (matches(first_character_)) then
-                associate(position => state_%position())
-                    new_position = position%next_position(first_character_)
-                end associate
+                new_position = state_%position%next_position(first_character_)
                 parsed_character = parsed_character_t(first_character_)
                 result_ = consumed_ok( &
                         parsed_character, &
-                        without_first_character(state_%input()), &
+                        without_first_character(state_%input), &
                         new_position, &
                         message_t( &
                                 new_position, &
@@ -956,13 +954,13 @@ contains
                                 EMPTY_VARYING_STRING))
             else
                 result_ = empty_error(message_t( &
-                        state_%position(), &
+                        state_%position, &
                         var_str(first_character_), &
                         EMPTY_VARYING_STRING))
             end if
         else
             result_ = empty_error(message_t( &
-                    state_%position(), &
+                    state_%position, &
                     var_str(END_OF_INPUT), &
                     EMPTY_VARYING_STRING))
         end if
