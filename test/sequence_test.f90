@@ -73,11 +73,9 @@ contains
                 .and.assert_that(parse_result%empty(), "parse_result%empty()")
         if (result_%passed()) then
             message = parse_result%message()
-            associate(expected => message%expected())
-                result_ = &
-                        assert_equals("B", message%found()) &
-                        .and.assert_equals("A", expected(1))
-            end associate
+            result_ = &
+                    assert_equals("B", message%found) &
+                    .and.assert_equals("A", message%expected(1))
         end if
     end function
 
@@ -94,11 +92,9 @@ contains
                 .and.assert_that(parse_result%empty(), "parse_result%empty()")
         if (result_%passed()) then
             message = parse_result%message()
-            associate(expected => message%expected())
-                result_ = &
-                        assert_equals("A", message%found()) &
-                        .and.assert_equals("B", expected(1))
-            end associate
+            result_ = &
+                    assert_equals("A", message%found) &
+                    .and.assert_equals("B", message%expected(1))
         end if
     end function
 

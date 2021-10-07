@@ -57,11 +57,9 @@ contains
         result_ = assert_not(results%ok())
         if (result_%passed()) then
             message = results%message()
-            associate(expected => message%expected())
-                result_ = &
-                        assert_equals("B", message%found()) &
-                        .and.assert_equals("A", expected(1))
-            end associate
+            result_ = &
+                    assert_equals("B", message%found) &
+                    .and.assert_equals("A", message%expected(1))
         end if
     end function
 

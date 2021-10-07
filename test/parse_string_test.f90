@@ -61,19 +61,15 @@ contains
 
         type(message_t) :: message
         type(parser_output_t) :: parse_result
-        type(position_t) :: position
 
         parse_result = parse_string("Hello", new_state(var_str("Help")))
 
         message = parse_result%message()
-        position = message%position()
-        associate(expected => message%expected())
-            result_ = &
-                    assert_not(parse_result%ok()) &
-                    .and.assert_equals("Help", message%found()) &
-                    .and.assert_equals("Hello", expected(1)) &
-                    .and.assert_equals(4, position%column)
-        end associate
+        result_ = &
+                assert_not(parse_result%ok()) &
+                .and.assert_equals("Help", message%found) &
+                .and.assert_equals("Hello", message%expected(1)) &
+                .and.assert_equals(4, message%position%column)
     end function
 
     function check_parse_empty() result(result_)
@@ -86,18 +82,14 @@ contains
 
         type(message_t) :: message
         type(parser_output_t) :: parse_result
-        type(position_t) :: position
 
         parse_result = parse_string("Anything", new_state(var_str("")))
 
         message = parse_result%message()
-        position = message%position()
-        associate(expected => message%expected())
-            result_ = &
-                    assert_not(parse_result%ok()) &
-                    .and.assert_equals("<nothing>", message%found()) &
-                    .and.assert_equals("Anything", expected(1)) &
-                    .and.assert_equals(1, position%column)
-        end associate
+        result_ = &
+                assert_not(parse_result%ok()) &
+                .and.assert_equals("<nothing>", message%found) &
+                .and.assert_equals("Anything", message%expected(1)) &
+                .and.assert_equals(1, message%position%column)
     end function
 end module

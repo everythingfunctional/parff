@@ -64,12 +64,10 @@ contains
         parse_result = parse_char("A", new_state(var_str("First")))
 
         message = parse_result%message()
-        associate(expected => message%expected())
-            result_ = &
-                    assert_not(parse_result%ok()) &
-                    .and.assert_equals("F", message%found()) &
-                    .and.assert_equals("A", expected(1))
-        end associate
+        result_ = &
+                assert_not(parse_result%ok()) &
+                .and.assert_equals("F", message%found) &
+                .and.assert_equals("A", message%expected(1))
     end function
 
     function check_parse_empty_string() result(result_)
@@ -85,11 +83,9 @@ contains
         parse_result = parse_char("A", new_state(var_str("")))
 
         message = parse_result%message()
-        associate(expected => message%expected())
-            result_ = &
-                    assert_not(parse_result%ok()) &
-                    .and.assert_equals("end of input", message%found()) &
-                    .and.assert_equals("A", expected(1))
-        end associate
+        result_ = &
+                assert_not(parse_result%ok()) &
+                .and.assert_equals("end of input", message%found) &
+                .and.assert_equals("A", message%expected(1))
     end function
 end module

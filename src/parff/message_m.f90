@@ -8,39 +8,20 @@ module parff_message_m
     public :: message_t, expect, merge_
 
     type :: message_t
-        private
-        type(position_t) :: position_
-        type(varying_string) :: found_
-        type(varying_string), allocatable :: expected_(:)
+        type(position_t) :: position
+        type(varying_string) :: found
+        type(varying_string), allocatable :: expected(:)
     contains
         private
         procedure, public :: to_string => message_to_string
-        procedure, public :: found
-        procedure, public :: expected
-        procedure, public :: position
     end type
-
-    interface message_t
-        module procedure constructor
-    end interface
 contains
-    pure function constructor(position, found, expected) result(message)
-        type(position_t), intent(in) :: position
-        type(varying_string), intent(in) :: found
-        type(varying_string), intent(in) :: expected(:)
-        type(message_t) :: message
-
-        message%position_ = position
-        message%found_ = found
-        allocate(message%expected_, source = expected)
-    end function
-
     pure function message_to_string(self) result(string)
         class(message_t), intent(in) :: self
         type(varying_string) :: string
 
-        string = "At line " // to_string(self%position_%line) // " and column " // to_string(self%position_%column) // NEWLINE &
-                // "    found " // self%found_ // " but expected " // join(self%expected_, " or ")
+        string = "At line " // to_string(self%position%line) // " and column " // to_string(self%position%column) // NEWLINE &
+                // "    found " // self%found // " but expected " // join(self%expected, " or ")
     end function
 
     pure function merge_(message1, message2) result(merged)
@@ -49,9 +30,9 @@ contains
         type(message_t) :: merged
 
         merged = message_t( &
-                message1%position_, &
-                message1%found_, &
-                [message1%expected_, message2%expected_])
+                message1%position, &
+                message1%found, &
+                [message1%expected, message2%expected])
     end function
 
     pure function expect(message, label) result(new_message)
@@ -59,27 +40,6 @@ contains
         type(varying_string), intent(in) :: label
         type(message_t) :: new_message
 
-        new_message = message_t(message%position_, message%found_, [label])
-    end function
-
-    pure function found(self)
-        class(message_t), intent(in) :: self
-        type(varying_string) :: found
-
-        found = self%found_
-    end function
-
-    pure function expected(self)
-        class(message_t), intent(in) :: self
-        type(varying_string), allocatable :: expected(:)
-
-        allocate(expected, source = self%expected_)
-    end function
-
-    pure function position(self)
-        class(message_t), intent(in) :: self
-        type(position_t) :: position
-
-        position = self%position_
+        new_message = message_t(message%position, message%found, [label])
     end function
 end module
