@@ -766,8 +766,8 @@ contains
 
             select type (previous)
             type is (intermediate_parsed_string_t)
-                if (len(previous%left_to_parse()) == 0) then
-                    final_string = parsed_string_t(previous%parsed_so_far())
+                if (len(previous%left_to_parse) == 0) then
+                    final_string = parsed_string_t(previous%parsed_so_far)
                     result_ = consumed_ok( &
                             final_string, &
                             state_%input, &
@@ -787,27 +787,27 @@ contains
             type(intermediate_parsed_string_t) :: next
             type(varying_string) :: was_parsed
 
-            result_ = parse_char(first_character(previous%left_to_parse()), state_)
+            result_ = parse_char(first_character(previous%left_to_parse), state_)
             if (result_%ok) then
                 select type (the_char => result_%parsed)
                 type is (parsed_character_t)
                     next = intermediate_parsed_string_t( &
-                            previous%parsed_so_far() // the_char%value_(), &
-                            without_first_character(previous%left_to_parse()))
+                            previous%parsed_so_far // the_char%value_(), &
+                            without_first_character(previous%left_to_parse))
                     result_ = result_%with_parsed_value(next)
                 end select
             else
                 if (len(state_%input) == 0) then
-                    if (len(previous%parsed_so_far()) == 0) then
+                    if (len(previous%parsed_so_far) == 0) then
                         was_parsed = "<nothing>"
                     else
-                        was_parsed = previous%parsed_so_far()
+                        was_parsed = previous%parsed_so_far
                     end if
                 else
-                    if (len(previous%parsed_so_far()) == 0) then
+                    if (len(previous%parsed_so_far) == 0) then
                         was_parsed = first_character(state_%input)
                     else
-                        was_parsed = previous%parsed_so_far() // first_character(state_%input)
+                        was_parsed = previous%parsed_so_far // first_character(state_%input)
                     end if
                 end if
                 result_ = empty_error(message_t( &
