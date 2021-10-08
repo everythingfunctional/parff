@@ -115,7 +115,7 @@ contains
             type is (parsed_character_t)
                 select type (next => result_%parsed)
                 type is (parsed_character_t)
-                    parsed = parsed_string_t(previous%value_() // next%value_())
+                    parsed = parsed_string_t(previous%value_ // next%value_)
                 end select
             end select
             result_ = result_%with_parsed_value(parsed)

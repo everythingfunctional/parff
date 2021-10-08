@@ -39,7 +39,7 @@ contains
         if (result_%passed()) then
             select type (string => parse_result%parsed)
             type is (parsed_character_t)
-                result_ = assert_equals("A", string%value_())
+                result_ = assert_equals("A", string%value_)
             class default
                 result_ = fail("Didn't get character back")
             end select

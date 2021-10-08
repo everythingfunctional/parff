@@ -33,7 +33,7 @@ contains
         if (the_result%ok()) then
             select type (parsed => the_result%parsed())
             type is (parsed_character_t)
-                result_ = assert_equals("A", parsed%value_())
+                result_ = assert_equals("A", parsed%value_)
             class default
                 result_ = fail("Didn't get a character back")
             end select

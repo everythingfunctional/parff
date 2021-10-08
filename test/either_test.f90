@@ -38,7 +38,7 @@ contains
             select type (the_char => parse_result%parsed)
             type is (parsed_character_t)
                 result_ = &
-                        assert_equals("F", the_char%value_()) &
+                        assert_equals("F", the_char%value_) &
                         .and.assert_equals("irst", parse_result%remaining)
             class default
                 result_ = fail("Didn't get a character back")
@@ -64,7 +64,7 @@ contains
             select type (the_char => parse_result%parsed)
             type is (parsed_character_t)
                 result_ = &
-                        assert_equals("F", the_char%value_()) &
+                        assert_equals("F", the_char%value_) &
                         .and.assert_equals("irst", parse_result%remaining)
             class default
                 result_ = fail("Didn't get a character back")

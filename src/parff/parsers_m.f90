@@ -326,7 +326,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_() // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_()))
                     end select
                 end select
             end if
@@ -348,7 +348,7 @@ contains
                         do i = 1, size(digits)
                             select type (string => items(i)%item())
                             type is (parsed_character_t)
-                                digits(i) = string%value_()
+                                digits(i) = string%value_
                             end select
                         end do
                     end associate
@@ -425,7 +425,7 @@ contains
             if (result_%ok) then
                 select type (the_character => result_%parsed)
                 type is (parsed_character_t)
-                    the_string = parsed_string_t(the_character%value_())
+                    the_string = parsed_string_t(the_character%value_)
                     result_ = result_%with_parsed_value(the_string)
                 end select
             else
@@ -493,7 +493,7 @@ contains
                         do i = 1, size(digits)
                             select type (string => items(i)%item())
                             type is (parsed_character_t)
-                                digits(i) = string%value_()
+                                digits(i) = string%value_
                             end select
                         end do
                     end associate
@@ -539,7 +539,7 @@ contains
             if (result_%ok) then
                 select type (the_character => result_%parsed)
                 type is (parsed_character_t)
-                    the_string = parsed_string_t(the_character%value_())
+                    the_string = parsed_string_t(the_character%value_)
                     result_ = result_%with_parsed_value(the_string)
                 end select
             end if
@@ -578,7 +578,7 @@ contains
                     do i = 1, size(digits)
                         select type (string => items(i)%item())
                         type is (parsed_character_t)
-                            digits(i) = string%value_()
+                            digits(i) = string%value_
                         end select
                     end do
                 end associate
@@ -656,7 +656,7 @@ contains
             if (result_%ok) then
                 select type (the_character => result_%parsed)
                 type is (parsed_character_t)
-                    the_string = parsed_string_t(the_character%value_())
+                    the_string = parsed_string_t(the_character%value_)
                     result_ = result_%with_parsed_value(the_string)
                 end select
             end if
@@ -792,7 +792,7 @@ contains
                 select type (the_char => result_%parsed)
                 type is (parsed_character_t)
                     next = intermediate_parsed_string_t( &
-                            previous%parsed_so_far // the_char%value_(), &
+                            previous%parsed_so_far // the_char%value_, &
                             without_first_character(previous%left_to_parse))
                     result_ = result_%with_parsed_value(next)
                 end select
