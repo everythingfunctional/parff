@@ -32,11 +32,11 @@ contains
 
         results = optionally(parse_a, new_state(var_str("AB")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("A", parsed%value_(), "parsed") &
-                        .and.assert_equals("B", results%remaining(), "remaining")
+                        .and.assert_equals("B", results%remaining, "remaining")
             class default
                 result_ = fail("Didn't get the character back")
             end select

@@ -29,7 +29,7 @@ contains
 
         results = repeat_(parse_a, 2, new_state(var_str("AA")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = assert_equals(2, size(parsed%items()))
             class default

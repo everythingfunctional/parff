@@ -37,7 +37,7 @@ contains
 
         result_ = assert_that(parse_result%ok)
         if (result_%passed()) then
-            select type (string => parse_result%parsed())
+            select type (string => parse_result%parsed)
             type is (parsed_character_t)
                 result_ = assert_equals("A", string%value_())
             class default

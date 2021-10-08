@@ -30,11 +30,11 @@ contains
 
         results = many(parse_a, new_state(var_str("AB")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(1, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining())
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -54,11 +54,11 @@ contains
 
         results = many(parse_a, new_state(var_str("AAAB")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining())
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select

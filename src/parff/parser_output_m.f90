@@ -19,14 +19,11 @@ module parff_parser_output_m
         logical :: ok
         type(message_t) :: message
         ! The following are only defined if ok
-        class(parsed_value_t), allocatable :: parsed_
-        type(varying_string) :: remaining_
-        type(position_t) :: position_
+        class(parsed_value_t), allocatable :: parsed
+        type(varying_string) :: remaining
+        type(position_t) :: position
     contains
         private
-        procedure, public :: parsed
-        procedure, public :: remaining
-        procedure, public :: position
         procedure, public :: but_not_empty
         procedure, public :: with_parsed_value
     end type
@@ -40,9 +37,9 @@ contains
 
         consumed_ok%empty = .false.
         consumed_ok%ok = .true.
-        allocate(consumed_ok%parsed_, source = parsed)
-        consumed_ok%remaining_ = remaining
-        consumed_ok%position_ = position
+        allocate(consumed_ok%parsed, source = parsed)
+        consumed_ok%remaining = remaining
+        consumed_ok%position = position
         consumed_ok%message = message
     end function
 
@@ -64,9 +61,9 @@ contains
 
         empty_ok%empty = .true.
         empty_ok%ok = .true.
-        allocate(empty_ok%parsed_, source = parsed)
-        empty_ok%remaining_ = remaining
-        empty_ok%position_ = position
+        allocate(empty_ok%parsed, source = parsed)
+        empty_ok%remaining = remaining
+        empty_ok%position = position
         empty_ok%message = message
     end function
 
@@ -94,19 +91,11 @@ contains
                 merge_(message1, message2))
     end function
 
-    function but_not_empty(self)
-        class(parser_output_t), intent(in) :: self
-        type(parser_output_t) :: but_not_empty
+    subroutine but_not_empty(self)
+        class(parser_output_t), intent(inout) :: self
 
-        but_not_empty%ok = self%ok
-        but_not_empty%message = self%message
-        but_not_empty%empty = .false.
-        if (self%ok) then
-            allocate(but_not_empty%parsed_, source = self%parsed_)
-            but_not_empty%remaining_ = self%remaining_
-            but_not_empty%position_ = self%position_
-        end if
-    end function
+        self%empty = .false.
+    end subroutine
 
     function with_parsed_value(self, parsed)
         class(parser_output_t), intent(in) :: self
@@ -119,30 +108,9 @@ contains
             with_parsed_value%ok = self%ok
             with_parsed_value%empty = self%empty
             with_parsed_value%message = self%message
-            allocate(with_parsed_value%parsed_, source = parsed)
-            with_parsed_value%remaining_ = self%remaining_
-            with_parsed_value%position_ = self%position_
+            allocate(with_parsed_value%parsed, source = parsed)
+            with_parsed_value%remaining = self%remaining
+            with_parsed_value%position = self%position
         end if
-    end function
-
-    function parsed(self)
-        class(parser_output_t), intent(in) :: self
-        class(parsed_value_t), allocatable :: parsed
-
-        allocate(parsed, source = self%parsed_)
-    end function
-
-    pure function remaining(self)
-        class(parser_output_t), intent(in) :: self
-        type(varying_string) :: remaining
-
-        remaining = self%remaining_
-    end function
-
-    pure function position(self)
-        class(parser_output_t), intent(in) :: self
-        type(position_t) :: position
-
-        position = self%position_
     end function
 end module

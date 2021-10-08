@@ -51,7 +51,7 @@ contains
 
         result_ = assert_that(parse_result%ok)
         if (result_%passed()) then
-            select type (string => parse_result%parsed())
+            select type (string => parse_result%parsed)
             type is (parsed_string_t)
                 result_ = assert_equals("AB", string%value_())
             class default
@@ -113,7 +113,7 @@ contains
         if (result_%ok) then
             select type (previous)
             type is (parsed_character_t)
-                select type (next => result_%parsed())
+                select type (next => result_%parsed)
                 type is (parsed_character_t)
                     parsed = parsed_string_t(previous%value_() // next%value_())
                 end select

@@ -35,11 +35,11 @@ contains
                 assert_that(parse_result%ok, "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_char => parse_result%parsed())
+            select type (the_char => parse_result%parsed)
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("F", the_char%value_()) &
-                        .and.assert_equals("irst", parse_result%remaining())
+                        .and.assert_equals("irst", parse_result%remaining)
             class default
                 result_ = fail("Didn't get a character back")
             end select
@@ -61,11 +61,11 @@ contains
                 assert_that(parse_result%ok, "Got result", "Didn't get result") &
                 .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
-            select type (the_char => parse_result%parsed())
+            select type (the_char => parse_result%parsed)
             type is (parsed_character_t)
                 result_ = &
                         assert_equals("F", the_char%value_()) &
-                        .and.assert_equals("irst", parse_result%remaining())
+                        .and.assert_equals("irst", parse_result%remaining)
             class default
                 result_ = fail("Didn't get a character back")
             end select

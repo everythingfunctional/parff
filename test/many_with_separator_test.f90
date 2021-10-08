@@ -36,11 +36,11 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("AB")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(1, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining())
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -65,7 +65,7 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,B")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 associate(items => parsed%items())
                     result_ = assert_equals(1, size(items))
@@ -74,7 +74,7 @@ contains
                         type is (parsed_character_t)
                             result_ = &
                                     assert_equals("A", the_item%value_()) &
-                                    .and.assert_equals(",B", results%remaining())
+                                    .and.assert_equals(",B", results%remaining)
                         end select
                     end if
                 end associate
@@ -98,11 +98,11 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,AB")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
-                        .and.assert_equals("B", results%remaining())
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
@@ -123,11 +123,11 @@ contains
 
         results = many_with_separator(parse_a, parse_comma, new_state(var_str("A,A,A,B")))
         if (results%ok) then
-            select type (parsed => results%parsed())
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
                         assert_equals(3, size(parsed%items()))&
-                        .and.assert_equals(",B", results%remaining())
+                        .and.assert_equals(",B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select

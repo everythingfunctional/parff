@@ -45,7 +45,7 @@ contains
         the_results = parser(new_state(string))
         if (the_results%ok) then
             result_%ok_ = .true.
-            allocate(result_%parsed_, source = the_results%parsed())
+            allocate(result_%parsed_, source = the_results%parsed)
         else
             result_%ok_ = .false.
             result_%message_ = the_results%message%to_string()
