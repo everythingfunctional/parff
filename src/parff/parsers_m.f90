@@ -184,7 +184,7 @@ contains
             do
                 next = drop_then(the_separator, the_parser, state_t(the_result%remaining, the_result%position))
                 if (.not.next%ok) exit
-                all = parsed_items_t([all%items(), parsed_item_t(next%parsed)])
+                all = parsed_items_t([all%items, parsed_item_t(next%parsed)])
                 the_result = next
             end do
             the_result = the_result%with_parsed_value(all)
@@ -343,15 +343,13 @@ contains
             if (result_%ok) then
                 select type (results => result_%parsed)
                 type is (parsed_items_t)
-                    associate(items => results%items())
-                        allocate(digits(size(items)))
-                        do i = 1, size(digits)
-                            select type (string => items(i)%item)
-                            type is (parsed_character_t)
-                                digits(i) = string%value_
-                            end select
-                        end do
-                    end associate
+                    allocate(digits(size(results%items)))
+                    do i = 1, size(digits)
+                        select type (string => results%items(i)%item)
+                        type is (parsed_character_t)
+                            digits(i) = string%value_
+                        end select
+                    end do
                 end select
                 result_ = result_%with_parsed_value(parsed_string_t(join(digits, "")))
             end if
@@ -488,15 +486,13 @@ contains
             if (result_%ok) then
                 select type (results => result_%parsed)
                 type is (parsed_items_t)
-                    associate(items => results%items())
-                        allocate(digits(size(items)))
-                        do i = 1, size(digits)
-                            select type (string => items(i)%item)
-                            type is (parsed_character_t)
-                                digits(i) = string%value_
-                            end select
-                        end do
-                    end associate
+                    allocate(digits(size(results%items)))
+                    do i = 1, size(digits)
+                        select type (string => results%items(i)%item)
+                        type is (parsed_character_t)
+                            digits(i) = string%value_
+                        end select
+                    end do
                     result_ = result_%with_parsed_value( &
                             parsed_string_t(join(digits, "")))
                 end select
@@ -573,15 +569,13 @@ contains
             result_ = many(parse_digit, state_)
             select type (results => result_%parsed)
             type is (parsed_items_t)
-                associate(items => results%items())
-                    allocate(digits(size(items)))
-                    do i = 1, size(digits)
-                        select type (string => items(i)%item)
-                        type is (parsed_character_t)
-                            digits(i) = string%value_
-                        end select
-                    end do
-                end associate
+                allocate(digits(size(results%items)))
+                do i = 1, size(digits)
+                    select type (string => results%items(i)%item)
+                    type is (parsed_character_t)
+                        digits(i) = string%value_
+                    end select
+                end do
                 result_ = result_%with_parsed_value(parsed_string_t(join(digits, "")))
             end select
         end function
@@ -905,7 +899,7 @@ contains
             if (result_%ok) then
                 this_item = parsed_item_t(result_%parsed)
                 next = intermediate_repeat_t( &
-                        parsed_items_t([previous%parsed_so_far%items(), this_item]), &
+                        parsed_items_t([previous%parsed_so_far%items, this_item]), &
                         previous%remaining - 1)
                 result_ = result_%with_parsed_value(next)
             end if

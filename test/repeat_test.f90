@@ -31,7 +31,7 @@ contains
         if (results%ok) then
             select type (parsed => results%parsed)
             type is (parsed_items_t)
-                result_ = assert_equals(2, size(parsed%items()))
+                result_ = assert_equals(2, size(parsed%items))
             class default
                 result_ = fail("Didn't get list back")
             end select

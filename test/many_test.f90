@@ -33,7 +33,7 @@ contains
             select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
-                        assert_equals(1, size(parsed%items())) &
+                        assert_equals(1, size(parsed%items)) &
                         .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
@@ -57,7 +57,7 @@ contains
             select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
-                        assert_equals(3, size(parsed%items())) &
+                        assert_equals(3, size(parsed%items)) &
                         .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
