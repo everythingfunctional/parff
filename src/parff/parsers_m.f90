@@ -12,6 +12,7 @@ module parff_parsers_m
     use parff_parsed_character_m, only: parsed_character_t
     use parff_parsed_integer_m, only: parsed_integer_t
     use parff_parsed_item_m, only: parsed_item_t
+    use parff_parsed_item_list_m, only: parsed_item_list_t
     use parff_parsed_items_m, only: parsed_items_t
     use parff_parsed_nothing_m, only: PARSED_NOTHING
     use parff_parsed_rational_m, only: parsed_rational_t
@@ -175,19 +176,28 @@ contains
         type(state_t), intent(in) :: the_state
         type(parser_output_t) :: the_result
 
-        type(parsed_items_t) :: all
+        type(parsed_item_list_t) :: items
         type(parser_output_t) :: next
+        type(state_t) :: next_state
+        type(message_t) :: last_message
 
         the_result = the_parser(the_state)
         if (the_result%ok) then
-            all = parsed_items_t([parsed_item_t(the_result%parsed)])
+            items = parsed_item_list_t(the_result%parsed)
+            next_state = state_t(the_result%remaining, the_result%position)
+            last_message = the_result%message
             do
-                next = drop_then(the_separator, the_parser, state_t(the_result%remaining, the_result%position))
+                next = drop_then(the_separator, the_parser, next_state)
                 if (.not.next%ok) exit
-                all = parsed_items_t([all%items, parsed_item_t(next%parsed)])
-                the_result = next
+                call items%append(next%parsed)
+                next_state = state_t(next%remaining, next%position)
+                last_message = next%message
             end do
-            the_result = the_result%with_parsed_value(all)
+            the_result = consumed_ok( &
+                    parsed_items_t(items%to_array()), &
+                    next_state%input, &
+                    next_state%position, &
+                    last_message)
         end if
     end function
 
