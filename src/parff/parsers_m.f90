@@ -346,7 +346,7 @@ contains
                     associate(items => results%items())
                         allocate(digits(size(items)))
                         do i = 1, size(digits)
-                            select type (string => items(i)%item())
+                            select type (string => items(i)%item)
                             type is (parsed_character_t)
                                 digits(i) = string%value_
                             end select
@@ -491,7 +491,7 @@ contains
                     associate(items => results%items())
                         allocate(digits(size(items)))
                         do i = 1, size(digits)
-                            select type (string => items(i)%item())
+                            select type (string => items(i)%item)
                             type is (parsed_character_t)
                                 digits(i) = string%value_
                             end select
@@ -576,7 +576,7 @@ contains
                 associate(items => results%items())
                     allocate(digits(size(items)))
                     do i = 1, size(digits)
-                        select type (string => items(i)%item())
+                        select type (string => items(i)%item)
                         type is (parsed_character_t)
                             digits(i) = string%value_
                         end select

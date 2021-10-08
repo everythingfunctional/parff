@@ -70,7 +70,7 @@ contains
                 associate(items => parsed%items())
                     result_ = assert_equals(1, size(items))
                     if (result_%passed()) then
-                        select type (the_item => items(1)%item())
+                        select type (the_item => items(1)%item)
                         type is (parsed_character_t)
                             result_ = &
                                     assert_equals("A", the_item%value_) &
