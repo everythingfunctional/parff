@@ -881,9 +881,9 @@ contains
 
             select type (previous)
             type is (intermediate_repeat_t)
-                if (previous%remaining() <= 0) then
+                if (previous%remaining <= 0) then
                     result_ = consumed_ok( &
-                            previous%parsed_so_far(), &
+                            previous%parsed_so_far, &
                             state_%input, &
                             state_%position, &
                             message_t(state_%position, var_str(""), EMPTY_VARYING_STRING))
@@ -899,16 +899,14 @@ contains
             type(parser_output_t) :: result_
 
             type(intermediate_repeat_t) :: next
-            type(parsed_items_t) :: parsed_so_far
             type(parsed_item_t) :: this_item
 
             result_ = the_parser(state_)
             if (result_%ok) then
                 this_item = parsed_item_t(result_%parsed)
-                parsed_so_far = previous%parsed_so_far()
                 next = intermediate_repeat_t( &
-                        parsed_items_t([parsed_so_far%items(), this_item]), &
-                        previous%remaining() - 1)
+                        parsed_items_t([previous%parsed_so_far%items(), this_item]), &
+                        previous%remaining - 1)
                 result_ = result_%with_parsed_value(next)
             end if
         end function
