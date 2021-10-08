@@ -285,7 +285,7 @@ contains
             if (result_%ok) then
                 select type (parsed_string => result_%parsed)
                 type is (parsed_string_t)
-                    the_string = parsed_string%value_()
+                    the_string = parsed_string%value_
                     read(the_string, *) the_number
                     the_value = parsed_integer_t(the_number)
                     result_ = result_%with_parsed_value(the_value)
@@ -326,7 +326,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_ // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_))
                     end select
                 end select
             end if
@@ -404,7 +404,7 @@ contains
             if (result_%ok) then
                 select type (parsed_string => result_%parsed)
                 type is (parsed_string_t)
-                    the_string = parsed_string%value_()
+                    the_string = parsed_string%value_
                     read(the_string, *) the_number
                     the_value = parsed_rational_t(the_number)
                     result_ = result_%with_parsed_value(the_value)
@@ -462,7 +462,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_() // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_))
                     end select
                 end select
             end if
@@ -513,7 +513,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_() // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_))
                     end select
                 end select
             else
@@ -553,7 +553,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_() // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_))
                     end select
                 end select
             end if
@@ -599,7 +599,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_() // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_))
                     end select
                 end select
             end if
@@ -619,7 +619,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_() // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_))
                     end select
                 end select
             else
@@ -710,7 +710,7 @@ contains
                     select type (next => result_%parsed)
                     type is (parsed_string_t)
                         result_ = result_%with_parsed_value( &
-                                parsed_string_t(previous%value_() // next%value_()))
+                                parsed_string_t(previous%value_ // next%value_))
                     end select
                 end select
             end if
