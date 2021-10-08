@@ -49,7 +49,7 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AB")))
 
-        result_ = assert_that(parse_result%ok())
+        result_ = assert_that(parse_result%ok)
         if (result_%passed()) then
             select type (string => parse_result%parsed())
             type is (parsed_string_t)
@@ -63,38 +63,34 @@ contains
     function check_first_fail() result(result_)
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("BB")))
 
         result_ = &
-                assert_not(parse_result%ok(), "parse_result%ok()") &
-                .and.assert_that(parse_result%empty(), "parse_result%empty()")
+                assert_not(parse_result%ok, "parse_result%ok") &
+                .and.assert_that(parse_result%empty, "parse_result%empty")
         if (result_%passed()) then
-            message = parse_result%message()
             result_ = &
-                    assert_equals("B", message%found) &
-                    .and.assert_equals("A", message%expected(1))
+                    assert_equals("B", parse_result%message%found) &
+                    .and.assert_equals("A", parse_result%message%expected(1))
         end if
     end function
 
     function check_second_fail() result(result_)
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AA")))
 
         result_ = &
-                assert_not(parse_result%ok(), "parse_result%ok()") &
-                .and.assert_that(parse_result%empty(), "parse_result%empty()")
+                assert_not(parse_result%ok, "parse_result%ok") &
+                .and.assert_that(parse_result%empty, "parse_result%empty")
         if (result_%passed()) then
-            message = parse_result%message()
             result_ = &
-                    assert_equals("A", message%found) &
-                    .and.assert_equals("B", message%expected(1))
+                    assert_equals("A", parse_result%message%found) &
+                    .and.assert_equals("B", parse_result%message%expected(1))
         end if
     end function
 
@@ -114,7 +110,7 @@ contains
 
         result_ = parse_char("B", state_)
 
-        if (result_%ok()) then
+        if (result_%ok) then
             select type (previous)
             type is (parsed_character_t)
                 select type (next => result_%parsed())

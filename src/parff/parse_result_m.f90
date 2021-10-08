@@ -40,17 +40,15 @@ contains
         type(varying_string), intent(in) :: string
         type(parse_result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: the_results
 
         the_results = parser(new_state(string))
-        if (the_results%ok()) then
+        if (the_results%ok) then
             result_%ok_ = .true.
             allocate(result_%parsed_, source = the_results%parsed())
         else
             result_%ok_ = .false.
-            message = the_results%message()
-            result_%message_ = message%to_string()
+            result_%message_ = the_results%message%to_string()
         end if
     end function
 

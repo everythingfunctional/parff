@@ -37,8 +37,8 @@ contains
         parse_result = parse_char("F", new_state(var_str("First")))
 
         result_ = &
-                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed())
             type is (parsed_character_t)
@@ -53,39 +53,35 @@ contains
 
     function check_parse_different_character() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, new_state, parse_char
+        use parff, only: parser_output_t, new_state, parse_char
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_char("A", new_state(var_str("First")))
 
-        message = parse_result%message()
         result_ = &
-                assert_not(parse_result%ok()) &
-                .and.assert_equals("F", message%found) &
-                .and.assert_equals("A", message%expected(1))
+                assert_not(parse_result%ok) &
+                .and.assert_equals("F", parse_result%message%found) &
+                .and.assert_equals("A", parse_result%message%expected(1))
     end function
 
     function check_parse_empty_string() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, new_state, parse_char
+        use parff, only: parser_output_t, new_state, parse_char
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_char("A", new_state(var_str("")))
 
-        message = parse_result%message()
         result_ = &
-                assert_not(parse_result%ok()) &
-                .and.assert_equals("end of input", message%found) &
-                .and.assert_equals("A", message%expected(1))
+                assert_not(parse_result%ok) &
+                .and.assert_equals("end of input", parse_result%message%found) &
+                .and.assert_equals("A", parse_result%message%expected(1))
     end function
 end module

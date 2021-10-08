@@ -32,8 +32,8 @@ contains
         parse_result = either(parse_f, parse_a, new_state(var_str("First")))
 
         result_ = &
-                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed())
             type is (parsed_character_t)
@@ -58,8 +58,8 @@ contains
         parse_result = either(parse_a, parse_f, new_state(var_str("First")))
 
         result_ = &
-                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_char => parse_result%parsed())
             type is (parsed_character_t)
@@ -74,21 +74,19 @@ contains
 
     function check_both_fail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, either, new_state
+        use parff, only: parser_output_t, either, new_state
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = either(parse_a, parse_a, new_state(var_str("First")))
 
-        message = parse_result%message()
         result_ = &
-                assert_not(parse_result%ok()) &
-                .and.assert_equals("F", message%found) &
-                .and.assert_equals(2, size(message%expected))
+                assert_not(parse_result%ok) &
+                .and.assert_equals("F", parse_result%message%found) &
+                .and.assert_equals(2, size(parse_result%message%expected))
     end function
 
     function parse_a(state_) result(result_)

@@ -35,7 +35,7 @@ contains
 
         parse_result = then_drop(parse_a, parse_b, new_state(var_str("AB")))
 
-        result_ = assert_that(parse_result%ok())
+        result_ = assert_that(parse_result%ok)
         if (result_%passed()) then
             select type (string => parse_result%parsed())
             type is (parsed_character_t)
@@ -48,43 +48,39 @@ contains
 
     function check_first_fail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, new_state, then_drop
+        use parff, only: parser_output_t, new_state, then_drop
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = then_drop(parse_a, parse_b, new_state(var_str("BB")))
 
-        result_ = assert_not(parse_result%ok())
+        result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
-            message = parse_result%message()
             result_ = &
-                    assert_equals("B", message%found) &
-                    .and.assert_equals("A", message%expected(1))
+                    assert_equals("B", parse_result%message%found) &
+                    .and.assert_equals("A", parse_result%message%expected(1))
         end if
     end function
 
     function check_second_fail() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, new_state, then_drop
+        use parff, only: parser_output_t, new_state, then_drop
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = then_drop(parse_a, parse_b, new_state(var_str("AA")))
 
-        result_ = assert_not(parse_result%ok())
+        result_ = assert_not(parse_result%ok)
         if (result_%passed()) then
-            message = parse_result%message()
             result_ = &
-                    assert_equals("A", message%found) &
-                    .and.assert_equals("B", message%expected(1))
+                    assert_equals("A", parse_result%message%found) &
+                    .and.assert_equals("B", parse_result%message%expected(1))
         end if
     end function
 

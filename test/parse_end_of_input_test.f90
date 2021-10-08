@@ -25,7 +25,7 @@ contains
 
         parse_result = parse_end_of_input(new_state(var_str("non-empty")))
 
-        result_ = assert_not(parse_result%ok(), "parse_result%ok()")
+        result_ = assert_not(parse_result%ok, "parse_result%ok")
     end function
 
     function check_empty() result(result_)
@@ -35,6 +35,6 @@ contains
 
         parse_result = parse_end_of_input(new_state(var_str("")))
 
-        result_ = assert_that(parse_result%ok(), "parse_result%ok()")
+        result_ = assert_that(parse_result%ok, "parse_result%ok")
     end function
 end module

@@ -29,7 +29,7 @@ contains
         type(parser_output_t) :: results
 
         results = many(parse_a, new_state(var_str("AB")))
-        if (results%ok()) then
+        if (results%ok) then
             select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
@@ -39,9 +39,7 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
@@ -55,7 +53,7 @@ contains
         type(parser_output_t) :: results
 
         results = many(parse_a, new_state(var_str("AAAB")))
-        if (results%ok()) then
+        if (results%ok) then
             select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = &
@@ -65,9 +63,7 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
@@ -81,12 +77,10 @@ contains
         type(parser_output_t) :: results
 
         results = many(parse_a, new_state(var_str("BAA")))
-        if (results%ok()) then
-            result_ = assert_that(results%empty())
+        if (results%ok) then
+            result_ = assert_that(results%empty)
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 

@@ -31,7 +31,7 @@ contains
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("AB")))
-        if (results%ok()) then
+        if (results%ok) then
             select type (parsed => results%parsed())
             type is (parsed_character_t)
                 result_ = &
@@ -41,9 +41,7 @@ contains
                 result_ = fail("Didn't get the character back")
             end select
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
@@ -57,12 +55,10 @@ contains
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("BB")))
-        if (results%ok()) then
-            result_ = assert_that(results%empty())
+        if (results%ok) then
+            result_ = assert_that(results%empty)
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
@@ -76,12 +72,10 @@ contains
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("")))
-        if (results%ok()) then
-            result_ = assert_that(results%empty())
+        if (results%ok) then
+            result_ = assert_that(results%empty)
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 

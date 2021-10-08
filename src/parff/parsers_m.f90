@@ -100,10 +100,10 @@ contains
         procedure(parser_i) :: parser
         type(parser_output_t) :: result_
 
-        if (previous%ok()) then
+        if (previous%ok) then
             result_ = parser( &
                     state_t(previous%remaining(), previous%position()))
-            if (.not.previous%empty()) then
+            if (.not.previous%empty) then
                 result_ = result_%but_not_empty()
             end if
         else
@@ -122,28 +122,28 @@ contains
 
         first_result = parse1(state_)
 
-        if (first_result%empty()) then
+        if (first_result%empty) then
             second_result = parse2(state_)
-            if (second_result%empty()) then
-                if (first_result%ok()) then
+            if (second_result%empty) then
+                if (first_result%ok) then
                     result_ = merge_ok( &
                             first_result%parsed(), &
                             first_result%remaining(), &
                             first_result%position(), &
-                            first_result%message(), &
-                            second_result%message())
+                            first_result%message, &
+                            second_result%message)
                 else
-                    if (second_result%ok()) then
+                    if (second_result%ok) then
                         result_ = merge_ok( &
                                 second_result%parsed(), &
                                 second_result%remaining(), &
                                 second_result%position(), &
-                                first_result%message(), &
-                                second_result%message())
+                                first_result%message, &
+                                second_result%message)
                     else
                         result_ = merge_error( &
-                                first_result%message(), &
-                                second_result%message())
+                                first_result%message, &
+                                second_result%message)
                     end if
                 end if
             else
@@ -181,11 +181,11 @@ contains
         type(parser_output_t) :: next
 
         the_result = the_parser(the_state)
-        if (the_result%ok()) then
+        if (the_result%ok) then
             all = parsed_items_t([parsed_item_t(the_result%parsed())])
             do
                 next = drop_then(the_separator, the_parser, state_t(the_result%remaining(), the_result%position()))
-                if (.not.next%ok()) exit
+                if (.not.next%ok) exit
                 all = parsed_items_t([all%items(), parsed_item_t(next%parsed())])
                 the_result = next
             end do
@@ -205,7 +205,7 @@ contains
         type(parsed_items_t) :: all
 
         the_result = many1_with_separator(the_parser, the_separator, the_state)
-        if (.not.the_result%ok()) then
+        if (.not.the_result%ok) then
             all = parsed_items_t(EMPTY_PARSED_ITEM)
             the_result = empty_ok( &
                     all, &
@@ -284,7 +284,7 @@ contains
             type(parsed_integer_t) :: the_value
 
             result_ = sequence(optionally(parse_sign, state_), then_parse_digits)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (parsed_string => result_%parsed())
                 type is (parsed_string_t)
                     the_string = parsed_string%value_()
@@ -322,7 +322,7 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_digits(state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (previous)
                 type is (parsed_character_t)
                     select type (next => result_%parsed())
@@ -342,7 +342,7 @@ contains
             integer :: i
 
             result_ = many1(parse_digit, state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (results => result_%parsed())
                 type is (parsed_items_t)
                     associate(items => results%items())
@@ -405,7 +405,7 @@ contains
             result_ = sequence( &
                     sequence(parse_sign, then_parse_number, state_), &
                     then_parse_exponent)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (parsed_string => result_%parsed())
                 type is (parsed_string_t)
                     the_string = parsed_string%value_()
@@ -424,7 +424,7 @@ contains
             type(parsed_string_t) :: the_string
 
             result_ = either(parse_plus, parse_minus, state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (the_character => result_%parsed())
                 type is (parsed_character_t)
                     the_string = parsed_string_t(the_character%value_())
@@ -460,7 +460,7 @@ contains
             type(parser_output_t) :: result_
 
             result_ = either(parse_covered_decimal, parse_uncovered_decimal, state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (previous)
                 type is (parsed_string_t)
                     select type (next => result_%parsed())
@@ -487,7 +487,7 @@ contains
             integer :: i
 
             result_ = many1(parse_digit, state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (results => result_%parsed())
                 type is (parsed_items_t)
                     associate(items => results%items())
@@ -513,7 +513,7 @@ contains
             type(varying_string) :: EMPTY_VARYING_STRING(0)
 
             result_ = sequence(parse_decimal, then_parse_maybe_digits, state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (previous)
                 type is (parsed_string_t)
                     select type (next => result_%parsed())
@@ -538,7 +538,7 @@ contains
             type(parsed_string_t) :: the_string
 
             result_ = parse_char(".", state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (the_character => result_%parsed())
                 type is (parsed_character_t)
                     the_string = parsed_string_t(the_character%value_())
@@ -553,7 +553,7 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_maybe_digits(state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (previous)
                 type is (parsed_string_t)
                     select type (next => result_%parsed())
@@ -601,7 +601,7 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_digits(state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (previous)
                 type is (parsed_string_t)
                     select type (next => result_%parsed())
@@ -621,7 +621,7 @@ contains
             type(varying_string) :: EMPTY_VARYING_STRING(0)
 
             result_ = parse_exponent(state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (previous)
                 type is (parsed_string_t)
                     select type (next => result_%parsed())
@@ -655,7 +655,7 @@ contains
             type(parsed_string_t) :: the_string
 
             result_ = either(parse_e, parse_d, state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (the_character => result_%parsed())
                 type is (parsed_character_t)
                     the_string = parsed_string_t(the_character%value_())
@@ -712,7 +712,7 @@ contains
             type(parser_output_t) :: result_
 
             result_ = parse_sign(state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (previous)
                 type is (parsed_string_t)
                     select type (next => result_%parsed())
@@ -790,7 +790,7 @@ contains
             type(varying_string) :: was_parsed
 
             result_ = parse_char(first_character(previous%left_to_parse()), state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 select type (the_char => result_%parsed())
                 type is (parsed_character_t)
                     next = intermediate_parsed_string_t( &
@@ -905,7 +905,7 @@ contains
             type(parsed_item_t) :: this_item
 
             result_ = the_parser(state_)
-            if (result_%ok()) then
+            if (result_%ok) then
                 this_item = parsed_item_t(result_%parsed())
                 parsed_so_far = previous%parsed_so_far()
                 next = intermediate_repeat_t( &
@@ -980,11 +980,11 @@ contains
         procedure(then_parser_i) :: parser
         type(parser_output_t) :: result_
 
-        if (previous%ok()) then
+        if (previous%ok) then
             result_ = parser( &
                     previous%parsed(), &
                     state_t(previous%remaining(), previous%position()))
-            if (.not.previous%empty().and.result_%ok()) then
+            if (.not.previous%empty.and.result_%ok) then
                 result_ = result_%but_not_empty()
             end if
         else
@@ -1006,13 +1006,13 @@ contains
         procedure(parser_i) :: parser
         type(parser_output_t) :: result_
 
-        if (previous%ok()) then
+        if (previous%ok) then
             result_ = parser( &
                     state_t(previous%remaining(), previous%position()))
-            if (.not. previous%empty()) then
+            if (.not. previous%empty) then
                 result_ = result_%but_not_empty()
             end if
-            if (result_%ok()) then
+            if (result_%ok) then
                 result_ = result_%with_parsed_value(previous%parsed())
             end if
         else
@@ -1039,16 +1039,15 @@ contains
         type(message_t) :: the_message
 
         the_result = parse(state_)
-        if (the_result%empty()) then
-            if (the_result%ok()) then
-                the_message = expect(the_result%message(), label)
+        if (the_result%empty) then
+            the_message = expect(the_result%message, label)
+            if (the_result%ok) then
                 result_ = empty_ok( &
                         the_result%parsed(), &
                         the_result%remaining(), &
                         the_result%position(), &
                         the_message)
             else
-                the_message = expect(the_result%message(), label)
                 result_ = empty_error(the_message)
             end if
         else

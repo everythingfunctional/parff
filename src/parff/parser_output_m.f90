@@ -15,19 +15,15 @@ module parff_parser_output_m
             merge_ok
 
     type :: parser_output_t
-        private
-        logical :: empty_
-        logical :: ok_
-        type(message_t) :: message_
+        logical :: empty
+        logical :: ok
+        type(message_t) :: message
         ! The following are only defined if ok
         class(parsed_value_t), allocatable :: parsed_
         type(varying_string) :: remaining_
         type(position_t) :: position_
     contains
         private
-        procedure, public :: empty
-        procedure, public :: ok
-        procedure, public :: message
         procedure, public :: parsed
         procedure, public :: remaining
         procedure, public :: position
@@ -42,21 +38,21 @@ contains
         type(message_t), intent(in) :: message
         type(parser_output_t) :: consumed_ok
 
-        consumed_ok%empty_ = .false.
-        consumed_ok%ok_ = .true.
+        consumed_ok%empty = .false.
+        consumed_ok%ok = .true.
         allocate(consumed_ok%parsed_, source = parsed)
         consumed_ok%remaining_ = remaining
         consumed_ok%position_ = position
-        consumed_ok%message_ = message
+        consumed_ok%message = message
     end function
 
     function empty_error(message)
         type(message_t), intent(in) :: message
         type(parser_output_t) :: empty_error
 
-        empty_error%empty_ = .true.
-        empty_error%ok_ = .false.
-        empty_error%message_ = message
+        empty_error%empty = .true.
+        empty_error%ok = .false.
+        empty_error%message = message
     end function
 
     function empty_ok(parsed, remaining, position, message)
@@ -66,12 +62,12 @@ contains
         type(message_t), intent(in) :: message
         type(parser_output_t) :: empty_ok
 
-        empty_ok%empty_ = .true.
-        empty_ok%ok_ = .true.
+        empty_ok%empty = .true.
+        empty_ok%ok = .true.
         allocate(empty_ok%parsed_, source = parsed)
         empty_ok%remaining_ = remaining
         empty_ok%position_ = position
-        empty_ok%message_ = message
+        empty_ok%message = message
     end function
 
     function merge_error(message1, message2) result(result_)
@@ -102,10 +98,10 @@ contains
         class(parser_output_t), intent(in) :: self
         type(parser_output_t) :: but_not_empty
 
-        but_not_empty%ok_ = self%ok_
-        but_not_empty%message_ = self%message_
-        but_not_empty%empty_ = .false.
-        if (self%ok_) then
+        but_not_empty%ok = self%ok
+        but_not_empty%message = self%message
+        but_not_empty%empty = .false.
+        if (self%ok) then
             allocate(but_not_empty%parsed_, source = self%parsed_)
             but_not_empty%remaining_ = self%remaining_
             but_not_empty%position_ = self%position_
@@ -117,37 +113,16 @@ contains
         class(parsed_value_t), intent(in) :: parsed
         type(parser_output_t) :: with_parsed_value
 
-        if (.not. self%ok_) then
+        if (.not. self%ok) then
             error stop "parff_parser_output_m|with_parsed_value: attempted to add parsed value to failed output"
         else
-            with_parsed_value%ok_ = self%ok_
-            with_parsed_value%empty_ = self%empty_
-            with_parsed_value%message_ = self%message_
+            with_parsed_value%ok = self%ok
+            with_parsed_value%empty = self%empty
+            with_parsed_value%message = self%message
             allocate(with_parsed_value%parsed_, source = parsed)
             with_parsed_value%remaining_ = self%remaining_
             with_parsed_value%position_ = self%position_
         end if
-    end function
-
-    pure function empty(self)
-        class(parser_output_t), intent(in) :: self
-        logical :: empty
-
-        empty = self%empty_
-    end function
-
-    pure function ok(self)
-        class(parser_output_t), intent(in) :: self
-        logical :: ok
-
-        ok = self%ok_
-    end function
-
-    pure function message(self)
-        class(parser_output_t), intent(in) :: self
-        type(message_t) :: message
-
-        message = self%message_
     end function
 
     function parsed(self)

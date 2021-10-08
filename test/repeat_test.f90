@@ -28,7 +28,7 @@ contains
         type(parser_output_t) :: results
 
         results = repeat_(parse_a, 2, new_state(var_str("AA")))
-        if (results%ok()) then
+        if (results%ok) then
             select type (parsed => results%parsed())
             type is (parsed_items_t)
                 result_ = assert_equals(2, size(parsed%items()))
@@ -36,30 +36,26 @@ contains
                 result_ = fail("Didn't get list back")
             end select
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
     function check_not_enough() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, new_state, repeat_
+        use parff, only: parser_output_t, new_state, repeat_
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: results
 
         results = repeat_(parse_a, 3, new_state(var_str("AAB")))
 
-        result_ = assert_not(results%ok())
+        result_ = assert_not(results%ok)
         if (result_%passed()) then
-            message = results%message()
             result_ = &
-                    assert_equals("B", message%found) &
-                    .and.assert_equals("A", message%expected(1))
+                    assert_equals("B", results%message%found) &
+                    .and.assert_equals("A", results%message%expected(1))
         end if
     end function
 

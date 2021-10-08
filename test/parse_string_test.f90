@@ -37,8 +37,8 @@ contains
         parse_result = parse_string("Hello", new_state(var_str("Hello World")))
 
         result_ = &
-                assert_that(parse_result%ok(), "Got result", "Didn't get result") &
-                .and.assert_not(parse_result%empty(), "Wasn't empty", "Was empty")
+                assert_that(parse_result%ok, "Got result", "Didn't get result") &
+                .and.assert_not(parse_result%empty, "Wasn't empty", "Was empty")
         if (result_%passed()) then
             select type (the_string => parse_result%parsed())
             type is (parsed_string_t)
@@ -54,42 +54,38 @@ contains
     function check_fail() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
-                message_t, parser_output_t, position_t, new_state, parse_string
+                parser_output_t, position_t, new_state, parse_string
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_string("Hello", new_state(var_str("Help")))
 
-        message = parse_result%message()
         result_ = &
-                assert_not(parse_result%ok()) &
-                .and.assert_equals("Help", message%found) &
-                .and.assert_equals("Hello", message%expected(1)) &
-                .and.assert_equals(4, message%position%column)
+                assert_not(parse_result%ok) &
+                .and.assert_equals("Help", parse_result%message%found) &
+                .and.assert_equals("Hello", parse_result%message%expected(1)) &
+                .and.assert_equals(4, parse_result%message%position%column)
     end function
 
     function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: &
-                message_t, parser_output_t, position_t, new_state, parse_string
+                parser_output_t, position_t, new_state, parse_string
         use vegetables, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_string("Anything", new_state(var_str("")))
 
-        message = parse_result%message()
         result_ = &
-                assert_not(parse_result%ok()) &
-                .and.assert_equals("<nothing>", message%found) &
-                .and.assert_equals("Anything", message%expected(1)) &
-                .and.assert_equals(1, message%position%column)
+                assert_not(parse_result%ok) &
+                .and.assert_equals("<nothing>", parse_result%message%found) &
+                .and.assert_equals("Anything", parse_result%message%expected(1)) &
+                .and.assert_equals(1, parse_result%message%position%column)
     end function
 end module
