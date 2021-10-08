@@ -10,17 +10,4 @@ module parff_intermediate_repeat_m
         type(parsed_items_t) :: parsed_so_far
         integer :: remaining
     end type
-
-    interface intermediate_repeat_t
-        module procedure constructor
-    end interface
-contains
-    function constructor(parsed_so_far, remaining) result(intermediate_repeat)
-        type(parsed_items_t), intent(in) :: parsed_so_far
-        integer, intent(in) :: remaining
-        type(intermediate_repeat_t) :: intermediate_repeat
-
-        intermediate_repeat%parsed_so_far = parsed_so_far
-        intermediate_repeat%remaining = remaining
-    end function
 end module
