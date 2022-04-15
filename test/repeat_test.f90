@@ -5,7 +5,7 @@ module repeat_test
     public :: test_repeat
 contains
     function test_repeat() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -21,7 +21,7 @@ contains
     function check_repeat() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, new_state, repeat_
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -43,7 +43,7 @@ contains
     function check_not_enough() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, repeat_
-        use vegetables, only: result_t, assert_equals, assert_not
+        use veggies, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 

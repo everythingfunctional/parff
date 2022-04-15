@@ -5,7 +5,7 @@ module many_test
     public :: test_many
 contains
     function test_many() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -22,7 +22,7 @@ contains
     function check_one() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, many, new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -46,7 +46,7 @@ contains
     function check_many() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, many, new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -70,7 +70,7 @@ contains
     function check_none() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, many, new_state
-        use vegetables, only: result_t, assert_that, fail
+        use veggies, only: result_t, assert_that, fail
 
         type(result_t) :: result_
 

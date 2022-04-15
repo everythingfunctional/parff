@@ -5,7 +5,7 @@ module parse_with_test
     public :: test_parse_with
 contains
     function test_parse_with() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -22,7 +22,7 @@ contains
 
     function check_successful() result(result_)
         use parff, only: parse_result_t, parsed_character_t, parse_with
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -44,7 +44,7 @@ contains
 
     function check_failure() result(result_)
         use parff, only: parse_result_t, parse_with
-        use vegetables, only: result_t, assert_not
+        use veggies, only: result_t, assert_not
 
         type(result_t) :: result_
 

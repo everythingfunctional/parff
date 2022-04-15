@@ -1,6 +1,5 @@
 module parff_parse_result_m
     use iso_varying_string, only: varying_string, var_str
-    use parff_message_m, only: message_t
     use parff_parsed_value_m, only: parsed_value_t
     use parff_parser_interfaces_m, only: parser_i
     use parff_parser_output_m, only: parser_output_t

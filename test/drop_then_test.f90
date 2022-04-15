@@ -5,7 +5,7 @@ module drop_then_test
     public :: test_drop_then
 contains
     function test_drop_then() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -26,7 +26,7 @@ contains
     function check_both_pass() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_character_t, parser_output_t, drop_then, new_state
-        use vegetables, only: result_t, assert_equals, assert_that, fail
+        use veggies, only: result_t, assert_equals, assert_that, fail
 
         type(result_t) :: result_
 
@@ -48,7 +48,7 @@ contains
     function check_first_fail() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, drop_then, new_state
-        use vegetables, only: result_t, assert_equals, assert_not
+        use veggies, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
@@ -67,7 +67,7 @@ contains
     function check_second_fail() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, drop_then, new_state
-        use vegetables, only: result_t, assert_equals, assert_not
+        use veggies, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 

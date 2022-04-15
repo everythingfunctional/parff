@@ -1,6 +1,6 @@
 module parse_integer_test
     use iso_varying_string, only: varying_string
-    use vegetables, only: input_t
+    use veggies, only: input_t
 
     implicit none
     private
@@ -18,7 +18,7 @@ module parse_integer_test
 contains
     function test_parse_integer() result(tests)
         use iso_varying_string, only: var_str
-        use vegetables, only: example_t, test_item_t, describe, it
+        use veggies, only: example_t, test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -54,7 +54,7 @@ contains
     function check_parse_integer(input) result(result_)
         use parff, only: &
                 parsed_integer_t, parser_output_t, new_state, parse_integer
-        use vegetables, only: Input_t, result_t, assert_equals, fail
+        use veggies, only: Input_t, result_t, assert_equals, fail
 
         class(Input_t), intent(in) :: input
         type(result_t) :: result_
@@ -82,7 +82,7 @@ contains
 
     function check_parse_invalid(input) result(result_)
         use parff, only: parser_output_t, new_state, parse_integer
-        use vegetables, only: Input_t, result_t, assert_not, fail
+        use veggies, only: Input_t, result_t, assert_not, fail
 
         class(Input_t), intent(in) :: input
         type(result_t) :: result_
@@ -102,7 +102,7 @@ contains
     function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, parse_integer
-        use vegetables, only: result_t, assert_not
+        use veggies, only: result_t, assert_not
 
         type(result_t) :: result_
 

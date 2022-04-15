@@ -1,7 +1,6 @@
 module sequence_test
     use iso_varying_string, only: var_str
     use parff, only: &
-            message_t, &
             parsed_character_t, &
             parsed_string_t, &
             parsed_value_t, &
@@ -10,7 +9,7 @@ module sequence_test
             parse_char, &
             new_state, &
             sequence
-    use vegetables, only: &
+    use veggies, only: &
             result_t, &
             test_item_t, &
             assert_equals, &

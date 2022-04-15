@@ -5,7 +5,7 @@ module parse_whitespace_test
     public :: test_parse_whitespace
 contains
     function test_parse_whitespace() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -27,7 +27,7 @@ contains
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_character_t, parser_output_t, new_state, parse_whitespace
-        use vegetables, only: &
+        use veggies, only: &
                 result_t, assert_equals, assert_not, assert_that, fail
 
         type(result_t) :: result_
@@ -54,7 +54,7 @@ contains
     function check_parse_different_character() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, parse_whitespace
-        use vegetables, only: result_t, assert_equals, assert_not
+        use veggies, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 
@@ -71,7 +71,7 @@ contains
     function check_parse_empty_string() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, parse_whitespace
-        use vegetables, only: result_t, assert_equals, assert_not
+        use veggies, only: result_t, assert_equals, assert_not
 
         type(result_t) :: result_
 

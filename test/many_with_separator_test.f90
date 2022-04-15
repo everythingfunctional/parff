@@ -5,7 +5,7 @@ module many_with_separator_test
     public :: test_many_with_separator
 contains
     function test_many_with_separator() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -28,7 +28,7 @@ contains
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_items_t, parser_output_t, many_with_separator, new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -57,7 +57,7 @@ contains
                 parser_output_t, &
                 many_with_separator, &
                 new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -88,7 +88,7 @@ contains
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_items_t, parser_output_t, many_with_separator, new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -113,7 +113,7 @@ contains
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_items_t, parser_output_t, many_with_separator, new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -137,7 +137,7 @@ contains
     function check_none() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, many_with_separator, new_state
-        use vegetables, only: result_t, assert_that, fail
+        use veggies, only: result_t, assert_that, fail
 
         type(result_t) :: result_
 

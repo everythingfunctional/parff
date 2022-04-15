@@ -6,8 +6,8 @@ maintainer = "everythingfunctional@protonmail.com"
 copyright = "2020 Brad Richardson"
 
 [dependencies]
-iso_varying_string = { git = "https://gitlab.com/everythingfunctional/iso_varying_string.git", tag = "v2.2.0" }
-strff = { git = "https://gitlab.com/everythingfunctional/strff.git", tag = "v2.1.0" }
+iso_varying_string = { git = "https://gitlab.com/everythingfunctional/iso_varying_string.git", tag = "v3.0.1" }
+strff = { git = "https://gitlab.com/everythingfunctional/strff.git", tag = "v3.0.3" }
 
 [dev-dependencies]
-vegetables = { git = "https://gitlab.com/everythingfunctional/vegetables", tag = "v7.2.0" }
+veggies = { git = "https://gitlab.com/everythingfunctional/veggies.git", tag = "v1.0.1" }

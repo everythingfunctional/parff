@@ -1,7 +1,7 @@
 module parse_end_of_input_test
     use iso_varying_string, only: var_str
     use parff, only: parser_output_t, new_state, parse_end_of_input
-    use vegetables, only: &
+    use veggies, only: &
             result_t, test_item_t, assert_not, assert_that, describe, it
 
     implicit none
