@@ -26,22 +26,22 @@ module parff_parsed_item_list_m
     end interface
 contains
     function with_first_item(item) result(list)
-        class(parsed_value_t), intent(in) :: item
+        class(parsed_value_t), allocatable, intent(inout) :: item
         type(parsed_item_list_t) :: list
 
         allocate(list%head)
         list%tail => list%head
         list%size = 1
-        list%head%item = item
+        call move_alloc(item, list%head%item)
     end function
 
     subroutine append(self, item)
         class(parsed_item_list_t), intent(inout) :: self
-        class(parsed_value_t), intent(in) :: item
+        class(parsed_value_t), allocatable, intent(inout) :: item
 
         allocate(self%tail%next)
         self%tail => self%tail%next
-        self%tail%item = item
+        call move_alloc(item, self%tail%item)
         self%size = self%size + 1
     end subroutine
 
