@@ -1,7 +1,6 @@
 module sequence_test
     use iso_varying_string, only: var_str
     use parff, only: &
-            message_t, &
             parsed_character_t, &
             parsed_string_t, &
             parsed_value_t, &
@@ -10,7 +9,7 @@ module sequence_test
             parse_char, &
             new_state, &
             sequence
-    use vegetables, only: &
+    use veggies, only: &
             result_t, &
             test_item_t, &
             assert_equals, &
@@ -49,11 +48,11 @@ contains
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AB")))
 
-        result_ = assert_that(parse_result%ok())
+        result_ = assert_that(parse_result%ok)
         if (result_%passed()) then
-            select type (string => parse_result%parsed())
+            select type (string => parse_result%parsed)
             type is (parsed_string_t)
-                result_ = assert_equals("AB", string%value_())
+                result_ = assert_equals("AB", string%value_)
             class default
                 result_ = fail("Didn't get string back")
             end select
@@ -63,42 +62,34 @@ contains
     function check_first_fail() result(result_)
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("BB")))
 
         result_ = &
-                assert_not(parse_result%ok(), "parse_result%ok()") &
-                .and.assert_that(parse_result%empty(), "parse_result%empty()")
+                assert_not(parse_result%ok, "parse_result%ok") &
+                .and.assert_that(parse_result%empty, "parse_result%empty")
         if (result_%passed()) then
-            message = parse_result%message()
-            associate(expected => message%expected())
-                result_ = &
-                        assert_equals("B", message%found()) &
-                        .and.assert_equals("A", expected(1))
-            end associate
+            result_ = &
+                    assert_equals("B", parse_result%message%found) &
+                    .and.assert_equals("A", parse_result%message%expected(1))
         end if
     end function
 
     function check_second_fail() result(result_)
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = sequence(parse_a, then_parse_b, new_state(var_str("AA")))
 
         result_ = &
-                assert_not(parse_result%ok(), "parse_result%ok()") &
-                .and.assert_that(parse_result%empty(), "parse_result%empty()")
+                assert_not(parse_result%ok, "parse_result%ok") &
+                .and.assert_that(parse_result%empty, "parse_result%empty")
         if (result_%passed()) then
-            message = parse_result%message()
-            associate(expected => message%expected())
-                result_ = &
-                        assert_equals("A", message%found()) &
-                        .and.assert_equals("B", expected(1))
-            end associate
+            result_ = &
+                    assert_equals("A", parse_result%message%found) &
+                    .and.assert_equals("B", parse_result%message%expected(1))
         end if
     end function
 
@@ -118,12 +109,12 @@ contains
 
         result_ = parse_char("B", state_)
 
-        if (result_%ok()) then
+        if (result_%ok) then
             select type (previous)
             type is (parsed_character_t)
-                select type (next => result_%parsed())
+                select type (next => result_%parsed)
                 type is (parsed_character_t)
-                    parsed = parsed_string_t(previous%value_() // next%value_())
+                    parsed = parsed_string_t(previous%value_ // next%value_)
                 end select
             end select
             result_ = result_%with_parsed_value(parsed)

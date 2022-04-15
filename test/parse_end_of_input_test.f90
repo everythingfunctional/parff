@@ -1,7 +1,7 @@
 module parse_end_of_input_test
     use iso_varying_string, only: var_str
     use parff, only: parser_output_t, new_state, parse_end_of_input
-    use vegetables, only: &
+    use veggies, only: &
             result_t, test_item_t, assert_not, assert_that, describe, it
 
     implicit none
@@ -25,7 +25,7 @@ contains
 
         parse_result = parse_end_of_input(new_state(var_str("non-empty")))
 
-        result_ = assert_not(parse_result%ok(), "parse_result%ok()")
+        result_ = assert_not(parse_result%ok, "parse_result%ok")
     end function
 
     function check_empty() result(result_)
@@ -35,6 +35,6 @@ contains
 
         parse_result = parse_end_of_input(new_state(var_str("")))
 
-        result_ = assert_that(parse_result%ok(), "parse_result%ok()")
+        result_ = assert_that(parse_result%ok, "parse_result%ok")
     end function
 end module

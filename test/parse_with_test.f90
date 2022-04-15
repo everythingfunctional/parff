@@ -5,7 +5,7 @@ module parse_with_test
     public :: test_parse_with
 contains
     function test_parse_with() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -22,7 +22,7 @@ contains
 
     function check_successful() result(result_)
         use parff, only: parse_result_t, parsed_character_t, parse_with
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
@@ -30,21 +30,21 @@ contains
 
         the_result = parse_with(the_parser, "A")
 
-        if (the_result%ok()) then
-            select type (parsed => the_result%parsed())
+        if (the_result%ok) then
+            select type (parsed => the_result%parsed)
             type is (parsed_character_t)
-                result_ = assert_equals("A", parsed%value_())
+                result_ = assert_equals("A", parsed%value_)
             class default
                 result_ = fail("Didn't get a character back")
             end select
         else
-            result_ = fail(the_result%message())
+            result_ = fail(the_result%message)
         end if
     end function
 
     function check_failure() result(result_)
         use parff, only: parse_result_t, parse_with
-        use vegetables, only: result_t, assert_not
+        use veggies, only: result_t, assert_not
 
         type(result_t) :: result_
 
@@ -52,7 +52,7 @@ contains
 
         the_result = parse_with(the_parser, "B")
 
-        result_ = assert_not(the_result%ok(), the_result%message())
+        result_ = assert_not(the_result%ok, the_result%message)
     end function
 
     function the_parser(state) result(result_)

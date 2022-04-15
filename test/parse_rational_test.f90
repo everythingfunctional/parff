@@ -1,6 +1,6 @@
 module parse_rational_test
     use iso_varying_string, only: varying_string
-    use vegetables, only: input_t
+    use veggies, only: input_t
 
     implicit none
     private
@@ -18,7 +18,7 @@ module parse_rational_test
 contains
     function test_parse_rational() result(tests)
         use iso_varying_string, only: var_str
-        use vegetables, only: example_t, test_item_t, describe, it
+        use veggies, only: example_t, test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -60,7 +60,7 @@ contains
     function check_parse_rational(input) result(result_)
         use parff, only: &
                 parsed_rational_t, parser_output_t, new_state, parse_rational
-        use vegetables, only: Input_t, result_t, assert_equals, fail
+        use veggies, only: Input_t, result_t, assert_equals, fail
 
         class(Input_t), intent(in) :: input
         type(result_t) :: result_
@@ -70,18 +70,16 @@ contains
         select type (input)
         type is (number_input_t)
             parse_result = parse_rational(new_state(input%string))
-            if (parse_result%ok()) then
-                select type (parsed => parse_result%parsed())
+            if (parse_result%ok) then
+                select type (parsed => parse_result%parsed)
                 type is (parsed_rational_t)
                     result_ = assert_equals( &
-                            input%value_, parsed%value_(), input%string)
+                            input%value_, parsed%value_, input%string)
                 class default
                     result_ = fail("Didn't get an integer back")
                 end select
             else
-                associate(message => parse_result%message())
-                    result_ = fail(message%to_string())
-                end associate
+                result_ = fail(parse_result%message%to_string())
             end if
         class default
             result_ = fail("Expected to get a number_input_t")
@@ -89,21 +87,19 @@ contains
     end function
 
     function check_parse_invalid(input) result(result_)
-        use parff, only: message_t, parser_output_t, new_state, parse_rational
-        use vegetables, only: Input_t, result_t, assert_not, fail
+        use parff, only: parser_output_t, new_state, parse_rational
+        use veggies, only: Input_t, result_t, assert_not, fail
 
         class(Input_t), intent(in) :: input
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         select type (input)
         type is (invalid_input_t)
             parse_result = parse_rational(new_state(input%string))
-            message = parse_result%message()
             result_ = assert_not( &
-                    parse_result%ok(), message%to_string())
+                    parse_result%ok, parse_result%message%to_string())
         class default
             result_ = fail("Expected to get an invalid_input_tt")
         end select
@@ -111,17 +107,15 @@ contains
 
     function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, new_state, parse_rational
-        use vegetables, only: Input_t, result_t, assert_not
+        use parff, only: parser_output_t, new_state, parse_rational
+        use veggies, only: result_t, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: parse_result
 
         parse_result = parse_rational(new_state(var_str("")))
-        message = parse_result%message()
         result_ = assert_not( &
-                parse_result%ok(), message%to_string())
+                parse_result%ok, parse_result%message%to_string())
     end function
 end module

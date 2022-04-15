@@ -5,7 +5,7 @@ module optionally_test
     public :: test_optionally
 contains
     function test_optionally() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -24,64 +24,58 @@ contains
         use iso_varying_string, only: var_str
         use parff, only: &
                 parsed_character_t, parser_output_t, new_state, optionally
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("AB")))
-        if (results%ok()) then
-            select type (parsed => results%parsed())
+        if (results%ok) then
+            select type (parsed => results%parsed)
             type is (parsed_character_t)
                 result_ = &
-                        assert_equals("A", parsed%value_(), "parsed") &
-                        .and.assert_equals("B", results%remaining(), "remaining")
+                        assert_equals("A", parsed%value_, "parsed") &
+                        .and.assert_equals("B", results%remaining, "remaining")
             class default
                 result_ = fail("Didn't get the character back")
             end select
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
     function check_parse_fails() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, optionally
-        use vegetables, only: result_t, assert_that, fail
+        use veggies, only: result_t, assert_that, fail
 
         type(result_t) :: result_
 
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("BB")))
-        if (results%ok()) then
-            result_ = assert_that(results%empty())
+        if (results%ok) then
+            result_ = assert_that(results%empty)
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
     function check_parse_empty() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parser_output_t, new_state, optionally
-        use vegetables, only: result_t, assert_that, fail
+        use veggies, only: result_t, assert_that, fail
 
         type(result_t) :: result_
 
         type(parser_output_t) :: results
 
         results = optionally(parse_a, new_state(var_str("")))
-        if (results%ok()) then
-            result_ = assert_that(results%empty())
+        if (results%ok) then
+            result_ = assert_that(results%empty)
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 

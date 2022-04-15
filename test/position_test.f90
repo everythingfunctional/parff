@@ -6,7 +6,7 @@ module position_test
             parser_output_t, &
             satisfy, &
             state_t
-    use vegetables, only: &
+    use veggies, only: &
             result_t, &
             test_item_t, &
             assert_equals, &
@@ -42,13 +42,11 @@ contains
 
         parse_result = parse_everything(new_state(var_str("A")))
 
-        associate(position => parse_result%position())
-            result_ = assert_equals(1, position%line(), &
-                            var_str("don't change line")) &
-                    .and. &
-                    assert_equals(2, position%column(), &
-                            var_str("increment column"))
-        end associate
+        result_ = assert_equals(1, parse_result%position%line, &
+                        var_str("don't change line")) &
+                .and. &
+                assert_equals(2, parse_result%position%column, &
+                        var_str("increment column"))
     end function
 
     function check_tab() result(result_)
@@ -59,13 +57,11 @@ contains
         parse_result = parse_everything( &
                 new_state(var_str("A" // char(9))))
 
-        associate(position => parse_result%position())
-            result_ = assert_equals(1, position%line(), &
-                            var_str("don't change line")) &
-                    .and. &
-                    assert_equals(9, position%column(), &
-                            var_str("increment column"))
-        end associate
+        result_ = assert_equals(1, parse_result%position%line, &
+                        var_str("don't change line")) &
+                .and. &
+                assert_equals(9, parse_result%position%column, &
+                        var_str("increment column"))
     end function
 
     function check_newline() result(result_)
@@ -76,13 +72,11 @@ contains
         parse_result = parse_everything( &
                 new_state(var_str('A' // new_line('A'))))
 
-        associate(position => parse_result%position())
-            result_ = assert_equals(2, position%line(), &
-                                var_str("increment line")) &
-                        .and. &
-                        assert_equals(1, position%column(), &
-                                var_str("reset column"))
-        end associate
+        result_ = assert_equals(2, parse_result%position%line, &
+                            var_str("increment line")) &
+                    .and. &
+                    assert_equals(1, parse_result%position%column, &
+                            var_str("reset column"))
     end function
 
     function parse_everything(the_state) result(the_result)

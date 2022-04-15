@@ -5,7 +5,7 @@ module many1_test
     public :: test_many1
 contains
     function test_many1() result(tests)
-        use vegetables, only: test_item_t, describe, it
+        use veggies, only: test_item_t, describe, it
 
         type(test_item_t) :: tests
 
@@ -22,68 +22,62 @@ contains
     function check_parse_one() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, many1, new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
         type(parser_output_t) :: results
 
         results = many1(parse_a, new_state(var_str("AB")))
-        if (results%ok()) then
-            select type (parsed => results%parsed())
+        if (results%ok) then
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
-                        assert_equals(1, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining())
+                        assert_equals(1, size(parsed%items)) &
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
     function check_many() result(result_)
         use iso_varying_string, only: var_str
         use parff, only: parsed_items_t, parser_output_t, many1, new_state
-        use vegetables, only: result_t, assert_equals, fail
+        use veggies, only: result_t, assert_equals, fail
 
         type(result_t) :: result_
 
         type(parser_output_t) :: results
 
         results = many1(parse_a, new_state(var_str("AAB")))
-        if (results%ok()) then
-            select type (parsed => results%parsed())
+        if (results%ok) then
+            select type (parsed => results%parsed)
             type is (parsed_items_t)
                 result_ = &
-                        assert_equals(2, size(parsed%items())) &
-                        .and.assert_equals("B", results%remaining())
+                        assert_equals(2, size(parsed%items)) &
+                        .and.assert_equals("B", results%remaining)
             class default
                 result_ = fail("Didn't get list back")
             end select
         else
-            associate(message => results%message())
-                result_ = fail(message%to_string())
-            end associate
+            result_ = fail(results%message%to_string())
         end if
     end function
 
     function check_none() result(result_)
         use iso_varying_string, only: var_str
-        use parff, only: message_t, parser_output_t, many1, new_state
-        use vegetables, only: result_t, assert_not
+        use parff, only: parser_output_t, many1, new_state
+        use veggies, only: result_t, assert_not
 
         type(result_t) :: result_
 
-        type(message_t) :: message
         type(parser_output_t) :: results
 
         results = many1(parse_a, new_state(var_str("BAA")))
-        message = results%message()
-        result_ = assert_not(results%ok(), message%to_string())
+        result_ = assert_not(results%ok, results%message%to_string())
     end function
 
     function parse_a(state_) result(result_)

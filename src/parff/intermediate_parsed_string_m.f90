@@ -7,13 +7,8 @@ module parff_intermediate_parsed_string_m
     public :: intermediate_parsed_string_t
 
     type, extends(parsed_value_t) :: intermediate_parsed_string_t
-        private
-        type(varying_string) :: parsed_so_far_
-        type(varying_string) :: left_to_parse_
-    contains
-        private
-        procedure, public :: parsed_so_far
-        procedure, public :: left_to_parse
+        type(varying_string) :: parsed_so_far
+        type(varying_string) :: left_to_parse
     end type
 
     interface intermediate_parsed_string_t
@@ -27,8 +22,8 @@ contains
         type(varying_string), intent(in) :: left_to_parse
         type(intermediate_parsed_string_t) :: intermediate_parsed_string
 
-        intermediate_parsed_string%parsed_so_far_ = parsed_so_far
-        intermediate_parsed_string%left_to_parse_ = left_to_parse
+        intermediate_parsed_string%parsed_so_far = parsed_so_far
+        intermediate_parsed_string%left_to_parse = left_to_parse
     end function
 
     pure function constructor_ss( &
@@ -37,21 +32,7 @@ contains
         type(varying_string), intent(in) :: left_to_parse
         type(intermediate_parsed_string_t) :: intermediate_parsed_string
 
-        intermediate_parsed_string%parsed_so_far_ = parsed_so_far
-        intermediate_parsed_string%left_to_parse_ = left_to_parse
-    end function
-
-    pure function parsed_so_far(self)
-        class(intermediate_parsed_string_t), intent(in) :: self
-        type(varying_string) :: parsed_so_far
-
-        parsed_so_far = self%parsed_so_far_
-    end function
-
-    pure function left_to_parse(self)
-        class(intermediate_parsed_string_t), intent(in) :: self
-        type(varying_string) :: left_to_parse
-
-        left_to_parse = self%left_to_parse_
+        intermediate_parsed_string%parsed_so_far = parsed_so_far
+        intermediate_parsed_string%left_to_parse = left_to_parse
     end function
 end module
